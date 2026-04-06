@@ -49,53 +49,54 @@ const defaultProductImage = "/images/products/components-placeholder.svg";
 const DEFAULT_SLIDES = [
   {
     id: "hero-1",
-    image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=1920&auto=format&fit=crop",
-    alt: "Filamentos 3D de alta tecnologia com cores neon vibrantes",
-    label: "Linha Premium",
-    title: "Cores que dão vida às suas ideias",
-    subtitle: "QUALIDADE INDUSTRIAL",
-    description: "Explore nossa linha completa de filamentos com diâmetro constante e cores vibrantes para impressões perfeitas.",
-    button1: { text: "Ver Filamentos", link: "/categorias/filamentos" },
-    button2: { text: "Suporte Técnico", link: "https://wa.me/5511999999999" },
-    crosshairPos: { top: "45%", left: "70%" },
+    image: "/images/banners/banner-hero1.png",
+    alt: "Hotend Bambu Lab A1 Mini em destaque",
+    label: "Reposição premium",
+    title: "Hotend Bambu Lab A1 Mini",
+    subtitle: "PEÇA DE SUBSTITUIÇÃO",
+    description: "Troca rápida e desempenho estável para manter sua A1 Mini imprimindo com precisão e consistência.",
+    button1: { text: "Ver produto", link: "/produtos/hotend-bambu-lab-a1-mini" },
+    button2: { text: "Solicitar no WhatsApp", link: "https://wa.me/5511999999999" },
+    crosshairPos: { top: "45%", left: "68%" },
     tech: [
-      { label: "MATERIAL", value: "PLA / ABS / PETG" },
-      { label: "PRECISÃO", value: "±0.02MM" },
-      { label: "STATUS", value: "OPTIMIZED" }
+      { label: "COMPATIBILIDADE", value: "Bambu Lab A1 Mini" },
+      { label: "FUNÇÃO", value: "Reposição / upgrade" },
+      { label: "STATUS", value: "PRONTO PARA USO" }
     ]
   },
   {
     id: "hero-2",
-    image: "https://images.unsplash.com/photo-1707328905739-166348c5c163?q=80&w=1920&auto=format&fit=crop",
-    alt: "Close-up dramático da cabeça de impressão Creality K1",
-    label: "Peças de Elite",
-    title: "Upgrade de Elite para sua Máquina",
-    subtitle: "PEÇAS DE PRECISÃO",
-    description: "Hotends, nozzles e kits de extrusão de alta performance. Compatível com as principais marcas do mercado.",
-    button1: { text: "Comprar Peças", link: "/produtos" },
-    button2: { text: "Consultoria", link: "https://wa.me/5511999999999" },
-    crosshairPos: { top: "40%", left: "55%" },
+    image: "/images/banners/banner-hero2.png",
+    alt: "Capas de Silicone A1 em destaque",
+    label: "Proteção premium",
+    title: "Capas de Silicone A1",
+    subtitle: "PROTEÇÃO TÉRMICA",
+    description: "Proteção estável para o bloco aquecido, com encaixe preciso para manter sua A1/A1 Mini pronta para produção.",
+    button1: { text: "Ver produto", link: "/produtos/capa-silicone-bambu-lab-a1" },
+    button2: { text: "Solicitar no WhatsApp", link: "https://wa.me/5511999999999" },
+    crosshairPos: { top: "46%", left: "49%" },
     tech: [
-      { label: "TEMP.", value: "300°C MAX" },
-      { label: "HARDWARE", value: "CREALITY / BAMBU" },
-      { label: "FLOW", value: "32MM³/S" }
+      { label: "COMPATIBILIDADE", value: "Bambu Lab A1 / A1 Mini" },
+      { label: "FUNÇÃO", value: "Proteção térmica" },
+      { label: "STATUS", value: "PRONTA PARA USO" }
     ]
   },
   {
     id: "hero-3",
-    image: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?q=80&w=1920&auto=format&fit=crop",
-    alt: "Impressão 3D artística de alta precisão",
-    label: "Serviços IP3D",
-    title: "A perfeição em cada camada",
-    subtitle: "SERVIÇOS SOB DEMANDA",
-    description: "Transforme seus projetos em realidade com nosso serviço de impressão 3D profissional e acabamento impecável.",
-    button1: { text: "Orçamento Rápido", link: "/personalizados" },
-    button2: { text: "Ver Portfólio", link: "/personalizados#portfolio" },
-    crosshairPos: { top: "50%", left: "40%" },
+    image: "/images/banners/banner-hero3.png",
+    alt: "Bico Nozzle Aço Endurecido em destaque",
+    label: "Precisão técnica",
+    title: "Bico Nozzle Aço Endurecido",
+    subtitle: "ALTA DURABILIDADE",
+    description:
+      "Mais resistência para materiais abrasivos, com encaixe preciso e estabilidade para uso contínuo na A1 Mini.",
+    button1: { text: "Ver produto", link: "/produtos/nozzle-aco-bambu-lab-a1" },
+    button2: { text: "Solicitar no WhatsApp", link: "https://wa.me/5511999999999" },
+    crosshairPos: { top: "45%", left: "66%" },
     tech: [
-      { label: "RESOLUÇÃO", value: "100 MICRONS" },
-      { label: "FINISH", value: "PROFISSIONAL" },
-      { label: "LOAD", value: "CALIBRATED" }
+      { label: "COMPATIBILIDADE", value: "Bambu Lab A1 Mini / A1" },
+      { label: "MATERIAL", value: "Aço endurecido" },
+      { label: "STATUS", value: "PRONTO PARA USO" }
     ]
   },
 ];
@@ -103,22 +104,22 @@ const DEFAULT_SLIDES = [
 const categorySections = [
   {
     slug: "componentes-bambu-lab",
-    title: "Componentes Bambu Lab",
-    description: "Kits, hotends e reposicoes para A1, A1 Mini e H2D.",
+    title: "Os mais queridinhos",
+    description: "Seleção de componentes variados para atender diferentes necessidades e aplicações.",
     miniBanner: "/images/banners/mini-componentes-bambu-lab.svg",
   },
-  {
-    slug: "componentes-creality",
-    title: "Componentes Creality",
-    description: "Pecas e upgrades para CR-10, Ender e linha industrial.",
-    miniBanner: "/images/banners/mini-componentes-creality.svg",
-  },
-  {
-    slug: "componentes-universais",
-    title: "Componentes Universais",
-    description: "Termistores, aquecedores e itens para multiplos modelos.",
-    miniBanner: "/images/banners/mini-componentes-universais.svg",
-  },
+    {
+      slug: "componentes-creality",
+      title: "Os mais pedidos",
+      description: "Seleção variada de peças e upgrades para diferentes necessidades.",
+      miniBanner: "/images/banners/mini-componentes-creality.svg",
+    },
+    {
+      slug: "componentes-universais",
+      title: "Seleção em destaque",
+      description: "Peças versáteis para atender diferentes necessidades e aplicações.",
+      miniBanner: "/images/banners/mini-componentes-universais.svg",
+    },
   {
     slug: "impressoras-3d",
     title: "Impressoras 3D",
@@ -240,10 +241,10 @@ export function HomeShowcase({
         if (!res.ok) throw new Error("Falha ao carregar banners");
         const data = await res.json();
         
-        if (data.banners && data.banners.length > 0) {
-          const mappedBanners = data.banners.map((b: any) => ({
-            id: b.id,
-            image: b.image,
+          if (data.banners && data.banners.length > 0) {
+            const mappedBanners = data.banners.map((b: any) => ({
+              id: b.id,
+              image: b.image,
             alt: b.title,
             label: b.badge || "DESTAQUE",
             title: b.title,
@@ -251,11 +252,58 @@ export function HomeShowcase({
             description: b.description || "",
             button1: { text: b.button1Text || "Ver Mais", link: b.button1Link || "#" },
             button2: { text: b.button2Text || "", link: b.button2Link || "" },
-            crosshairPos: b.crosshairPos || { top: "50%", left: "50%" },
-            tech: b.techLabels || [{ label: "STATUS", value: b.active ? "ONLINE" : "OFFLINE" }]
-          }));
-          setHeroSlides(mappedBanners);
-        }
+              crosshairPos: b.crosshairPos || { top: "50%", left: "50%" },
+              tech: b.techLabels || [{ label: "STATUS", value: b.active ? "ONLINE" : "OFFLINE" }]
+            }));
+            mappedBanners[0] = {
+              ...mappedBanners[0],
+              image: "/images/banners/banner-hero1.png",
+            };
+            if (mappedBanners[1]) {
+              mappedBanners[1] = {
+                ...mappedBanners[1],
+                image: "/images/banners/banner-hero2.png",
+                alt: "Capas de Silicone A1 em destaque",
+                label: "Proteção premium",
+                title: "Capas de Silicone A1",
+                subtitle: "PROTEÇÃO TÉRMICA",
+                description:
+                  "Proteção estável para o bloco aquecido, com encaixe preciso para manter sua A1/A1 Mini pronta para produção.",
+                button1: { text: "Ver produto", link: "/produtos/capa-silicone-bambu-lab-a1" },
+                button2: { text: "Solicitar no WhatsApp", link: "https://wa.me/5511999999999" },
+                crosshairPos: { top: "46%", left: "49%" },
+                tech: [
+                  { label: "COMPATIBILIDADE", value: "Bambu Lab A1 / A1 Mini" },
+                  { label: "FUNÇÃO", value: "Proteção térmica" },
+                  { label: "STATUS", value: "PRONTA PARA USO" }
+                ]
+              };
+            }
+            const thirdBanner = {
+              ...DEFAULT_SLIDES[2],
+              image: "/images/banners/banner-hero3.png",
+              alt: "Bico Nozzle Aço Endurecido em destaque",
+              label: "Precisão técnica",
+              title: "Bico Nozzle Aço Endurecido",
+              subtitle: "ALTA DURABILIDADE",
+              description:
+                "Mais resistência para materiais abrasivos, com encaixe preciso e estabilidade para uso contínuo na A1 Mini.",
+              button1: { text: "Ver produto", link: "/produtos/nozzle-aco-bambu-lab-a1" },
+              button2: { text: "Solicitar no WhatsApp", link: "https://wa.me/5511999999999" },
+              crosshairPos: { top: "45%", left: "66%" },
+              tech: [
+                { label: "COMPATIBILIDADE", value: "Bambu Lab A1 Mini / A1" },
+                { label: "MATERIAL", value: "Aço endurecido" },
+                { label: "STATUS", value: "PRONTO PARA USO" }
+              ]
+            };
+            if (mappedBanners[2]) {
+              mappedBanners[2] = thirdBanner;
+            } else {
+              mappedBanners.push(thirdBanner);
+            }
+            setHeroSlides(mappedBanners);
+          }
       } catch (error) {
         console.error("Error fetching banners:", error);
       }
@@ -338,6 +386,8 @@ export function HomeShowcase({
     return map;
   }, [categoryProducts]);
 
+  const featuredProductsToRender = featuredProducts.slice(0, 4);
+
   const defaultCategories: CategoryCard[] = categorySections.map((section) => ({
     id: section.slug,
     name: section.title,
@@ -362,6 +412,85 @@ export function HomeShowcase({
   });
 
   const categoriesToRender = displayCategories.length > 0 ? displayCategories : defaultCategories;
+  const compactSectionSlugs = new Set(["componentes-bambu-lab", "componentes-creality", "componentes-universais"]);
+
+  const promoBannerSection = (
+    <section className="px-4 sm:px-6 lg:px-10">
+      <div className="relative overflow-hidden rounded-[2rem] border border-[#d8e5f8] bg-gradient-to-r from-[#0B64D3] via-[#0f74ee] to-[#10213f] text-white shadow-[0_24px_70px_rgba(11,100,211,0.22)]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.14),transparent_30%)]" />
+        <div className="relative grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+              <div className="space-y-5 px-6 py-8 sm:px-10 sm:py-10 lg:px-12 lg:py-12">
+                <span className="inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/90">
+              Acessório para A1
+                </span>
+                <div className="space-y-3">
+                  <h2 className="max-w-2xl text-3xl font-semibold leading-tight sm:text-4xl">
+                Limpador de bocal para Bambu Lab A1
+                  </h2>
+                  <p className="max-w-2xl text-sm leading-6 text-white/80 sm:text-base">
+                Instalado na cama de aquecimento, o limpador de bocal ajuda a limpar o nozzle
+                automaticamente antes da impressão e deixa a série A1 pronta para produzir com mais consistência.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="h-11 rounded-full bg-white px-5 text-sm font-semibold text-[#0B64D3] shadow-none hover:bg-white/95"
+                  >
+                <Link href="/produtos/nozzle-wiper-bambu-lab-a1">Ver produto</Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="h-11 rounded-full border-white/25 bg-white/8 px-5 text-sm font-semibold text-white hover:bg-white/12 hover:text-white"
+                  >
+                <Link href="/contato">Solicitar no WhatsApp</Link>
+                  </Button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Compatibilidade</p>
+                <p className="mt-1 text-sm font-medium">Bambu Lab A1</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Instalação</p>
+                <p className="mt-1 text-sm font-medium">Na cama de aquecimento</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Função</p>
+                <p className="mt-1 text-sm font-medium">Limpeza automática do bocal</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative min-h-[260px] overflow-hidden border-t border-white/10 lg:min-h-full lg:border-l lg:border-t-0">
+                <Image
+                  src="/images/banners/banner4.png"
+                  alt="Limpador de bocal para Bambu Lab A1 em destaque"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#10213f]/78 via-[#10213f]/18 to-transparent" />
+                <div className="absolute bottom-5 left-5 right-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/15 bg-[#10213f]/80 px-4 py-3 backdrop-blur">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/60">
+                  Série A1
+                    </p>
+                <p className="mt-1 text-sm font-medium">Limpeza integrada antes de imprimir</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/15 bg-white px-4 py-3 text-[#10213f] shadow-lg">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#0B64D3]">
+                  Instalação
+                    </p>
+                <p className="mt-1 text-sm font-semibold">Na cama de aquecimento</p>
+                  </div>
+                </div>
+              </div>
+        </div>
+      </div>
+    </section>
+  );
 
   const handleAddToCart = (product: ProductCard) => {
     const basePrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
@@ -564,10 +693,10 @@ export function HomeShowcase({
         </div>
       </section>
 
-      <section>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {categorySections.map((section) => (
+        <section>
+          <div className="container mx-auto px-4 sm:px-6 lg:px-10">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              {categorySections.map((section) => (
               <Link
                 key={section.slug}
                 href={`/categorias/${section.slug}`}
@@ -581,14 +710,14 @@ export function HomeShowcase({
                   <p className="line-clamp-2 text-xs text-[#48628b]">{section.description}</p>
                 </div>
               </Link>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/*
-       * MAIS VENDIDOS
-       * Fonte de dados: prop `featuredProducts` — produtos com featured=true no banco,
+        {/* 
+         * MAIS VENDIDOS
+         * Fonte de dados: prop `featuredProducts` — produtos com featured=true no banco,
        * ordenados por updatedAt desc (máx. 8). Para alterar quais produtos aparecem
        * aqui, ative/desative o campo "Destaque" no Admin → Produtos.
        *
@@ -601,8 +730,8 @@ export function HomeShowcase({
       {featuredProducts.length > 0 && (
         <section className="bg-white py-8">
           <div className="container mx-auto px-4 sm:px-6 lg:px-10">
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
-              <div>
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <div className="max-w-xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0B64D3]">
                   Mais vendidos
                 </p>
@@ -610,38 +739,21 @@ export function HomeShowcase({
                   Produtos mais procurados
                 </h2>
               </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => scrollSection("mais-vendidos", "left")}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c7d8f4] bg-white text-[#0B64D3] hover:border-[#0B64D3]"
-                  aria-label="Voltar em Mais vendidos"
-                >
-                  <HiOutlineChevronLeft className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={() => scrollSection("mais-vendidos", "right")}
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c7d8f4] bg-white text-[#0B64D3] hover:border-[#0B64D3]"
-                  aria-label="Avançar em Mais vendidos"
-                >
-                  <HiOutlineChevronRight className="h-5 w-5" />
-                </button>
-                <Link
-                  href="/produtos"
-                  className="ml-2 text-sm font-semibold text-[#0B64D3] hover:text-[#0A4A9D]"
-                >
-                  Ver todos
-                </Link>
-              </div>
+              <Link
+                href="/produtos"
+                className="text-sm font-semibold text-[#0B64D3] hover:text-[#0A4A9D]"
+              >
+                Ver todos
+              </Link>
             </div>
 
             <div
               ref={(node) => {
                 sectionCarouselRefs.current["mais-vendidos"] = node;
               }}
-              className="flex gap-4 overflow-x-auto pb-3"
-              style={{ scrollbarWidth: "none" }}
+              className="mx-auto grid max-w-6xl grid-cols-1 gap-4 pb-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
             >
-              {featuredProducts.map((product) => {
+              {featuredProductsToRender.map((product) => {
                 const mainPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
                 const oldPrice =
                   product.pricePromo && product.priceOriginal && product.pricePromo < product.priceOriginal
@@ -653,9 +765,9 @@ export function HomeShowcase({
                 const productImage = product.image || defaultProductImage;
 
                 return (
-                  <div
+                <div
                     key={product.id}
-                    className="group relative flex h-[430px] w-[272px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                    className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
                   >
                     <button
                       type="button"
@@ -720,7 +832,14 @@ export function HomeShowcase({
                         </div>
                         {installments && <p className="text-xs text-[#47628a]">ou {installments}</p>}
                         {pixPrice && mainPrice && pixPrice < mainPrice && (
-                          <p className="text-xs font-semibold text-[#FF6B35]">Pix: {formatCurrency(pixPrice)}</p>
+                          <div className="mt-2 rounded-lg bg-[#fff4ec] px-3 py-2">
+                            <p className="text-sm font-semibold text-[#FF6B35]">
+                              Pix: {formatCurrency(pixPrice)}
+                            </p>
+                            <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
+                              Pagamento via PIX com desconto
+                            </p>
+                          </div>
                         )}
                       </div>
 
@@ -921,46 +1040,69 @@ export function HomeShowcase({
             </div>
           )}
 
-          {categorySections.map((section) => {
-            const products = categoryProductsMap[section.slug] ?? [];
+            {categorySections.map((section) => {
+              const products = categoryProductsMap[section.slug] ?? [];
+              const isCompactSection = compactSectionSlugs.has(section.slug);
+              const isBambuLabSection = section.slug === "componentes-bambu-lab";
+              const displayProducts = isCompactSection
+                ? (() => {
+                    const prioritized = products.slice(0, 4);
+                    if (prioritized.length >= 4) return prioritized;
+
+                    const seenIds = new Set(prioritized.map((product) => product.id));
+                    for (const fallbackProduct of allProducts) {
+                      if (seenIds.has(fallbackProduct.id)) continue;
+                      prioritized.push(fallbackProduct);
+                      seenIds.add(fallbackProduct.id);
+                      if (prioritized.length >= 4) break;
+                    }
+
+                    return prioritized;
+                  })()
+                : products;
             // Guard: oculta a seção enquanto não houver produtos reais no banco
             // para esta categoria. Impede carrossel vazio ou preenchimento com
             // produtos de categorias incorretas.
             if (products.length === 0) return null;
 
-            return (
-              <div key={section.slug} className="space-y-4">
-                <div className="flex flex-wrap items-end justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0B64D3]">{section.title}</p>
-                    <h3 className="mt-1 text-2xl font-semibold text-[#10213f]">{section.description}</h3>
+              return (
+                <div key={section.slug} className="space-y-4">
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0B64D3]">{section.title}</p>
+                      <h3 className="mt-1 text-2xl font-semibold text-[#10213f]">{section.description}</h3>
+                    </div>
+                    {!isCompactSection && (
+                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => scrollSection(section.slug, "left")}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c7d8f4] bg-white text-[#0B64D3] hover:border-[#0B64D3]"
+                        aria-label={`Voltar em ${section.title}`}
+                      >
+                        <HiOutlineChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => scrollSection(section.slug, "right")}
+                        className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c7d8f4] bg-white text-[#0B64D3] hover:border-[#0B64D3]"
+                        aria-label={`Avancar em ${section.title}`}
+                      >
+                        <HiOutlineChevronRight className="h-5 w-5" />
+                      </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => scrollSection(section.slug, "left")}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c7d8f4] bg-white text-[#0B64D3] hover:border-[#0B64D3]"
-                      aria-label={`Voltar em ${section.title}`}
-                    >
-                      <HiOutlineChevronLeft className="h-5 w-5" />
-                    </button>
-                    <button
-                      onClick={() => scrollSection(section.slug, "right")}
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c7d8f4] bg-white text-[#0B64D3] hover:border-[#0B64D3]"
-                      aria-label={`Avancar em ${section.title}`}
-                    >
-                      <HiOutlineChevronRight className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div
-                  ref={(node) => {
-                    sectionCarouselRefs.current[section.slug] = node;
-                  }}
-                  className="flex gap-4 overflow-x-auto pb-3"
-                  style={{ scrollbarWidth: "none" }}
-                >
-                  {products.map((product) => {
+                  <div
+                    ref={(node) => {
+                      sectionCarouselRefs.current[section.slug] = node;
+                    }}
+                    className={
+                      isCompactSection
+                        ? "mx-auto grid max-w-6xl grid-cols-1 gap-4 pb-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
+                        : "flex gap-4 overflow-x-auto pb-3"
+                    }
+                    style={isCompactSection ? undefined : { scrollbarWidth: "none" }}
+                      >
+                      {displayProducts.map((product) => {
                     const mainPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
                     const oldPrice = product.pricePromo && product.priceOriginal && product.pricePromo < product.priceOriginal ? product.priceOriginal : null;
                     const pixPrice = product.pixPrice ?? (mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : null);
@@ -969,9 +1111,13 @@ export function HomeShowcase({
                     const productImage = product.image || defaultProductImage;
 
                     return (
-                      <div
-                        key={product.id}
-                        className="group relative flex h-[430px] w-[272px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                        <div
+                          key={product.id}
+                          className={
+                            isCompactSection
+                              ? "group relative flex min-h-[430px] flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                              : "group relative flex h-[430px] w-[272px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                          }
                       >
                         <button
                           type="button"
@@ -1028,7 +1174,14 @@ export function HomeShowcase({
                             </div>
                             {installments && <p className="text-xs text-[#47628a]">ou {installments}</p>}
                             {pixPrice && mainPrice && pixPrice < mainPrice && (
-                              <p className="text-xs font-semibold text-[#FF6B35]">Pix: {formatCurrency(pixPrice)}</p>
+                              <div className="mt-2 rounded-lg bg-[#fff4ec] px-3 py-2">
+                                <p className="text-sm font-semibold text-[#FF6B35]">
+                                  Pix: {formatCurrency(pixPrice)}
+                                </p>
+                                <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
+                                  Pagamento via PIX com desconto
+                                </p>
+                              </div>
                             )}
                           </div>
 
@@ -1040,11 +1193,12 @@ export function HomeShowcase({
                         </div>
                       </div>
                     );
-                  })}
+                      })}
+                    </div>
+                  {section.slug === "componentes-bambu-lab" && promoBannerSection}
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </section>
 
