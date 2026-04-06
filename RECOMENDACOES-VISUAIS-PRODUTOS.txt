@@ -1,0 +1,167 @@
+=== RECOMENDAÇÕES VISUAIS PARA PRODUTOS IP3D ===
+
+📊 ANÁLISE REALIZADA: 15/03/2026
+Produtos Analisados: 9
+Imagens Customizadas: 6/9 (67%)
+Placeholders: 3/9 (33%)
+SEM PREÇO: 9/9 (100%) ❌ CRÍTICO
+
+═══════════════════════════════════════════════════════════════════════════
+
+1. PRODUTOS COM PLACEHOLDER - AÇÃO RECOMENDADA
+
+❌ Termistor NTC 100K 1% 3950
+   - Path: /images/products/components-placeholder.svg
+   - Recomendação: Substituir por foto do resistor real
+   - Dica de Foto: Macro shot com fundo limpo (branco/cinza)
+   - Dimensões Recomendadas: Mínimo 800x800px
+
+❌ Kit Termistor para Bambu Lab A1
+   - Path: /images/products/components-placeholder.svg
+   - Recomendação: Foto do kit completo (termistor + cartucho aquecedor)
+   - Dica de Foto: Vista do produto em ângulo 45°
+   - Dimensões Recomendadas: Mínimo 800x800px
+
+❌ Kit Hotend Completo para Bambu Lab A1
+   - Path: /images/products/components-placeholder.svg
+   - Recomendação: Foto do hotend montado e pronto
+   - Dica de Foto: Vista frontal + detalhe de componentes
+   - Dimensões Recomendadas: Mínimo 800x800px
+
+═══════════════════════════════════════════════════════════════════════════
+
+2. RECOMENDAÇÕES DE DESIGN PARA CARDS DE PRODUTO
+
+Layout Recomendado:
+┌────────────────────────────────┐
+│  [Imagem 300x300px]           │
+│  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  │
+│  Nome do Produto               │
+│  ★★★★★ (5 stars placeholder)  │
+│  Descrição breve (2-3 linhas)  │
+│  ▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔  │
+│  R$ 99,90    [Comprar Agora]  │
+└────────────────────────────────┘
+
+Tipografia para Cards:
+- Título: 16px, bold, color: #1A1A1A
+- Descrição: 14px, regular, color: #666666
+- Preço: 18px, bold, color: #0066CC
+- Botão: 14px, white on #0066CC
+
+═══════════════════════════════════════════════════════════════════════════
+
+3. PADRÃO DE IMAGENS CUSTOMIZADAS
+
+Imagens Boas (✅):
+✅ kit-hotend-creality-cr-10.jpg
+✅ kit-aquecedor-ceramico-60w.jpg
+✅ mesa-pei-texturizada-bambu-lab-h2d.jpg
+✅ limpador-bico-bambu-lab-a1.jpg
+✅ bico-nozzle-aco-endurecido-bambu-lab-a1.jpg
+✅ capa-silicone-bambu-lab-a1.jpg
+
+Características Comuns (O que Funciona):
+- Fundo limpo (branco ou cinza claro)
+- Foto bem iluminada (sem sombras)
+- Produto centrado no frame
+- Nenhuma distração visual
+- Boa qualidade de fotografia
+
+═══════════════════════════════════════════════════════════════════════════
+
+4. RECOMENDAÇÕES DE PREÇO (CRÍTICO - FALTAM PREÇOS)
+
+Estimativa de Preço Baseada em Mercado:
+
+Componentes Universais:
+- Termistor NTC 100K: R$ 85,00 - R$ 150,00
+  Sugestão: R$ 99,90
+
+- Kit Aquecedor Cerâmico 60W: R$ 250,00 - R$ 350,00
+  Sugestão: R$ 299,90
+
+Componentes Creality:
+- Kit Hotend Completo CR-10: R$ 180,00 - R$ 280,00
+  Sugestão: R$ 229,90
+
+Componentes Bambu Lab:
+- Mesa PEI Texturizada: R$ 200,00 - R$ 350,00
+  Sugestão: R$ 279,90
+
+- Kit Termistor A1: R$ 150,00 - R$ 250,00
+  Sugestão: R$ 189,90
+
+- Limpador de Bico: R$ 80,00 - R$ 150,00
+  Sugestão: R$ 119,90
+
+- Bico Nozzle Aço Endurecido: R$ 100,00 - R$ 180,00
+  Sugestão: R$ 149,90
+
+- Capa de Silicone: R$ 60,00 - R$ 120,00
+  Sugestão: R$ 99,90
+
+- Kit Hotend Completo A1: R$ 200,00 - R$ 350,00
+  Sugestão: R$ 279,90
+
+═══════════════════════════════════════════════════════════════════════════
+
+5. ESTRATÉGIA DE VISUAL MERCHANDISING
+
+Para Carousel Home:
+✅ Exibir imagem grande (400x400px mínimo)
+✅ Mostrar preço destacado em azul (#0066CC)
+✅ Adicionar "Descrição curta" abaixo da imagem
+✅ Botão "Ver Mais" ou "Comprar Agora" em contraste
+
+Para Mobile (<768px):
+✅ Imagem em full width
+✅ Preço acima do nome (visual priority)
+✅ Botão ocupando 100% da largura
+✅ Stack vertical: Imagem → Preço → Nome → Botão
+
+═══════════════════════════════════════════════════════════════════════════
+
+6. CHECKLIST DE QUALIDADE DE IMAGEM
+
+Para cada produto, validar:
+
+□ Imagem existe (não é 404)
+□ Resolução ≥ 800x800px
+□ Fundo limpo (sem distrações)
+□ Produto centrado e bem enquadrado
+□ Cores vibrantes e precisas
+□ Sem watermarks ou logos de concorrentes
+□ Tamanho do arquivo < 500KB (otimizado)
+□ Extensão .jpg ou .png
+□ Nome do arquivo descritivo (slug)
+
+═══════════════════════════════════════════════════════════════════════════
+
+7. PRÓXIMOS PASSOS
+
+HOJE (Prioridade Máxima):
+1. Adicionar preços a todos os 9 produtos
+   - Usar valores sugeridos acima
+   - Validar exibição na home
+
+ESTA SEMANA:
+2. Substituir 3 placeholders por fotos customizadas
+   - Termistor NTC
+   - Kit Termistor A1
+   - Kit Hotend A1
+
+PRÓXIMA SEMANA:
+3. A/B testar variações de fotos
+4. Implementar zoom on hover
+5. Adicionar ratings/reviews (future)
+
+═══════════════════════════════════════════════════════════════════════════
+
+CONTATO PARA OBTER FOTOS:
+- Fornecedores de componentes
+- Bambu Lab (fotos oficiais)
+- Creality (fotos oficiais)
+- Stock photo sites (Shutterstock, iStock)
+
+═══════════════════════════════════════════════════════════════════════════
