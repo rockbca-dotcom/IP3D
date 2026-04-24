@@ -34,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" style={{ colorScheme: "light" }}>
+    <html lang="pt-BR" style={{ colorScheme: "light" }} suppressHydrationWarning>
       <head>
         {/* Preconnect para recursos externos */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -44,10 +44,12 @@ export default function RootLayout({
         <DynamicFavicon />
         {/* <TrackingScripts /> — desativado, ver comentário no import */}
       </head>
-      <body className={`${poppins.variable} ${playfair.variable} font-sans antialiased`}>
+      <body className={`${poppins.variable} ${playfair.variable} font-sans antialiased min-w-[320px]`}>
         {/* <TrackingNoscript /> — desativado */}
         <DynamicScripts />
-        {children}
+        <main className="w-full">
+          {children}
+        </main>
       </body>
     </html>
   );

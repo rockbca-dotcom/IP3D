@@ -79,6 +79,214 @@ interface RelatedProduct {
   pricePromo: number | null;
 }
 
+const fallbackWhatsappPhone = "5511999999999";
+
+const fallbackProducts: Product[] = [
+  {
+    id: "fallback-hotend-creality-ender-3-v2",
+    name: "Kit Hotend Completo Creality Ender 3 / Pro / V2 24V",
+    slug: "kit-hotend-completo-creality-ender-3-pro-v2-24v-nozzle-cortesia",
+    shortDescription: "Kit hotend completo 24V para Ender 3 / Pro / V2 com nozzle de cortesia, cabo de 1 metro e instalação prática.",
+    description: "<p>Kit hotend completo para impressoras 3D Creality Ender 3, Ender 3 Pro e Ender 3 V2 com tensão de operação de 24V. É uma reposição técnica pensada para restaurar a qualidade de extrusão, facilitar a manutenção e entregar instalação prática no dia a dia.</p><p>O conjunto acompanha nozzle 0,4 mm de cortesia, silicone protetor do bloco, cabo de conexão com 1 metro, tubo PTFE e componentes para reposição completa do sistema de aquecimento. Suporta até 260 °C e atende impressões com PLA, ABS, PETG, TPU e outros materiais compatíveis com essa faixa térmica.</p><p>Seu bloco de aquecimento em alumínio, termistor de alta precisão e resistor cerâmico oferecem desempenho estável, aquecimento eficiente e boa confiabilidade para uso contínuo.</p>",
+    image: "https://http2.mlstatic.com/D_Q_NP_607343-MLA110079794477_042026-F.webp",
+    gallery: [
+      "https://http2.mlstatic.com/D_Q_NP_607343-MLA110079794477_042026-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_656866-MLA110079853361_042026-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_826407-MLA109232233940_042026-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_685769-MLA108560014753_032026-F.webp"
+    ],
+    features: [
+      "Compatível com Creality Ender 3, Ender 3 Pro e Ender 3 V2",
+      "Tensão de operação 24V com temperatura máxima de 260 °C",
+      "Acompanha nozzle 0,4 mm de cortesia e silicone protetor",
+      "Inclui cabo de conexão de 1 metro e tubo PTFE",
+      "Instalação prática com encaixe compatível no padrão original",
+      "Ideal para manutenção e reposição completa do hotend"
+    ],
+    video: null,
+    catalog: null,
+    warranty: "90 dias",
+    priceOriginal: 129.9,
+    pricePromo: 119.99,
+    pixPrice: 119.99,
+    installments: 4,
+    installmentValue: 30,
+    stockQuantity: 25,
+    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
+    specifications: [
+      { label: "Compatibilidade", value: "Creality Ender 3 / Ender 3 Pro / Ender 3 V2" },
+      { label: "Marca", value: "Creality" },
+      { label: "Modelo", value: "2001020048" },
+      { label: "Tensão de operação", value: "24V" },
+      { label: "Temperatura máxima", value: "260 °C" },
+      { label: "Tipo de entrada", value: "Bowden" },
+      { label: "Diâmetro do bico", value: "0,4 mm" },
+      { label: "Diâmetro do filamento", value: "1,75 mm" },
+      { label: "Material", value: "Liga de alumínio com aquecedor cerâmico" },
+      { label: "Itens inclusos", value: "Hotend, nozzle de cortesia, silicone protetor e tubo PTFE" }
+    ],
+  },
+  {
+    id: "fallback-silicone-creality-k1-max",
+    name: "Capa De Silicone Blue Makers Creality",
+    slug: "capa-de-silicone-blue-makers-creality-k1-max-antiaderente-300c",
+    shortDescription: "Capa antiaderente em silicone para Creality K1 / K1 Max com resistência térmica de até 300°C.",
+    description: "<p>Capa de silicone desenvolvida para melhorar a estabilidade térmica do bloco aquecedor e reduzir o acúmulo de resíduos durante a impressão. Ideal para manutenção preventiva e melhor acabamento nas peças.</p>",
+    image: "https://http2.mlstatic.com/D_Q_NP_770204-MLA100095605391_122025-F.webp",
+    gallery: [
+      "https://http2.mlstatic.com/D_Q_NP_770204-MLA100095605391_122025-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_817420-MLA99610440976_122025-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_780886-MLA99610470822_122025-F.webp"
+    ],
+    features: [
+      "Compatível com Creality K1 e K1 Max",
+      "Silicone antiaderente resistente a até 300°C",
+      "Ajuda a estabilizar a temperatura do hotend",
+      "Instalação simples e rápida"
+    ],
+    video: null,
+    catalog: null,
+    warranty: "90 dias",
+    priceOriginal: 19,
+    pricePromo: 19,
+    pixPrice: 18.75,
+    installments: 3,
+    installmentValue: 6.33,
+    stockQuantity: 12,
+    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
+    specifications: [
+      { label: "Compatibilidade", value: "Creality K1 / K1 Max" },
+      { label: "Material", value: "Silicone térmico" },
+      { label: "Temperatura máxima", value: "300°C" },
+      { label: "Aplicação", value: "Proteção do bloco aquecedor" }
+    ],
+  },
+  {
+    id: "fallback-hotend-bambu-a1",
+    name: "Hotend Bambu Lab A1 Mini",
+    slug: "hotend-bambu-lab-a1-mini",
+    shortDescription: "Reposição premium para impressão com precisão e consistência.",
+    description: "<p>Hotend de reposição para Bambu Lab A1 Mini com foco em estabilidade térmica, qualidade de extrusão e manutenção simplificada.</p>",
+    image: "/uploads/products/bico-nozzle-aco-endurecido-bambu-lab-a1.jpg",
+    gallery: ["/uploads/products/bico-nozzle-aco-endurecido-bambu-lab-a1.jpg"],
+    features: [
+      "Compatível com Bambu Lab A1 Mini",
+      "Excelente estabilidade térmica",
+      "Reposição rápida para manutenção",
+      "Ideal para uso contínuo"
+    ],
+    video: null,
+    catalog: null,
+    warranty: "90 dias",
+    priceOriginal: 199.9,
+    pricePromo: 179.9,
+    pixPrice: 169.9,
+    installments: 6,
+    installmentValue: 29.98,
+    stockQuantity: 8,
+    category: { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
+    specifications: [
+      { label: "Compatibilidade", value: "Bambu Lab A1 Mini" },
+      { label: "Tipo", value: "Hotend completo" },
+      { label: "Aplicação", value: "Reposição / manutenção" }
+    ],
+  },
+  {
+    id: "fallback-termistor-2x-100k",
+    name: "Termistor 2x 100k Ohm NTC 3950 Sensor de Temperatura 3D",
+    slug: "termistor-2x-100k-ohm-ntc-3950-sensor-de-temperatura-3d",
+    shortDescription: "Kit com 2 sensores NTC 100K 3950 para impressoras 3D, com cabo em teflon de 1 m, precisão de ±1% e faixa de -40 °C a 300 °C.",
+    description: "<p>Kit com 2 sensores NTC 100K 3950 para uso em impressoras 3D, ideal para reposição técnica e controle preciso de temperatura.</p><p>O conjunto utiliza cabo em teflon de 1 metro, suporta faixa ampla de operação e atende aplicações que exigem alta confiabilidade térmica.</p>",
+    image: "https://http2.mlstatic.com/D_Q_NP_875575-MLA100083141047_122025-R.webp",
+    gallery: [
+      "https://http2.mlstatic.com/D_Q_NP_875575-MLA100083141047_122025-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_746833-MLA81060561687_112024-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_707940-MLA80795524864_112024-F.webp"
+    ],
+    features: [
+      "Kit com 2 unidades",
+      "Cabo em teflon de 1 metro",
+      "Faixa de operação de -40 °C a 300 °C",
+      "Precisão de ±1%"
+    ],
+    video: null,
+    catalog: null,
+    warranty: "90 dias",
+    priceOriginal: 35,
+    pricePromo: 31.9,
+    pixPrice: 31.9,
+    installments: 3,
+    installmentValue: 10.63,
+    stockQuantity: 25,
+    category: { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
+    specifications: [
+      { label: "Compatibilidade", value: "Impressoras 3D" },
+      { label: "Tipo", value: "NTC 100K 3950" },
+      { label: "Quantidade", value: "2 unidades" },
+      { label: "Cabo", value: "Teflon 1 m" },
+      { label: "Faixa de temperatura", value: "-40 °C a 300 °C" },
+      { label: "Precisão", value: "±1%" }
+    ],
+  },
+  {
+    id: "fallback-termistor-ntc",
+    name: "Termistor NTC 100K",
+    slug: "termistor-ntc-100k-3950",
+    shortDescription: "Sensor de temperatura estável para hotends universais.",
+    description: "<p>Sensor de temperatura estável para hotends universais, indicado para reposição e uso contínuo em impressoras 3D.</p>",
+    image: "/images/products/components-placeholder.svg",
+    gallery: ["/images/products/components-placeholder.svg"],
+    features: [
+      "Precisão 1%",
+      "Curva Beta 3950",
+      "Temperatura de operação até 200 °C"
+    ],
+    video: null,
+    catalog: null,
+    warranty: "3 meses",
+    priceOriginal: 34.9,
+    pricePromo: null,
+    pixPrice: 29.9,
+    installments: 0,
+    installmentValue: null,
+    stockQuantity: 100,
+    category: { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
+    specifications: [
+      { label: "Tipo", value: "NTC 100K 3950" },
+      { label: "Temperatura suportada", value: "Até 200 °C" }
+    ],
+  },
+  {
+    id: "fallback-hotend-creality-cr10",
+    name: "Hotend Creality CR10",
+    slug: "hotend-creality-cr10",
+    shortDescription: "Reposição técnica para impressoras Creality.",
+    description: "<p>Hotend de reposição para a linha CR10 com montagem simples e ótimo desempenho térmico.</p>",
+    image: "/uploads/products/kit-hotend-creality-cr-10.jpg",
+    gallery: ["/uploads/products/kit-hotend-creality-cr-10.jpg"],
+    features: [
+      "Compatível com CR10",
+      "Boa estabilidade de impressão",
+      "Instalação prática",
+      "Peça de reposição"
+    ],
+    video: null,
+    catalog: null,
+    warranty: "90 dias",
+    priceOriginal: 149.9,
+    pricePromo: 129.9,
+    pixPrice: 123.9,
+    installments: 5,
+    installmentValue: 25.98,
+    stockQuantity: 6,
+    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
+    specifications: [
+      { label: "Compatibilidade", value: "Creality CR10" },
+      { label: "Tipo", value: "Hotend" }
+    ],
+  },
+];
+
 export default function ProductPage() {
   const params = useParams();
   const slug = params.slug as string;
@@ -100,32 +308,63 @@ export default function ProductPage() {
 
   useEffect(() => {
     fetch("/api/layout?type=header")
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("layout-unavailable"))))
       .then((data) => {
         const phone: string = data.config?.content?.contactPhone ?? "";
         const digits = phone.replace(/\D/g, "");
         if (digits) {
           setWhatsappPhone(digits.length >= 12 ? digits : `55${digits}`);
+        } else {
+          setWhatsappPhone(fallbackWhatsappPhone);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setWhatsappPhone(fallbackWhatsappPhone);
+      });
   }, []);
 
   useEffect(() => {
     if (!slug) return;
-    setShippingSelection(null);
+    setLoading(true);
 
     fetch(`/api/products/${slug}`)
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("product-unavailable"))))
       .then((data) => {
-        if (data.error) {
+        if (data.error || !data.product) {
           setProduct(null);
-        } else {
-          setProduct(data.product);
-          setRelatedProducts(data.relatedProducts || []);
+          setRelatedProducts([]);
+          return;
         }
+
+        setProduct(data.product);
+        setRelatedProducts(data.relatedProducts || []);
       })
-      .catch(console.error)
+      .catch(() => {
+        const fallbackProduct = fallbackProducts.find((item) => item.slug === slug) ?? null;
+
+        if (!fallbackProduct) {
+          setProduct(null);
+          setRelatedProducts([]);
+          return;
+        }
+
+        const fallbackRelated = fallbackProducts
+          .filter((item) => item.slug !== slug && item.category?.slug === fallbackProduct.category?.slug)
+          .slice(0, 3)
+          .map((item) => ({
+            id: item.id,
+            name: item.name,
+            slug: item.slug,
+            shortDescription: item.shortDescription || "",
+            image: item.image,
+            category: item.category ? { name: item.category.name } : null,
+            priceOriginal: item.priceOriginal,
+            pricePromo: item.pricePromo,
+          }));
+
+        setProduct(fallbackProduct);
+        setRelatedProducts(fallbackRelated);
+      })
       .finally(() => setLoading(false));
   }, [slug]);
 
@@ -207,7 +446,7 @@ export default function ProductPage() {
       {/* Product Detail */}
       <section className="py-12 lg:py-20 bg-white">
         <div className="container mx-auto px-6 lg:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,560px)_minmax(0,1fr)] gap-12 lg:gap-20 items-start">
             {/* Gallery */}
             <motion.div
               initial={{ opacity: 0, x: -30 }}
@@ -215,12 +454,12 @@ export default function ProductPage() {
               transition={{ duration: 0.6 }}
             >
               {/* Main Image */}
-              <div className="relative aspect-square bg-gray-100 mb-4 overflow-hidden">
+              <div className="relative aspect-square w-full max-w-[560px] mx-auto rounded-2xl border border-gray-200 bg-white mb-4 overflow-hidden">
                 <div
-                  className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 transition-all duration-500"
+                  className="absolute inset-0 transition-all duration-500 bg-no-repeat"
                   style={{
                     backgroundImage: `url(${allImages[activeImage]})`,
-                    backgroundSize: "cover",
+                    backgroundSize: "contain",
                     backgroundPosition: "center",
                   }}
                 />
@@ -256,20 +495,20 @@ export default function ProductPage() {
 
               {/* Thumbnails */}
               {allImages.length > 1 && (
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3 max-w-[560px]">
                   {allImages.map((img, index) => (
                     <button
                       key={index}
                       onClick={() => setActiveImage(index)}
-                      className={`relative w-20 h-20 bg-gray-100 overflow-hidden transition-all duration-300 ${
+                      className={`relative w-20 h-20 rounded-lg border border-gray-200 bg-white overflow-hidden transition-all duration-300 ${
                         activeImage === index ? "ring-2 ring-black" : "opacity-60 hover:opacity-100"
                       }`}
                     >
                       <div
-                        className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300"
+                        className="absolute inset-0 bg-no-repeat"
                         style={{
                           backgroundImage: `url(${img})`,
-                          backgroundSize: "cover",
+                          backgroundSize: "contain",
                           backgroundPosition: "center",
                         }}
                       />
@@ -313,7 +552,7 @@ export default function ProductPage() {
                 </div>
               )}
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-semibold text-black mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-[#10213f] mb-6">
                 {product.name}
               </h1>
 
@@ -546,7 +785,7 @@ export default function ProductPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
-                <h2 className="text-3xl font-serif font-semibold text-black mb-8">
+                <h2 className="text-3xl font-semibold tracking-tight text-[#10213f] mb-8">
                   {product.name}
                 </h2>
                 <div 
@@ -568,7 +807,7 @@ export default function ProductPage() {
                 <span className="text-sm uppercase tracking-[0.2em] text-gray-500 mb-3 block">
                   Você também pode gostar
                 </span>
-                <h2 className="text-3xl md:text-4xl font-serif font-semibold text-black">
+                <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-[#10213f]">
                   Produtos Relacionados
                 </h2>
               </div>
@@ -629,7 +868,7 @@ export default function ProductPage() {
       {/* CTA */}
       <section className="py-16 bg-black text-white">
         <div className="container mx-auto px-6 lg:px-12 text-center">
-          <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-4">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-4">
             Interessado neste produto?
           </h2>
           <p className="text-gray-400 mb-8">
@@ -671,7 +910,7 @@ export default function ProductPage() {
               <HiX className="w-5 h-5" />
             </button>
 
-            <h3 className="text-2xl font-serif font-semibold text-black mb-6">
+            <h3 className="text-2xl font-semibold tracking-tight text-[#10213f] mb-6">
               Informações Técnicas
             </h3>
             <p className="text-sm text-gray-500 mb-6">{product.name}</p>

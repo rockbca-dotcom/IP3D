@@ -1,0 +1,9 @@
+1:"$Sreact.fragment"
+2:I[44364,["/_next/static/chunks/35a8e1c69cd819bd.js"],"DynamicFavicon"]
+3:I[54952,["/_next/static/chunks/35a8e1c69cd819bd.js"],"DynamicScripts"]
+4:I[39756,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+5:I[37457,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"default"]
+6:I[29306,["/_next/static/chunks/35a8e1c69cd819bd.js","/_next/static/chunks/5c982dc3c0c8d50f.js","/_next/static/chunks/7eeb08f55d9d7e5b.js","/_next/static/chunks/82f68231aac93243.js","/_next/static/chunks/c35662e3f22a0365.js"],"default"]
+:HL["/_next/static/chunks/d1a736957af8241d.css","style"]
+:HL["/_next/static/chunks/fd1b8a221b3a50c5.css","style"]
+0:{"buildId":"St8MJgPbBQe2jjwjIWSfY","rsc":["$","$1","c",{"children":[[["$","link","0",{"rel":"stylesheet","href":"/_next/static/chunks/d1a736957af8241d.css","precedence":"next"}],["$","link","1",{"rel":"stylesheet","href":"/_next/static/chunks/fd1b8a221b3a50c5.css","precedence":"next"}],["$","script","script-0",{"src":"/_next/static/chunks/35a8e1c69cd819bd.js","async":true}]],["$","html",null,{"lang":"pt-BR","style":{"colorScheme":"light"},"suppressHydrationWarning":true,"children":[["$","head",null,{"children":[["$","link",null,{"rel":"preconnect","href":"https://fonts.googleapis.com"}],["$","link",null,{"rel":"preconnect","href":"https://fonts.gstatic.com","crossOrigin":"anonymous"}],["$","link",null,{"rel":"dns-prefetch","href":"https://www.youtube.com"}],["$","$L2",null,{}]]}],["$","body",null,{"className":"poppins_dd012062-module__7_5pta__variable playfair_display_5b051c1b-module__fy2aHW__variable font-sans antialiased min-w-[320px]","children":[["$","$L3",null,{}],["$","main",null,{"className":"w-full","children":["$","$L4",null,{"parallelRouterKey":"children","template":["$","$L5",null,{}],"notFound":[["$","$L6",null,{}],[]]}]}]]}]]}]]}],"loading":null,"isPartial":false}

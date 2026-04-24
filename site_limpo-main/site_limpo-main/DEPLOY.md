@@ -1,123 +1,209 @@
 # Deploy na Hostinger (VPS/Node.js)
 
-## Empacotamento limpo para Hostinger
+## 1. Empacotamento limpo para Hostinger
 
-Se o deploy estiver sendo enviado por ZIP, gere sempre um pacote limpo antes do upload:
+Se o deploy for enviado por ZIP, gere sempre o pacote limpo antes do upload:
 
 ```bash
-npm run deploy:hostinger
+pnpm run deploy:hostinger
 ```
 
-Isso cria `hostinger-deploy.zip` na raiz do projeto, excluindo:
+Isso cria `hostinger-deploy.zip` na raiz do projeto e remove automaticamente do pacote:
+
 - `node_modules`
 - `.next`
 - `.claude`
+- `.git`
+- `.pnpm-store`
 - `.env`
+- `.npmrc`
 - `desktop.ini`, `Thumbs.db`, `.DS_Store`
-- logs, arquivos temporarios e outros `.zip`
+- logs, arquivos temporários, `.tsbuildinfo`
+- outros `.zip`
 
-### Erro `npm EACCES rename ... node_modules/desktop.ini`
+### Observações importantes
 
-Esse erro acontece quando arquivos de sistema do Windows ou um `node_modules` local vao junto no upload para o Linux da Hostinger.
-
-Antes de reenviar:
-- remova o build anterior no painel da Hostinger, se ele tiver reaproveitado arquivos de uma tentativa anterior
 - envie apenas o `hostinger-deploy.zip`
-- nao compacte a pasta inteira manualmente pelo Explorer do Windows
+- não compacte a pasta inteira manualmente pelo Explorer do Windows
+- se o painel da Hostinger reaproveitou arquivos antigos, remova o build anterior antes de reenviar
+- se existir acesso SSH, limpe restos de tentativa anterior antes do novo deploy
 
-Se tiver acesso SSH, limpe o resquicio da tentativa anterior antes do novo deploy:
+Exemplo:
 
 ```bash
 rm -rf ~/domains/SEU_DOMINIO/public_html/.builds/source/node_modules
 find ~/domains/SEU_DOMINIO/public_html/.builds/source -name 'desktop.ini' -delete
 ```
 
-Este guia cobre o deploy do projeto GTMax3D em um servidor Hostinger com Node.js e banco Neon PostgreSQL.
+---
 
-## 1. Preparação do Ambiente
+## 2. Ambiente do projeto
 
-### 1.1. Acesso ao Servidor
-- SSH para o servidor fornecido pela Hostinger
-- Atualizar sistema: `sudo apt update && sudo apt upgrade -y`
+Este projeto usa:
 
-### 1.2. Instalar Dependências
-```bash
-# Node.js 18+ (usar nvm se preferir)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
+- `Next.js 16.0.8`
+- `React 19.2.1`
+- `Prisma 5.22.0`
+- `pnpm` como gerenciador preferencial
+- `PM2` para manter a aplicação online no VPS
 
-# PM2 para gerenciamento de processos
-sudo npm install -g pm2
+### Scripts atuais do projeto
 
-# Git (se não tiver)
-sudo apt install git -y
+```json
+{
+  "dev": "next dev -p 3003",
+  "build": "prisma generate && next build",
+  "start": "next start",
+  "lint": "eslint",
+  "seed": "node scripts/seed-components.js",
+  "deploy:hostinger": "node scripts/generate-posix-zip.js"
+}
 ```
 
-## 2. Clonar e Configurar Projeto
+---
 
-### 2.1. Repositório
+## 3. Preparação do VPS
+
+### 3.1. Acesso ao servidor
+
+- conecte via SSH ao VPS da Hostinger
+- atualize o sistema
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### 3.2. Instalar dependências básicas
+
+```bash
+# Node.js 20 LTS recomendado para o projeto atual
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Git
+sudo apt install git -y
+
+# PM2
+sudo npm install -g pm2
+```
+
+Se preferir usar `pnpm` no servidor:
+
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
+```
+
+---
+
+## 4. Clonar ou enviar o projeto
+
+### 4.1. Via Git
+
 ```bash
 git clone <URL-DO-REPOSITORIO> gtmax3d
 cd gtmax3d
 ```
 
-### 2.2. Instalar Dependências
+### 4.2. Via ZIP
+
+Se você estiver usando o `hostinger-deploy.zip`, envie o arquivo para o servidor e extraia no diretório correto do deploy.
+
+---
+
+## 5. Instalar dependências
+
 ```bash
 pnpm install
 ```
 
-### 2.3. Configurar Variáveis de Ambiente
+---
+
+## 6. Variáveis de ambiente
+
+Copie o modelo e ajuste com os dados do servidor:
+
 ```bash
 cp .env.example .env
 nano .env
 ```
 
-**Variáveis obrigatórias:**
+### Variáveis do projeto
+
 ```env
-# URL pública do site (substitua pelo seu domínio)
+SESSION_SECRET=change_this_with_at_least_32_chars
+DATABASE_URL="postgresql://user:password@localhost:5432/site_base"
+
+MERCADO_PAGO_ACCESS_TOKEN=
+MERCADO_PAGO_WEBHOOK_SECRET=
+MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE=false
+
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
+SALES_NOTIFICATION_EMAIL=
+
+WEB3FORMS_ACCESS_KEY=
+
+BLOB_READ_WRITE_TOKEN=vercel_blob_token_here
+
 NEXT_PUBLIC_SITE_URL=https://seudominio.com
-
-# Banco Neon (obtido no painel Neon)
-DATABASE_URL=postgresql://user:password@ep-xxx.us-east-2.aws.neon.tech/db?sslmode=require
-
-# Mercado Pago (criar em: https://www.mercadopago.com.br/developers)
-MERCADO_PAGO_ACCESS_TOKEN=TEST-xxx # ou PROD-xxx
-MERCADO_PAGO_WEBHOOK_SECRET=seu-secreto-aqui
-MERCADO_PAGO_WEBHOOK_URL=https://seudominio.com/api/payments/mercadopago/webhook
-
-# Web3Forms (obtido em: https://web3forms.com/)
-WEB3FORMS_ACCESS_KEY=57bdcea1-af3e-46ff-8f81-f49c6cc9f8b6
-
-# Sessão (gerar com: openssl rand -base64 32)
-SESSION_SECRET=chave-secreta-32-caracteres-ou-mais
-
-# Upload (opcional, se usar Vercel Blob)
-BLOB_READ_WRITE_TOKEN=vercel_blob_rw_token
 ```
 
-## 3. Banco de Dados (Neon)
+### Observações
 
-### 3.1. Migrations
+- `SESSION_SECRET` é obrigatório em produção e deve ter no mínimo 32 caracteres
+- `DATABASE_URL` precisa apontar para o banco real do ambiente
+- `NEXT_PUBLIC_SITE_URL` deve ser o domínio público final
+- `MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE` só deve ficar `true` quando a validação estiver configurada corretamente
+
+---
+
+## 7. Banco de dados
+
+### 7.1. Gerar client e aplicar migrations
+
 ```bash
 pnpm prisma migrate deploy
 pnpm prisma generate
 ```
 
-### 3.2. Seed Inicial (Produtos)
-```bash
-# Importar os 15 produtos de exemplo
-curl -X POST http://localhost:3000/api/seed-products
-```
+Como o script de build já executa `prisma generate`, em muitos casos basta:
 
-## 4. Build e Inicialização
-
-### 4.1. Build
 ```bash
 pnpm build
 ```
 
-### 4.2. PM2 - Process Manager
-Criar `ecosystem.config.js`:
+### 7.2. Seed inicial, se necessário
+
+Se você quiser carregar os produtos iniciais:
+
+```bash
+pnpm run seed
+```
+
+---
+
+## 8. Build e execução
+
+### 8.1. Build de produção
+
+```bash
+pnpm build
+```
+
+### 8.2. Processo com PM2
+
+O arquivo atual `ecosystem.config.js` usa:
+
+- nome do processo: `gtmax3d`
+- comando: `npm start`
+- porta: `3000`
+
+Conteúdo atual:
+
 ```js
 module.exports = {
   apps: [{
@@ -137,22 +223,34 @@ module.exports = {
 };
 ```
 
-Iniciar com PM2:
+Subir com PM2:
+
 ```bash
 pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
 ```
 
-## 5. Nginx (Proxy Reverso)
+Para reiniciar depois de atualizar:
 
-### 5.1. Instalar Nginx
+```bash
+pm2 restart gtmax3d
+```
+
+---
+
+## 9. Nginx
+
+### 9.1. Instalar
+
 ```bash
 sudo apt install nginx -y
 ```
 
-### 5.2. Configurar Site
-Criar `/etc/nginx/sites-available/gtmax3d`:
+### 9.2. Configuração básica
+
+Exemplo de arquivo em `/etc/nginx/sites-available/gtmax3d`:
+
 ```nginx
 server {
     listen 80;
@@ -172,43 +270,75 @@ server {
 }
 ```
 
-Ativar site:
+Ativar:
+
 ```bash
 sudo ln -s /etc/nginx/sites-available/gtmax3d /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-## 6. SSL (Let's Encrypt)
+---
 
-### 6.1. Certbot
+## 10. SSL com Let's Encrypt
+
+### 10.1. Instalar Certbot
+
 ```bash
 sudo apt install certbot python3-certbot-nginx -y
+```
+
+### 10.2. Emitir certificado
+
+```bash
 sudo certbot --nginx -d seudominio.com -d www.seudominio.com
 ```
 
-### 6.2. Renovação Automática
+### 10.3. Renovação automática
+
 ```bash
 sudo crontab -e
-# Adicionar linha:
+```
+
+Adicionar:
+
+```bash
 0 12 * * * /usr/bin/certbot renew --quiet
 ```
 
-## 7. Mercado Pago - Webhook
+---
 
-### 7.1. Configurar URL
-No painel Mercado Pago > Webhooks > Adicionar:
-- URL: `https://seudominio.com/api/payments/mercadopago/webhook`
-- Eventos: `payment`
-- Modo: Produção (ou Teste durante homologação)
+## 11. Integrações críticas
 
-### 7.2. Validar
-- Após criar preferência, o webhook deve receber notificações
-- Logs PM2: `pm2 logs gtmax3d`
+### 11.1. Mercado Pago
 
-## 8. Manutenção
+Conferir no painel do Mercado Pago:
 
-### 8.1. Atualizar Projeto
+- webhook apontando para `https://seudominio.com/api/payments/mercadopago/webhook`
+- eventos de pagamento ativos
+- credenciais de produção configuradas corretamente
+
+### 11.2. Notificações por e-mail e fallback
+
+Se o fluxo de vendas usar SMTP, conferir:
+
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+- `SALES_NOTIFICATION_EMAIL`
+
+Se o fallback usar Web3Forms, conferir:
+
+- `WEB3FORMS_ACCESS_KEY`
+
+---
+
+## 12. Atualização do projeto
+
+Quando houver nova versão:
+
 ```bash
 git pull
 pnpm install
@@ -216,40 +346,68 @@ pnpm build
 pm2 restart gtmax3d
 ```
 
-### 8.2. Backup (Neon)
-- Neon faz backup automático
-- Para backup manual: painel Neon > Backups
+Se estiver usando ZIP:
 
-### 8.3. Logs
+1. gerar novamente com `pnpm run deploy:hostinger`
+2. enviar apenas o `hostinger-deploy.zip`
+3. remover o build antigo no painel, se necessário
+4. reiniciar o processo após a atualização
+
+---
+
+## 13. Troubleshooting
+
+### 13.1. Erros comuns
+
+- **Porta 3000 ocupada**  
+  Verifique com `sudo lsof -i :3000`
+
+- **Permissões incorretas**  
+  Ajuste o dono dos arquivos do projeto no VPS
+
+- **Arquivos antigos reaproveitados pelo painel**  
+  Remova o build anterior e envie novamente o ZIP limpo
+
+- **Erro `npm EACCES rename ... node_modules/desktop.ini`**  
+  Isso normalmente indica que um arquivo de sistema do Windows ou uma pasta `node_modules` antiga foi parar no upload. Gere o ZIP limpo novamente e faça um novo deploy
+
+### 13.2. Verificação do ambiente
+
 ```bash
-pm2 logs gtmax3d --lines 100
-```
-
-## 9. Troubleshooting
-
-### 9.1. Erros Comuns
-- **Porta 3000 ocupada**: `sudo lsof -i :3000` e matar processo
-- **Permissões**: garantir usuário dono dos arquivos
-- **Memória**: aumentar `max_memory_restart` no PM2
-
-### 9.2. Saúde do Sistema
-```bash
-pm2 monit
 pm2 status
+pm2 logs gtmax3d --lines 100
 nginx -t
 ```
 
-## 10. Pós-Deploy Checklist
+---
+
+## 14. Checklist pós-deploy
 
 - [ ] Site acessível via HTTPS
-- [ ] Páginas carregando (Home, Produtos, Admin)
+- [ ] Home carregando corretamente
+- [ ] Página de produtos funcionando
+- [ ] Página de produto individual funcionando
 - [ ] Login admin funcionando
-- [ ] Produtos visíveis (rodar seed se necessário)
+- [ ] Banco conectado corretamente
 - [ ] Checkout Mercado Pago redirecionando
 - [ ] Webhook recebendo pagamentos
-- [ ] Notificações Web3Forms enviando
+- [ ] E-mails/notificações enviando
 - [ ] Logs sem erros críticos
 
 ---
 
-**Contato de Suporte**: Se precisar de ajuda com o deploy, abrir ticket no painel Hostinger ou consultar documentação oficial.
+## 15. Resumo rápido
+
+Comando para gerar o pacote de deploy:
+
+```bash
+pnpm run deploy:hostinger
+```
+
+Arquivo final esperado:
+
+```bash
+hostinger-deploy.zip
+```
+
+Esse é o único arquivo que deve ser enviado para a Hostinger quando o deploy for feito por ZIP.

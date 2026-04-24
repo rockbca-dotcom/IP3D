@@ -46,6 +46,231 @@ interface PageBlock {
   active: boolean;
 }
 
+const fallbackCategories: Category[] = [
+  { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
+  { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
+  { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
+  { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
+  { id: "personalizados", name: "Personalizados", slug: "personalizados" },
+];
+
+const fallbackProducts: Product[] = [
+  {
+    id: "fallback-hotend-creality-ender-3-v2",
+    name: "Kit Hotend Completo Creality Ender 3 / Pro / V2 24V",
+    slug: "kit-hotend-completo-creality-ender-3-pro-v2-24v-nozzle-cortesia",
+    shortDescription: "Kit hotend completo 24V para Ender 3 / Pro / V2 com nozzle de cortesia, cabo de 1 metro e instalação prática.",
+    image: "https://http2.mlstatic.com/D_Q_NP_607343-MLA110079794477_042026-F.webp",
+    gallery: [
+      "https://http2.mlstatic.com/D_Q_NP_607343-MLA110079794477_042026-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_656866-MLA110079853361_042026-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_826407-MLA109232233940_042026-F.webp"
+    ],
+    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
+    priceOriginal: 129.9,
+    pricePromo: 119.99,
+    pixPrice: 119.99,
+  },
+  {
+    id: "fallback-hotend-bambu-a1",
+    name: "Hotend Bambu Lab A1 Mini",
+    slug: "hotend-bambu-lab-a1-mini",
+    shortDescription: "Reposição premium para impressão com precisão e consistência.",
+    image: "/uploads/products/bico-nozzle-aco-endurecido-bambu-lab-a1.jpg",
+    category: { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
+    priceOriginal: 199.9,
+    pricePromo: 179.9,
+    pixPrice: 169.9,
+  },
+  {
+    id: "fallback-silicone-creality-k1-max",
+    name: "Capa De Silicone Blue Makers Creality",
+    slug: "capa-de-silicone-blue-makers-creality-k1-max-antiaderente-300c",
+    shortDescription: "Capa antiaderente em silicone para Creality K1 / K1 Max com resistência térmica de até 300°C.",
+    image: "https://http2.mlstatic.com/D_Q_NP_770204-MLA100095605391_122025-F.webp",
+    gallery: [
+      "https://http2.mlstatic.com/D_Q_NP_770204-MLA100095605391_122025-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_817420-MLA99610440976_122025-F.webp",
+      "https://http2.mlstatic.com/D_Q_NP_780886-MLA99610470822_122025-F.webp"
+    ],
+    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
+    priceOriginal: 19,
+    pricePromo: 19,
+    pixPrice: 18.75,
+  },
+  {
+    id: "fallback-nozzle-bambu-a1",
+    name: "Nozzle Aço Bambu Lab A1",
+    slug: "nozzle-aco-bambu-lab-a1",
+    shortDescription: "Alta durabilidade para materiais abrasivos.",
+    image: "/uploads/products/bico-nozzle-aco-endurecido-bambu-lab-a1.jpg",
+    category: { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
+    priceOriginal: 89.9,
+    pricePromo: 79.9,
+    pixPrice: 75.9,
+  },
+  {
+    id: "fallback-wiper-bambu-a1",
+    name: "Nozzle Wiper Bambu Lab A1",
+    slug: "nozzle-wiper-bambu-lab-a1",
+    shortDescription: "Limpeza automática do bocal antes da impressão.",
+    image: "/uploads/products/limpador-bico-bambu-lab-a1.jpg",
+    category: { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
+    priceOriginal: 59.9,
+    pricePromo: 49.9,
+    pixPrice: 47.9,
+  },
+  {
+    id: "fallback-hotend-creality-cr10",
+    name: "Hotend Creality CR10",
+    slug: "hotend-creality-cr10",
+    shortDescription: "Reposição técnica para impressoras Creality.",
+    image: "/uploads/products/kit-hotend-creality-cr-10.jpg",
+    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
+    priceOriginal: 149.9,
+    pricePromo: 129.9,
+    pixPrice: 123.9,
+  },
+  {
+    id: "fallback-termistor-ntc",
+    name: "Termistor NTC 100K",
+    slug: "termistor-ntc-100k-3950",
+    shortDescription: "Sensor de temperatura estável para hotends universais.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
+    priceOriginal: 34.9,
+    pricePromo: 29.9,
+    pixPrice: 28.4,
+  },
+  {
+    id: "fallback-aquecedor-ceramico",
+    name: "Kit Aquecedor Cerâmico 60W",
+    slug: "kit-aquecedor-ceramico-60w",
+    shortDescription: "Aquecimento rápido para montagem e reposição técnica.",
+    image: "/uploads/products/kit-aquecedor-ceramico-60w.jpg",
+    category: { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
+    priceOriginal: 69.9,
+    pricePromo: 59.9,
+    pixPrice: 56.9,
+  },
+  {
+    id: "fallback-mesa-pei-h2d",
+    name: "Mesa PEI Texturizada H2D",
+    slug: "mesa-pei-bambu-lab-h2d",
+    shortDescription: "Superfície de aderência com acabamento profissional.",
+    image: "/uploads/products/mesa-pei-texturizada-bambu-lab-h2d.jpg",
+    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
+    priceOriginal: 299.9,
+    pricePromo: 279.9,
+    pixPrice: 265.9,
+  },
+  {
+    id: "fallback-astro-a50-headband",
+    name: "Headband Astro A50 / SteelSeries",
+    slug: "astro-a50-headband-steelseries",
+    shortDescription: "Peça de reposição impressa em 3D com acabamento técnico.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
+    priceOriginal: 119.9,
+    pricePromo: 99.9,
+    pixPrice: 94.9,
+  },
+  {
+    id: "fallback-logitech-g29-paddle",
+    name: "Extensor Paddle Logitech G29",
+    slug: "logitech-g29-extensor-paddle",
+    shortDescription: "Acessório funcional impresso em 3D para sim racing.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
+    priceOriginal: 89.9,
+    pricePromo: 74.9,
+    pixPrice: 71.2,
+  },
+  {
+    id: "fallback-suporte-starlink",
+    name: "Suporte Ethernet Starlink",
+    slug: "suporte-ethernet-starlink",
+    shortDescription: "Solução impressa em 3D para organização e fixação.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
+    priceOriginal: 99.9,
+    pricePromo: 84.9,
+    pixPrice: 80.7,
+  },
+  {
+    id: "fallback-bobblehead-3d",
+    name: "Boneco Bobblehead 3D Personalizado",
+    slug: "boneco-bobblehead-3d",
+    shortDescription: "Projeto personalizado sob medida em impressão 3D.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
+    priceOriginal: 249.9,
+    pricePromo: 219.9,
+    pixPrice: 208.9,
+  },
+  {
+    id: "fallback-protecao-dji-neo",
+    name: "Proteção DJI Neo",
+    slug: "protecao-dji-neo",
+    shortDescription: "Projeto personalizado com prototipagem e ajuste sob medida.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
+    priceOriginal: 139.9,
+    pricePromo: 119.9,
+    pixPrice: 113.9,
+  },
+  {
+    id: "fallback-suporte-lanterna-dji-neo",
+    name: "Suporte de Lanterna DJI Neo",
+    slug: "suporte-lanterna-dji-neo",
+    shortDescription: "Solução personalizada para uso específico e encaixe preciso.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
+    priceOriginal: 129.9,
+    pricePromo: 109.9,
+    pixPrice: 104.4,
+  },
+  {
+    id: "fallback-suporte-xiaomi-vacum",
+    name: "Suporte Xiaomi Vacuum",
+    slug: "suporte-xiaomi-vacum",
+    shortDescription: "Peça personalizada para organização e instalação sob medida.",
+    image: "/images/products/components-placeholder.svg",
+    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
+    priceOriginal: 119.9,
+    pricePromo: 99.9,
+    pixPrice: 94.9,
+  },
+];
+
+const fallbackBlocks: PageBlock[] = [
+  {
+    id: "fallback-products-hero",
+    type: "products-hero",
+    order: 1,
+    active: true,
+    content: {
+      badge: "Catálogo",
+      title: "Nossos Produtos",
+      description: "Peças e componentes de alta qualidade para impressoras 3D. Hotends, bicos, termistores e acessórios para Bambu Lab, Creality e outras marcas. Entrega rápida em todo o Brasil."
+    },
+  },
+  {
+    id: "fallback-products-cta",
+    type: "products-cta",
+    order: 2,
+    active: true,
+    content: {
+      title: "Dúvidas sobre compatibilidade?",
+      description: "Nossa equipe técnica está pronta para ajudar você a encontrar as peças certas para sua impressora 3D.",
+      buttonText: "Falar com Suporte Técnico",
+      whatsappLink: "https://wa.me/5511999999999?text=Olá! Preciso de ajuda para escolher peças para minha impressora 3D.",
+      secondaryButtonText: "Ver Catálogo Completo",
+      secondaryLink: "/contato"
+    },
+  },
+];
+
 function ProductsContent() {
   const searchParams = useSearchParams();
   const buscaParam = searchParams.get("busca") || "";
@@ -95,11 +320,10 @@ function ProductsContent() {
   // Carregar categorias e blocos uma vez
   useEffect(() => {
     Promise.all([
-      fetch("/api/categories").then((r) => r.json()),
-      fetch("/api/pages/produtos").then((r) => r.json()),
+      fetch("/api/categories").then((r) => (r.ok ? r.json() : Promise.reject(new Error("categories-unavailable")))),
+      fetch("/api/pages/produtos").then((r) => (r.ok ? r.json() : Promise.reject(new Error("page-unavailable")))),
     ])
       .then(([catData, pageData]) => {
-        // Filtrar apenas categorias do IP3D
         const ip3dCategorySlugs = [
           "impressoras-3d",
           "componentes-bambu-lab",
@@ -110,10 +334,14 @@ function ProductsContent() {
         const ip3dCategories = (catData.categories || []).filter(
           (cat: Category) => ip3dCategorySlugs.includes(cat.slug)
         );
-        setCategories(ip3dCategories);
-        setBlocks(pageData.page?.blocks || []);
+
+        setCategories(ip3dCategories.length > 0 ? ip3dCategories : fallbackCategories);
+        setBlocks(pageData.page?.blocks?.length ? pageData.page.blocks : fallbackBlocks);
       })
-      .catch(console.error);
+      .catch(() => {
+        setCategories(fallbackCategories);
+        setBlocks(fallbackBlocks);
+      });
   }, []);
 
   // Carregar produtos com paginação (usa AbortController para evitar race conditions)
@@ -123,12 +351,11 @@ function ProductsContent() {
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("limit", "9");
-    // Quando busca está ativa, NÃO filtrar por categoria (busca global)
     if (selectedCategory && !debouncedSearch.trim()) params.set("category", selectedCategory);
     if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
-    
+
     fetch(`/api/products?${params.toString()}`, { signal: abortController.signal })
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("products-unavailable"))))
       .then((data) => {
         if (!abortController.signal.aborted) {
           setProducts(data.products || []);
@@ -138,19 +365,41 @@ function ProductsContent() {
         }
       })
       .catch((err) => {
-        if (err.name !== "AbortError") console.error(err);
+        if (err.name === "AbortError") return;
+
+        const normalizedSearch = debouncedSearch.trim().toLowerCase();
+        const fallbackFiltered = fallbackProducts.filter((product) => {
+          const matchesCategory = selectedCategory ? product.category?.slug === selectedCategory : true;
+          const matchesSearch = normalizedSearch
+            ? [product.name, product.shortDescription, product.category?.name]
+                .filter(Boolean)
+                .some((value) => value!.toLowerCase().includes(normalizedSearch))
+            : true;
+
+          return matchesCategory && matchesSearch;
+        });
+
+        const pageSize = 9;
+        const total = fallbackFiltered.length;
+        const pages = Math.max(1, Math.ceil(total / pageSize));
+        const safePage = Math.min(currentPage, pages);
+        const start = (safePage - 1) * pageSize;
+        const paginated = fallbackFiltered.slice(start, start + pageSize);
+
+        setProducts(paginated);
+        setTotalPages(pages);
+        setTotalProducts(total);
+        setInitialLoad(false);
       })
       .finally(() => {
         if (!abortController.signal.aborted) setLoading(false);
       });
 
     return () => {
-      // Não abortar a primeira request (initial load)
       if (!initialLoad) abortController.abort();
     };
-  }, [currentPage, selectedCategory, debouncedSearch]);
+  }, [currentPage, selectedCategory, debouncedSearch, initialLoad]);
 
-  // Produtos já filtrados pela API
   const filteredProducts = products;
 
   return (

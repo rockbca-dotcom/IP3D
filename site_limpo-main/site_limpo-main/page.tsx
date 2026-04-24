@@ -1,0 +1,1 @@
+Análise não realizada neste arquivo placeholder. O ambiente não disponibilizou os arquivos reais do projeto para leitura.

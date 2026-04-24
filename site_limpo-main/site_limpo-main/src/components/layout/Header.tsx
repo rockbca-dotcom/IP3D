@@ -65,6 +65,7 @@ interface CategoryNavItem {
 }
 
 export function Header() {
+  const [hasMounted, setHasMounted] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<HeaderConfigData | null>(null);
@@ -73,8 +74,8 @@ export function Header() {
   const [isHovering, setIsHovering] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const pathname = usePathname();
-  
-  const showSolidHeader = isScrolled || pathname !== "/";
+  const isHomePage = pathname === "/";
+  const showSolidHeader = isScrolled || !isHomePage;
 
   const navLinks = config?.navLinks || defaultNavLinks;
   const logoUrl = config?.logoUrl || "/images/Captura_de_tela_2026-02-28_210120-removebg-preview.webp";
@@ -83,6 +84,11 @@ export function Header() {
   const whatsappLink = digitsPhone
     ? `https://wa.me/${digitsPhone.length >= 12 ? digitsPhone : `55${digitsPhone}`}`
     : "#";
+  const floatingBrandBar = isHomePage && isScrolled;
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     fetch("/api/layout?type=header")
@@ -163,21 +169,26 @@ export function Header() {
   }, [categories, megaOpen]);
 
   return (
-    <motion.header
-      initial={{ y: -80 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="relative z-50 text-sm"
-    >
+    <header className="relative z-50 text-sm">
       {/* Topbar */}
-      <div className="bg-[#0B64D3] text-white">
-        <div className="container mx-auto px-6 py-2 text-center text-xs font-semibold tracking-[0.3em] uppercase">
+      <div
+        className={`overflow-hidden bg-[#0B64D3] text-white transition-all duration-300 ${
+          floatingBrandBar ? "max-h-0 opacity-0 py-0" : "max-h-12 opacity-100"
+        }`}
+      >
+        <div className="container mx-auto px-6 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em]">
           Entregas para todo o Brasil
         </div>
       </div>
 
       {/* Brand Row */}
-      <div className="bg-white border-b border-gray-100">
+      <div
+        className={`bg-white border-b border-gray-100 transition-all duration-300 ${
+          floatingBrandBar
+            ? "fixed left-0 right-0 top-0 z-50 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.45)] backdrop-blur supports-[backdrop-filter]:bg-white/95"
+            : ""
+        }`}
+      >
         <div className="container mx-auto flex flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between">
           <Link href="/" className="flex items-center gap-3">
             <Image src={logoUrl} alt="IP3D" width={170} height={50} className="object-contain" priority />
@@ -225,9 +236,25 @@ export function Header() {
         </div>
       </div>
 
+      {floatingBrandBar && (
+        <div aria-hidden className="h-[172px] md:h-[96px] lg:h-[88px]" />
+      )}
+
       {/* Main Nav */}
-      <div className={`border-b ${showSolidHeader ? "bg-white shadow-sm" : "bg-white"}`}>
-        <div className="container mx-auto flex items-center justify-between px-6 py-3 lg:py-4">
+      <div
+        className={
+          isHomePage
+            ? "relative z-40 -mb-6 px-4"
+            : `border-b ${showSolidHeader ? "bg-white shadow-sm" : "bg-white"}`
+        }
+      >
+        <div
+          className={
+            isHomePage
+              ? "mx-auto flex max-w-screen-2xl items-center justify-between rounded-[1.75rem] border border-white/70 bg-white/95 px-6 py-3 shadow-[0_24px_60px_-38px_rgba(15,23,42,0.45)] backdrop-blur lg:py-4"
+              : "container mx-auto flex items-center justify-between px-6 py-3 lg:py-4"
+          }
+        >
           <div className="hidden lg:flex items-center gap-6">
             <button
               type="button"
@@ -251,50 +278,62 @@ export function Header() {
 
           {/* Mobile actions */}
           <div className="flex items-center gap-3 lg:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <button className="flex flex-col gap-1 rounded-md border border-gray-200 px-2 py-1 text-gray-800">
-                  <span className="block h-0.5 w-6 bg-current" />
-                  <span className="block h-0.5 w-6 bg-current" />
-                  <span className="block h-0.5 w-4 bg-current" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full max-w-md bg-white p-8">
-                <div className="flex flex-col gap-6">
-                  <Link href="/" onClick={() => setIsOpen(false)}>
-                    <Image src={logoUrl} alt="Logo" width={160} height={40} />
-                  </Link>
-                  <div className="space-y-4">
-                    <p className="text-xs uppercase tracking-widest text-gray-500">Departamentos</p>
-                    <div className="space-y-3">
-                      {categories.map((cat) => (
-                        <div key={cat.id}>
-                          <p className="font-semibold text-gray-900">{cat.name}</p>
-                          <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-500">
-                            {cat.children.map((child) => (
-                              <SheetClose asChild key={child.id}>
-                                <Link href={`/categorias/${child.slug}`} className="rounded-full bg-gray-100 px-3 py-1">
-                                  {child.name}
-                                </Link>
-                              </SheetClose>
-                            ))}
+            {hasMounted ? (
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <button className="flex flex-col gap-1 rounded-md border border-gray-200 px-2 py-1 text-gray-800">
+                    <span className="block h-0.5 w-6 bg-current" />
+                    <span className="block h-0.5 w-6 bg-current" />
+                    <span className="block h-0.5 w-4 bg-current" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full max-w-md bg-white p-8">
+                  <div className="flex flex-col gap-6">
+                    <Link href="/" onClick={() => setIsOpen(false)}>
+                      <Image src={logoUrl} alt="Logo" width={160} height={40} />
+                    </Link>
+                    <div className="space-y-4">
+                      <p className="text-xs uppercase tracking-widest text-gray-500">Departamentos</p>
+                      <div className="space-y-3">
+                        {categories.map((cat) => (
+                          <div key={cat.id}>
+                            <p className="font-semibold text-gray-900">{cat.name}</p>
+                            <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-500">
+                              {cat.children.map((child) => (
+                                <SheetClose asChild key={child.id}>
+                                  <Link href={`/categorias/${child.slug}`} className="rounded-full bg-gray-100 px-3 py-1">
+                                    {child.name}
+                                  </Link>
+                                </SheetClose>
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
+                    <nav className="space-y-2">
+                      {navLinks.map((link) => (
+                        <SheetClose asChild key={link.href}>
+                          <Link href={link.href} className="block rounded-md border border-gray-100 px-4 py-2 text-gray-700">
+                            {link.label}
+                          </Link>
+                        </SheetClose>
+                      ))}
+                    </nav>
                   </div>
-                  <nav className="space-y-2">
-                    {navLinks.map((link) => (
-                      <SheetClose asChild key={link.href}>
-                        <Link href={link.href} className="block rounded-md border border-gray-100 px-4 py-2 text-gray-700">
-                          {link.label}
-                        </Link>
-                      </SheetClose>
-                    ))}
-                  </nav>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            ) : (
+              <button
+                type="button"
+                aria-label="Abrir menu"
+                className="flex flex-col gap-1 rounded-md border border-gray-200 px-2 py-1 text-gray-800"
+              >
+                <span className="block h-0.5 w-6 bg-current" />
+                <span className="block h-0.5 w-6 bg-current" />
+                <span className="block h-0.5 w-4 bg-current" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -326,6 +365,6 @@ export function Header() {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.header>
+    </header>
   );
 }

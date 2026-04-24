@@ -106,25 +106,25 @@ const categorySections = [
     slug: "componentes-bambu-lab",
     title: "Os mais queridinhos",
     description: "Seleção de componentes variados para atender diferentes necessidades e aplicações.",
-    miniBanner: "/images/banners/mini-componentes-bambu-lab.svg",
+    miniBanner: "/uploads/products/limpador-bico-bambu-lab-a1.jpg",
   },
     {
       slug: "componentes-creality",
       title: "Os mais pedidos",
       description: "Seleção variada de peças e upgrades para diferentes necessidades.",
-      miniBanner: "/images/banners/mini-componentes-creality.svg",
+      miniBanner: "/uploads/products/kit-hotend-creality-cr-10.jpg",
     },
     {
       slug: "componentes-universais",
       title: "Seleção em destaque",
       description: "Peças versáteis para atender diferentes necessidades e aplicações.",
-      miniBanner: "/images/banners/mini-componentes-universais.svg",
+      miniBanner: "/uploads/products/kit-aquecedor-ceramico-60w.jpg",
     },
   {
     slug: "impressoras-3d",
-    title: "Impressoras 3D",
+    title: "Impressões 3D",
     description: "Maquinas prontas para producao com suporte IP3D.",
-    miniBanner: "/images/banners/mini-impressoras-3d.svg",
+    miniBanner: "/uploads/products/mesa-pei-texturizada-bambu-lab-h2d.jpg",
   },
   {
     slug: "personalizados",
@@ -238,10 +238,14 @@ export function HomeShowcase({
     const fetchBanners = async () => {
       try {
         const res = await fetch("/api/admin/banners");
-        if (!res.ok) throw new Error("Falha ao carregar banners");
+
+        if (!res.ok) {
+          return;
+        }
+
         const data = await res.json();
-        
-          if (data.banners && data.banners.length > 0) {
+
+        if (data.banners && data.banners.length > 0) {
             const mappedBanners = data.banners.map((b: any) => ({
               id: b.id,
               image: b.image,
@@ -304,44 +308,27 @@ export function HomeShowcase({
             }
             setHeroSlides(mappedBanners);
           }
-      } catch (error) {
-        console.error("Error fetching banners:", error);
+      } catch {
+        // Mantém os banners estáticos padrão quando a API admin não estiver disponível.
       }
     };
     fetchBanners();
   }, []);
 
-  // ─── Carrossel automático "Todos os nossos produtos" ─────────────────────────
-  // Usa requestAnimationFrame para garantir funcionamento independente de CSS.
-  //
-  // Por que RAF em vez de CSS animation:
-  //   • `animation: name timing-function count` sem duração explícita aplica
-  //     animation-duration: 0s (padrão CSS). O inline animationDuration deveria
-  //     sobrescrever, mas a interação shorthand → longhand não é confiável em
-  //     todos os browsers/pipelines de CSS (Tailwind v4).
-  //   • Com RAF temos controle pixel-perfect do stride: stride = N*(CARD_W+GAP)
-  //     garante seamless loop exato. A abordagem -50% CSS falha quando o track
-  //     tem padding à esquerda (desalinha o ponto de reset).
-  //   • prefers-reduced-motion tratado via window.matchMedia antes de iniciar.
-  //
-  // stride: distância (px) de uma cópia completa = N × (largura_card + gap)
-  //         Ao módulo-strider o offset, o ponto de reset é idêntico ao início.
-  // ─────────────────────────────────────────────────────────────────────────────
-  const MARQUEE_CARD_W = 272;   // largura do card em px (w-[272px])
-  const MARQUEE_GAP    = 16;    // gap-4 = 1rem = 16px
-  const MARQUEE_SPEED  = 55;    // px/s — velocidade confortável para leitura
+  const MARQUEE_CARD_W = 296;
+  const MARQUEE_GAP = 20;
+  const MARQUEE_SPEED = 55;
 
-  const marqueeRef          = useRef<HTMLDivElement | null>(null);
-  const marqueeRafRef       = useRef<number>(0);
-  const marqueeOffsetRef    = useRef(0);
-  const marqueePrevTimeRef  = useRef<number | null>(null);
-  const marqueePausedRef    = useRef(false);
+  const marqueeRef = useRef<HTMLDivElement | null>(null);
+  const marqueeRafRef = useRef<number>(0);
+  const marqueeOffsetRef = useRef(0);
+  const marqueePrevTimeRef = useRef<number | null>(null);
+  const marqueePausedRef = useRef(false);
 
   useEffect(() => {
     const el = marqueeRef.current;
     if (!el || allProducts.length === 0) return;
 
-    // Respeita preferência do sistema operacional
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     const stride = allProducts.length * (MARQUEE_CARD_W + MARQUEE_GAP);
@@ -351,7 +338,7 @@ export function HomeShowcase({
       if (marqueePrevTimeRef.current === null) marqueePrevTimeRef.current = now;
 
       if (!marqueePausedRef.current) {
-        const dt = (now - marqueePrevTimeRef.current) / 1000; // segundos
+        const dt = (now - marqueePrevTimeRef.current) / 1000;
         marqueeOffsetRef.current = (marqueeOffsetRef.current + MARQUEE_SPEED * dt) % stride;
         if (el) el.style.transform = `translateX(-${marqueeOffsetRef.current}px)`;
       }
@@ -362,9 +349,7 @@ export function HomeShowcase({
 
     marqueeRafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(marqueeRafRef.current);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allProducts.length]);
-  // ─────────────────────────────────────────────────────────────────────────────
 
   useEffect(() => {
     if (heroSlides.length <= 1) return;
@@ -377,16 +362,85 @@ export function HomeShowcase({
   const categoryProductsMap = useMemo(() => {
     const map: Record<string, ProductCard[]> = {};
     for (const section of categorySections) {
-      // Apenas produtos reais desta categoria vindos do banco.
-      // Sem fallback fictício nem injeção cross-categoria (backupPool removido).
-      // Seções sem produtos no banco são ocultadas pelo guard no JSX.
       const source = categoryProducts[section.slug] ?? [];
       map[section.slug] = source.slice(0, MAX_PRODUCTS_PER_SECTION);
     }
     return map;
   }, [categoryProducts]);
 
-  const featuredProductsToRender = featuredProducts.slice(0, 4);
+  const featuredProductsToRender = useMemo(() => {
+    const primarySlug = "termistor-2x-100k-ohm-ntc-3950-sensor-de-temperatura-3d";
+    const secondarySlug = "fep-film-lcd-halot-mage-pro-original-creality-5-un";
+    const tertiarySlug = "2x-capa-de-silicone-para-hotend-bambu-lab-a1-e-a1-mini";
+    const quaternarySlug = "1x-escova-de-silicone-limpeza-de-bico-bambu-lab-a1";
+
+    const allCandidateProducts = [
+      ...featuredProducts,
+      ...allProducts,
+      ...Object.values(categoryProducts).flat(),
+    ];
+
+    const primaryProduct = allCandidateProducts.find((product) => product.slug === primarySlug);
+    const secondaryProduct = allCandidateProducts.find((product) => product.slug === secondarySlug);
+    const tertiaryProduct = allCandidateProducts.find((product) => product.slug === tertiarySlug);
+    const quaternaryProduct = allCandidateProducts.find(
+      (product) => product.slug === quaternarySlug,
+    );
+
+    const remainingProducts = featuredProducts.filter(
+      (product) =>
+        product.slug !== primarySlug &&
+        product.slug !== secondarySlug &&
+        product.slug !== tertiarySlug &&
+        product.slug !== quaternarySlug,
+    );
+
+    const orderedProducts = [
+      ...(primaryProduct ? [primaryProduct] : []),
+      ...(secondaryProduct ? [secondaryProduct] : []),
+      ...(tertiaryProduct ? [tertiaryProduct] : []),
+      ...(quaternaryProduct ? [quaternaryProduct] : []),
+      ...remainingProducts,
+    ];
+
+    return orderedProducts.slice(0, 4);
+  }, [featuredProducts, allProducts, categoryProducts]);
+
+  const favoriteProductsToRender = useMemo(() => {
+    const primarySlug = "fixador-de-haste-para-astro-a50-gen4-headband-fix-2-pecas";
+    const secondarySlug = "termistor-e-aquecedor-para-creality-k1-k1c-k1-max-24v-60w";
+    const tertiarySlug = "base-mesa-magnetica-pei-para-bambu-lab-h2d-h2s-355x346mm";
+    const quaternarySlug = "aquecedor-ceramico-e-termistor-para-bambu-lab-a1-e-a1-mini";
+
+    const allCandidateProducts = [
+      ...(categoryProducts["componentes-bambu-lab"] ?? []),
+      ...allProducts,
+      ...featuredProducts,
+      ...Object.values(categoryProducts).flat(),
+    ];
+
+    const primaryProduct = allCandidateProducts.find((product) => product.slug === primarySlug);
+    const secondaryProduct = allCandidateProducts.find((product) => product.slug === secondarySlug);
+    const tertiaryProduct = allCandidateProducts.find((product) => product.slug === tertiarySlug);
+    const quaternaryProduct = allCandidateProducts.find((product) => product.slug === quaternarySlug);
+    const baseProducts = categoryProductsMap["componentes-bambu-lab"] ?? [];
+
+    const remainingProducts = baseProducts.filter(
+      (product) =>
+        product.slug !== primarySlug &&
+        product.slug !== secondarySlug &&
+        product.slug !== tertiarySlug &&
+        product.slug !== quaternarySlug,
+    );
+
+    return [
+      ...(primaryProduct ? [primaryProduct] : []),
+      ...(secondaryProduct ? [secondaryProduct] : []),
+      ...(tertiaryProduct ? [tertiaryProduct] : []),
+      ...(quaternaryProduct ? [quaternaryProduct] : []),
+      ...remainingProducts,
+    ].slice(0, 4);
+  }, [categoryProducts, categoryProductsMap, allProducts, featuredProducts]);
 
   const defaultCategories: CategoryCard[] = categorySections.map((section) => ({
     id: section.slug,
@@ -415,7 +469,7 @@ export function HomeShowcase({
   const compactSectionSlugs = new Set(["componentes-bambu-lab", "componentes-creality", "componentes-universais"]);
 
   const promoBannerSection = (
-    <section className="px-4 sm:px-6 lg:px-10">
+    <section className="w-full">
       <div className="relative overflow-hidden rounded-[2rem] border border-[#d8e5f8] bg-gradient-to-r from-[#0B64D3] via-[#0f74ee] to-[#10213f] text-white shadow-[0_24px_70px_rgba(11,100,211,0.22)]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.24),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(255,255,255,0.14),transparent_30%)]" />
         <div className="relative grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
@@ -448,16 +502,16 @@ export function HomeShowcase({
                   </Button>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Compatibilidade</p>
+                  <div className="rounded-2xl border border-[#dce7f8] bg-white px-4 py-3 backdrop-blur-sm text-[#10213f]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#0B64D3]">Compatibilidade</p>
                 <p className="mt-1 text-sm font-medium">Bambu Lab A1</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Instalação</p>
+                  <div className="rounded-2xl border border-[#dce7f8] bg-white px-4 py-3 backdrop-blur-sm text-[#10213f]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#0B64D3]">Instalação</p>
                 <p className="mt-1 text-sm font-medium">Na cama de aquecimento</p>
                   </div>
-                  <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/65">Função</p>
+                  <div className="rounded-2xl border border-[#dce7f8] bg-white px-4 py-3 backdrop-blur-sm text-[#10213f]">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#0B64D3]">Função</p>
                 <p className="mt-1 text-sm font-medium">Limpeza automática do bocal</p>
                   </div>
                 </div>
@@ -473,8 +527,8 @@ export function HomeShowcase({
                 />
             <div className="absolute inset-0 bg-gradient-to-t from-[#10213f]/78 via-[#10213f]/18 to-transparent" />
                 <div className="absolute bottom-5 left-5 right-5 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-white/15 bg-[#10213f]/80 px-4 py-3 backdrop-blur">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/60">
+                  <div className="rounded-2xl border border-[#dce7f8] bg-white px-4 py-3 text-[#10213f] shadow-lg">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#0B64D3]">
                   Série A1
                     </p>
                 <p className="mt-1 text-sm font-medium">Limpeza integrada antes de imprimir</p>
@@ -511,225 +565,160 @@ export function HomeShowcase({
   const scrollSection = (slug: string, direction: "left" | "right") => {
     const target = sectionCarouselRefs.current[slug];
     if (!target) return;
-    target.scrollBy({ left: direction === "left" ? -360 : 360, behavior: "smooth" });
+    target.scrollBy({ left: direction === "left" ? -392 : 392, behavior: "smooth" });
   };
 
-  return (
+    return (
     <div className="space-y-10 pb-16">
       <section className="bg-[#f4f7fd]">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="relative overflow-hidden rounded-xl border border-[#dbe7fb] bg-black shadow-[0_24px_60px_-42px_rgba(11,100,211,0.55)]">
-            <div className="relative h-[480px] sm:h-[540px] lg:h-[600px]">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentSlide}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6 }}
-                  className="absolute inset-0"
-                >
-                  <Image src={heroSlides[currentSlide].image} alt={heroSlides[currentSlide].alt} fill priority className="object-cover opacity-100" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
-                  <div className="absolute inset-0 bg-grid-white-tech" />
-                  
-                  {/* Custom Design Assets - HUD Creation */}
-                  <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
-                    {/* Dynamic Crosshair (Large) */}
-                    <motion.div
-                      initial={{ opacity: 0, scale: 2 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                      style={{ top: heroSlides[currentSlide].crosshairPos.top, left: heroSlides[currentSlide].crosshairPos.left }}
-                      className="absolute -translate-x-1/2 -translate-y-1/2"
-                    >
-                      <div className="relative w-48 h-48 sm:w-80 sm:h-80 border border-cyan-500/10 rounded-full flex items-center justify-center">
-                        {/* Outer rotating ring */}
-                        <motion.div 
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                          className="absolute inset-0 border border-thin border-cyan-500/30 rounded-full"
-                        />
-                        
-                        {/* Inner focus circle */}
-                        <div className="w-6 h-6 border-2 border-cyan-400 rounded-full animate-pulse shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
-                        
-                        {/* Corner brackets (MIRA MAIOR) */}
-                        <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)]" />
-                        <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)]" />
-                        <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)]" />
-                        <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)]" />
+        <div className="relative w-full overflow-hidden bg-black shadow-[0_24px_60px_-42px_rgba(11,100,211,0.55)]">
+          <div className="relative h-[288px] sm:h-[324px] lg:h-[360px]">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentSlide}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.6 }}
+                className="absolute inset-0"
+              >
+                <Image src={heroSlides[currentSlide].image} alt={heroSlides[currentSlide].alt} fill priority className="object-cover opacity-100" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-grid-white-tech" />
 
-                        {/* Measuring lines */}
-                        <div className="absolute top-1/2 -translate-y-1/2 -left-28 w-24 h-[1px] bg-gradient-to-l from-cyan-500 to-transparent" />
-                        <div className="absolute top-1/2 -translate-y-1/2 -right-28 w-24 h-[1px] bg-gradient-to-r from-cyan-500 to-transparent" />
-                        
-                        {/* Status Label */}
-                        <div className="absolute -top-8 left-0 text-[10px] font-bold font-mono text-cyan-400 bg-cyan-950/60 px-3 py-1 tracking-[0.2em] border-l-2 border-cyan-500">
-                          TARGET_ACQUISITION_V4
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Decorative Elements */}
-                    <div className="absolute top-12 left-1/2 -translate-x-1/2 opacity-30">
-                      <div className="text-[10px] font-mono text-white/50 tracking-[0.5em] uppercase border-y border-white/10 px-4 py-1">
-                        IP3D_DIGITAL_MANUFACTURING // HUD_ENABLED
+                <div className="absolute inset-0 z-20 pointer-events-none overflow-hidden">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 2 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1, ease: "easeOut" }}
+                    style={{ top: heroSlides[currentSlide].crosshairPos.top, left: heroSlides[currentSlide].crosshairPos.left }}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                  >
+                    <div className="relative flex h-28 w-28 items-center justify-center rounded-full border border-cyan-500/10 sm:h-40 sm:w-40 lg:h-56 lg:w-56">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                        className="absolute inset-0 rounded-full border border-cyan-500/30"
+                      />
+                      <div className="h-4 w-4 animate-pulse rounded-full border-2 border-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)] sm:h-5 sm:w-5" />
+                      <div className="absolute left-0 top-0 h-10 w-10 border-l-2 border-t-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)] sm:h-12 sm:w-12" />
+                      <div className="absolute right-0 top-0 h-10 w-10 border-r-2 border-t-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)] sm:h-12 sm:w-12" />
+                      <div className="absolute bottom-0 left-0 h-10 w-10 border-b-2 border-l-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)] sm:h-12 sm:w-12" />
+                      <div className="absolute bottom-0 right-0 h-10 w-10 border-b-2 border-r-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.6)] sm:h-12 sm:w-12" />
+                      <div className="absolute -left-16 top-1/2 h-px w-12 -translate-y-1/2 bg-gradient-to-l from-cyan-500 to-transparent sm:-left-24 sm:w-16 lg:w-20" />
+                      <div className="absolute -right-16 top-1/2 h-px w-12 -translate-y-1/2 bg-gradient-to-r from-cyan-500 to-transparent sm:-right-24 sm:w-16 lg:w-20" />
+                      <div className="absolute -top-6 left-0 border-l-2 border-cyan-500 bg-cyan-950/60 px-2.5 py-1 font-mono text-[8px] font-bold tracking-[0.18em] text-cyan-400 sm:-top-7 sm:px-3 sm:text-[9px]">
+                        TARGET_ACQUISITION_V4
                       </div>
                     </div>
+                  </motion.div>
+
+                  <div className="absolute left-1/2 top-6 -translate-x-1/2 opacity-30 sm:top-8">
+                    <div className="border-y border-white/10 px-3 py-1 text-[8px] font-mono uppercase tracking-[0.35em] text-white/50 sm:px-4 sm:text-[9px] lg:text-[10px]">
+                      IP3D_DIGITAL_MANUFACTURING // HUD_ENABLED
+                    </div>
                   </div>
-                </motion.div>
-              </AnimatePresence>
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
-              {/* Navigation Arrows */}
-              <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between z-40 pointer-events-none">
-                <button 
-                  onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))}
-                  className="w-12 h-12 rounded-full border border-white/20 bg-black/40 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-[#0B64D3] transition-all"
-                  aria-label="Anterior"
-                >
-                  <HiOutlineChevronLeft size={24} />
-                </button>
-                <button 
-                  onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)}
-                  className="w-12 h-12 rounded-full border border-white/20 bg-black/40 backdrop-blur-md flex items-center justify-center text-white pointer-events-auto hover:bg-[#0B64D3] transition-all"
-                  aria-label="Próximo"
-                >
-                  <HiOutlineChevronRight size={24} />
-                </button>
+            <div className="absolute inset-x-4 top-1/2 z-40 flex -translate-y-1/2 justify-between pointer-events-none">
+              <button onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:bg-[#0B64D3]" aria-label="Anterior">
+                <HiOutlineChevronLeft size={24} />
+              </button>
+              <button onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:bg-[#0B64D3]" aria-label="Próximo">
+                <HiOutlineChevronRight size={24} />
+              </button>
+            </div>
+
+            <div className="absolute left-0 top-0 z-30 h-px w-full bg-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.4)] animate-scan pointer-events-none" />
+
+            <div className="relative z-30 mx-auto flex h-full w-full max-w-screen-2xl items-center px-5 sm:px-6 lg:px-12">
+              <div className="max-w-xl border-l-2 border-cyan-500/30 bg-black/10 p-5 backdrop-blur-[2px] sm:p-6 lg:max-w-2xl lg:p-8">
+                <AnimatePresence mode="popLayout">
+                  <motion.div key={`content-${currentSlide}`} initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 30 }} transition={{ duration: 0.4 }}>
+                    <div className="mb-3 flex items-center gap-3 sm:mb-4">
+                      <span className="bg-cyan-500 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white">LIVE</span>
+                      <span className="text-cyan-400 text-xs font-bold uppercase tracking-widest italic">{heroSlides[currentSlide].subtitle}</span>
+                    </div>
+
+                    <h1 className="mb-3 text-3xl font-bold leading-[1] tracking-tight text-white sm:mb-4 md:text-4xl lg:text-5xl">{heroSlides[currentSlide].title}</h1>
+
+                    <p className="mb-5 max-w-lg text-sm leading-relaxed text-gray-300 sm:text-base lg:text-lg">{heroSlides[currentSlide].description}</p>
+
+                    <div className="flex flex-wrap gap-4">
+                      <Link href={heroSlides[currentSlide].button1.link}>
+                        <Button size="lg" className="h-10 bg-[#0B64D3] px-5 text-sm font-semibold text-white transition-all hover:bg-[#0A4A9D] hover:shadow-[0_0_20px_rgba(11,100,211,0.4)] sm:h-11 sm:px-6 sm:text-base">
+                          {heroSlides[currentSlide].button1.text}
+                          <HiArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Link href={heroSlides[currentSlide].button2.link}>
+                        <Button size="lg" variant="outline" className="h-10 border-white/30 bg-white/5 px-5 text-sm text-white backdrop-blur-sm hover:bg-white/10 sm:h-11 sm:px-6 sm:text-base">
+                          <HiPlay className="mr-2 h-5 w-5" />
+                          {heroSlides[currentSlide].button2.text}
+                        </Button>
+                      </Link>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              {/* HUD Scan Line */}
-              <div className="absolute top-0 left-0 w-full h-[1px] bg-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.4)] z-30 animate-scan pointer-events-none" />
-
-              <div className="relative z-30 container mx-auto px-8 lg:px-16 h-full flex items-center">
-                <div className="max-w-2xl bg-black/10 backdrop-blur-[2px] p-8 border-l-2 border-cyan-500/30">
-                  <AnimatePresence mode="popLayout">
-                    <motion.div
-                      key={`content-${currentSlide}`}
-                      initial={{ opacity: 0, x: -30 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: 30 }}
-                      transition={{ duration: 0.4 }}
-                    >
-                      <div className="flex items-center gap-3 mb-6">
-                        <span className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] bg-cyan-500 text-white">
-                          LIVE
-                        </span>
-                        <span className="text-cyan-400 text-xs font-bold uppercase tracking-widest italic">
-                          {heroSlides[currentSlide].subtitle}
-                        </span>
-                      </div>
-                      
-                      <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold text-white tracking-tight leading-[1] mb-6">
-                        {heroSlides[currentSlide].title}
-                      </h1>
-                      
-                      <p className="text-gray-300 text-lg md:text-xl leading-relaxed mb-8 max-w-xl">
-                        {heroSlides[currentSlide].description}
-                      </p>
-
-                      <div className="flex flex-wrap gap-4">
-                        <Link href={heroSlides[currentSlide].button1.link}>
-                          <Button size="lg" className="bg-[#0B64D3] text-white hover:bg-[#0A4A9D] px-8 h-12 text-base font-semibold transition-all hover:shadow-[0_0_20px_rgba(11,100,211,0.4)]">
-                            {heroSlides[currentSlide].button1.text}
-                            <HiArrowRight className="ml-2 w-4 h-4" />
-                          </Button>
-                        </Link>
-                        <Link href={heroSlides[currentSlide].button2.link}>
-                          <Button size="lg" variant="outline" className="border-white/30 text-white bg-white/5 hover:bg-white/10 px-8 h-12 text-base backdrop-blur-sm">
-                            <HiPlay className="mr-2 w-5 h-5" />
-                            {heroSlides[currentSlide].button2.text}
-                          </Button>
-                        </Link>
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-
-                {/* TECH HUD LABELS */}
-                <div className="absolute right-8 bottom-12 hidden lg:flex flex-col gap-4">
-                  {heroSlides[currentSlide].tech.map((item, idx) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.6 + idx * 0.1 }}
-                      className="bg-black/40 backdrop-blur-md border-l-2 border-cyan-500 p-4 min-w-[220px] shadow-2xl"
-                    >
-                      <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-[0.2em] mb-1">{item.label}</p>
-                      <p className="text-sm font-mono text-white/90">{item.value}</p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Navigation dots repositioned */}
-              <div className="absolute bottom-6 left-8 flex items-center gap-2 z-30">
-                {heroSlides.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`h-1.5 transition-all duration-300 ${
-                      index === currentSlide ? "w-10 bg-cyan-500" : "w-4 bg-white/30 hover:bg-white/50"
-                    }`}
-                    aria-label={`Slide ${index + 1}`}
-                  />
+              <div className="absolute bottom-8 right-6 hidden flex-col gap-3 lg:flex">
+                {heroSlides[currentSlide].tech.map((item: { label: string; value: string }, idx: number) => (
+                  <motion.div key={idx} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + idx * 0.1 }} className="min-w-[200px] border-l-2 border-cyan-500 bg-black/40 p-3 shadow-2xl backdrop-blur-md">
+                    <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400">{item.label}</p>
+                    <p className="text-sm font-mono text-white/90">{item.value}</p>
+                  </motion.div>
                 ))}
               </div>
+            </div>
+
+            <div className="absolute bottom-4 left-5 z-30 flex items-center gap-2 sm:left-8 sm:bottom-6">
+              {heroSlides.map((_, index) => (
+                <button key={index} onClick={() => setCurrentSlide(index)} className={`h-1.5 transition-all duration-300 ${index === currentSlide ? "w-10 bg-cyan-500" : "w-4 bg-white/30 hover:bg-white/50"}`} aria-label={`Slide ${index + 1}`} />
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      <section>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-10">
+      <section className="w-full">
+        <div className="mx-auto w-full max-w-[1760px] px-4 sm:px-6 lg:px-10 xl:px-14 2xl:px-18">
           <div className="grid gap-3 rounded-xl border border-[#dde7f8] bg-white p-4 text-xs font-semibold uppercase tracking-wide text-[#1f3b68] sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg bg-[#f3f7ff] px-3 py-2 text-center">Entrega para todo o Brasil</div>
-            <div className="rounded-lg bg-[#f3f7ff] px-3 py-2 text-center">Pagamento via Pix e cartao</div>
-            <div className="rounded-lg bg-[#f3f7ff] px-3 py-2 text-center">Suporte tecnico especializado</div>
-            <div className="rounded-lg bg-[#f3f7ff] px-3 py-2 text-center">Produtos com garantia</div>
+            <div className="rounded-lg border border-[#dce7f8] bg-white px-3 py-2 text-center">Entrega para todo o Brasil</div>
+            <div className="rounded-lg border border-[#dce7f8] bg-white px-3 py-2 text-center">Pagamento via Pix e cartao</div>
+            <div className="rounded-lg border border-[#dce7f8] bg-white px-3 py-2 text-center">Suporte tecnico especializado</div>
+            <div className="rounded-lg border border-[#dce7f8] bg-white px-3 py-2 text-center">Produtos com garantia</div>
           </div>
         </div>
       </section>
 
         <section>
-          <div className="container mx-auto px-4 sm:px-6 lg:px-10">
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {categorySections.map((section) => (
-              <Link
-                key={section.slug}
-                href={`/categorias/${section.slug}`}
-                className="group overflow-hidden rounded-xl border border-[#dbe7fb] bg-white shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md"
-              >
-                <div className="relative h-[130px]">
-                  <Image src={section.miniBanner} alt={section.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-                </div>
-                <div className="space-y-1 px-3 py-3">
-                  <h3 className="line-clamp-1 text-sm font-semibold text-[#0f274c]">{section.title}</h3>
-                  <p className="line-clamp-2 text-xs text-[#48628b]">{section.description}</p>
-                </div>
-              </Link>
+          <div className="mx-auto w-full max-w-[1720px] px-4 sm:px-6 lg:px-10 xl:px-12 2xl:px-16">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-8">
+              {categorySections.slice(0, 4).map((section) => (
+                <Link
+                  key={section.slug}
+                  href={`/categorias/${section.slug}`}
+                  className="group overflow-hidden rounded-2xl bg-white shadow-lg transition-transform hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="relative h-[180px] sm:h-[210px] lg:h-[230px]">
+                    <Image src={section.miniBanner} alt={section.title} fill className="object-cover transition-transform duration-500 group-hover:scale-[1.04]" />
+                  </div>
+                  <div className="space-y-2 p-5 sm:p-6">
+                    <h3 className="line-clamp-1 text-base font-semibold text-[#0f274c] sm:text-lg">{section.title}</h3>
+                    <p className="line-clamp-2 text-sm leading-6 text-[#48628b]">{section.description}</p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
         </section>
 
-        {/* 
-         * MAIS VENDIDOS
-         * Fonte de dados: prop `featuredProducts` — produtos com featured=true no banco,
-       * ordenados por updatedAt desc (máx. 8). Para alterar quais produtos aparecem
-       * aqui, ative/desative o campo "Destaque" no Admin → Produtos.
-       *
-       * Quando um campo dedicado (ex: bestSeller: Boolean ou salesCount: Int) for
-       * adicionado via migração Prisma — usando dados reais de pedidos — basta trocar
-       * a query em page.tsx e atualizar esta prop sem alterar o layout.
-       *
-       * Seção omitida automaticamente se não houver nenhum produto em destaque.
-       */}
       {featuredProducts.length > 0 && (
-        <section className="bg-white py-8">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-10">
+        <section className="bg-white py-10">
+          <div className="mx-auto w-full max-w-[1760px] px-4 sm:px-6 lg:px-10 xl:px-14 2xl:px-18">
             <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
               <div className="max-w-xl">
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0B64D3]">
@@ -751,7 +740,7 @@ export function HomeShowcase({
               ref={(node) => {
                 sectionCarouselRefs.current["mais-vendidos"] = node;
               }}
-              className="mx-auto grid max-w-6xl grid-cols-1 gap-4 pb-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
+              className="mx-auto grid max-w-[1720px] grid-cols-1 gap-6 pb-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8"
             >
               {featuredProductsToRender.map((product) => {
                 const mainPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
@@ -767,7 +756,7 @@ export function HomeShowcase({
                 return (
                 <div
                     key={product.id}
-                    className="group relative flex min-h-[430px] flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                    className="group relative flex min-h-[500px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
                   >
                     <button
                       type="button"
@@ -777,20 +766,20 @@ export function HomeShowcase({
                       <Heart className="h-4 w-4" />
                     </button>
 
-                    <Link href={`/produtos/${product.slug}`} className="relative block h-[190px] w-full bg-[#f4f8ff]">
+                      <Link href={`/produtos/${product.slug}`} className="relative block h-[250px] w-full bg-white">
                       {isExternalUrl(productImage) ? (
                         <img
                           src={productImage}
                           alt={product.name}
-                          className={`h-full w-full object-cover transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                          className={`h-full w-full object-contain p-6 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
                         />
                       ) : (
                         <Image
                           src={productImage}
                           alt={product.name}
                           fill
-                          className={`object-cover transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                          sizes="(max-width: 768px) 80vw, 272px"
+                          className={`object-contain p-6 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                          sizes="(max-width: 768px) 80vw, 320px"
                         />
                       )}
                       {hoverImage && (
@@ -798,15 +787,15 @@ export function HomeShowcase({
                           <img
                             src={hoverImage}
                             alt={`${product.name} - imagem secundária`}
-                            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                            className="absolute inset-0 h-full w-full object-contain p-6 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
                           />
                         ) : (
                           <Image
                             src={hoverImage}
                             alt={`${product.name} - imagem secundária`}
                             fill
-                            className="object-cover opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                            sizes="(max-width: 768px) 80vw, 272px"
+                            className="object-contain p-6 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                            sizes="(max-width: 768px) 80vw, 320px"
                           />
                         )
                       )}
@@ -815,7 +804,7 @@ export function HomeShowcase({
                       </span>
                     </Link>
 
-                    <div className="flex flex-1 flex-col p-4">
+                      <div className="flex flex-1 flex-col p-5">
                       <Link
                         href={`/produtos/${product.slug}`}
                         className="line-clamp-2 min-h-[3.2rem] text-[15px] font-semibold text-[#0f274c]"
@@ -831,20 +820,22 @@ export function HomeShowcase({
                           )}
                         </div>
                         {installments && <p className="text-xs text-[#47628a]">ou {installments}</p>}
-                        {pixPrice && mainPrice && pixPrice < mainPrice && (
-                          <div className="mt-2 rounded-lg bg-[#fff4ec] px-3 py-2">
+                        {pixPrice && (
+                          <div className="mt-2 rounded-lg border border-[#f1f1f1] bg-white px-3 py-2">
                             <p className="text-sm font-semibold text-[#FF6B35]">
                               Pix: {formatCurrency(pixPrice)}
                             </p>
                             <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
-                              Pagamento via PIX com desconto
+                              {mainPrice && pixPrice < mainPrice
+                                ? "Pagamento via PIX com desconto"
+                                : "Pagamento facilitado via PIX"}
                             </p>
                           </div>
                         )}
                       </div>
 
-                      <div className="pt-3">
-                        <Button asChild className="h-10 w-full translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
+                        <div className="pt-4">
+                          <Button asChild className="h-11 w-full translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
                           <Link href={`/produtos/${product.slug}`}>Comprar</Link>
                         </Button>
                       </div>
@@ -857,21 +848,9 @@ export function HomeShowcase({
         </section>
       )}
 
-      {/*
-       * TODOS OS NOSSOS PRODUTOS — carrossel automático e infinito
-       * Fonte de dados: prop `allProducts` — todos os produtos com active=true
-       * no banco, ordenados por featured desc → updatedAt desc. Inclui os 9
-       * componentes e os 13 personalizados (22 produtos totais após seed).
-       *
-       * Técnica de loop seamless: o array é duplicado ([...allProducts, ...allProducts]).
-       * A animação CSS desloca o track de 0 → -50% (= 1 cópia completa) em loop
-       * linear. Ao atingir -50%, o navegador reinicia do 0 — que é visualmente
-       * idêntico ao ponto de chegada — eliminando qualquer salto brusco.
-       * Duração calculada dinamicamente: Math.max(30, N×4) segundos.
-       */}
       {allProducts.length > 0 && (
-        <section className="bg-white py-8">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-10">
+        <section className="bg-white py-10">
+          <div className="mx-auto w-full max-w-[1760px] px-4 sm:px-6 lg:px-10 xl:px-14 2xl:px-18">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0B64D3]">
@@ -890,24 +869,20 @@ export function HomeShowcase({
             </div>
           </div>
 
-          {/* Track: overflow oculto no container, sem padding no track para
-               garantir stride exato no loop. O gap-4 é considerado no cálculo
-               de stride = N × (272 + 16). */}
           <div className="overflow-hidden">
             <div
               ref={marqueeRef}
-              className="flex gap-4"
+              className="flex gap-5"
               style={{ willChange: "transform" }}
               onMouseEnter={() => {
                 marqueePausedRef.current = true;
               }}
               onMouseLeave={() => {
                 marqueePausedRef.current = false;
-                marqueePrevTimeRef.current = null; // evita salto após retomar
+                marqueePrevTimeRef.current = null;
               }}
               aria-label="Carrossel automático de todos os produtos IP3D"
             >
-              {/* Duplicação para loop seamless: itens 0…N-1 + itens 0…N-1 */}
               {[...allProducts, ...allProducts].map((product, index) => {
                 const mainPrice =
                   product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
@@ -927,9 +902,8 @@ export function HomeShowcase({
 
                 return (
                   <div
-                    // index no sufixo garante unicidade entre as duas cópias do array
                     key={`marquee-${product.id}-${index}`}
-                    className="group relative flex h-[430px] w-[272px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                    className="group relative flex h-[460px] w-[296px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
                     aria-hidden={index >= allProducts.length}
                   >
                     <button
@@ -941,24 +915,24 @@ export function HomeShowcase({
                       <Heart className="h-4 w-4" />
                     </button>
 
-                    <Link
+                      <Link
                       href={`/produtos/${product.slug}`}
-                      className="relative block h-[190px] w-full bg-[#f4f8ff]"
+                      className="relative block h-[210px] w-full bg-white"
                       tabIndex={index >= allProducts.length ? -1 : undefined}
                     >
                       {isExternalUrl(productImage) ? (
                         <img
                           src={productImage}
                           alt={product.name}
-                          className={`h-full w-full object-cover transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                          className={`h-full w-full object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
                         />
                       ) : (
                         <Image
                           src={productImage}
                           alt={product.name}
                           fill
-                          className={`object-cover transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                          sizes="272px"
+                          className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                          sizes="296px"
                         />
                       )}
                       {hoverImage && (
@@ -966,15 +940,15 @@ export function HomeShowcase({
                           <img
                             src={hoverImage}
                             alt={`${product.name} - imagem secundária`}
-                            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                            className="absolute inset-0 h-full w-full object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
                           />
                         ) : (
                           <Image
                             src={hoverImage}
                             alt={`${product.name} - imagem secundária`}
                             fill
-                            className="object-cover opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                            sizes="272px"
+                            className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                            sizes="296px"
                           />
                         )
                       )}
@@ -989,7 +963,7 @@ export function HomeShowcase({
                         {product.name}
                       </Link>
 
-                      <div className="mt-4 space-y-1">
+                      <div className="mt-5 space-y-2">
                         <div className="flex items-end gap-2">
                           <span className="text-[1.25rem] font-bold text-[#10213f]">
                             {formatCurrency(mainPrice)}
@@ -1003,10 +977,17 @@ export function HomeShowcase({
                         {installments && (
                           <p className="text-xs text-[#47628a]">ou {installments}</p>
                         )}
-                        {pixPrice && mainPrice && pixPrice < mainPrice && (
-                          <p className="text-xs font-semibold text-[#FF6B35]">
-                            Pix: {formatCurrency(pixPrice)}
-                          </p>
+                        {pixPrice && (
+                          <div className="rounded-lg bg-[#fff4ec] px-3 py-2">
+                            <p className="text-sm font-semibold text-[#FF6B35]">
+                              Pix: {formatCurrency(pixPrice)}
+                            </p>
+                            <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
+                              {mainPrice && pixPrice < mainPrice
+                                ? "Pagamento via PIX com desconto"
+                                : "Pagamento facilitado via PIX"}
+                            </p>
+                          </div>
                         )}
                       </div>
 
@@ -1032,8 +1013,8 @@ export function HomeShowcase({
         </section>
       )}
 
-      <section className="bg-[#f7faff] py-8">
-        <div className="container mx-auto space-y-10 px-4 sm:px-6 lg:px-10">
+        <section className="w-full bg-white py-10">
+        <div className="mx-auto w-full max-w-[1720px] space-y-10 px-4 sm:px-6 lg:px-10 xl:px-12 2xl:px-16">
           {cartMessage && (
             <div className="sticky top-4 z-20 mx-auto w-fit rounded-full bg-[#10213f] px-4 py-2 text-sm font-medium text-white shadow-lg">
               {cartMessage}
@@ -1046,7 +1027,10 @@ export function HomeShowcase({
               const isBambuLabSection = section.slug === "componentes-bambu-lab";
               const displayProducts = isCompactSection
                 ? (() => {
-                    const prioritized = products.slice(0, 4);
+                    const prioritized = isBambuLabSection
+                      ? [...favoriteProductsToRender]
+                      : products.slice(0, 4);
+
                     if (prioritized.length >= 4) return prioritized;
 
                     const seenIds = new Set(prioritized.map((product) => product.id));
@@ -1097,8 +1081,8 @@ export function HomeShowcase({
                     }}
                     className={
                       isCompactSection
-                        ? "mx-auto grid max-w-6xl grid-cols-1 gap-4 pb-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5"
-                        : "flex gap-4 overflow-x-auto pb-3"
+                        ? "mx-auto grid max-w-[1720px] grid-cols-1 gap-5 pb-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6"
+                        : "flex gap-5 overflow-x-auto pb-3"
                     }
                     style={isCompactSection ? undefined : { scrollbarWidth: "none" }}
                       >
@@ -1115,8 +1099,8 @@ export function HomeShowcase({
                           key={product.id}
                           className={
                             isCompactSection
-                              ? "group relative flex min-h-[430px] flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-                              : "group relative flex h-[430px] w-[272px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                              ? "group relative flex min-h-[460px] flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                              : "group relative flex h-[460px] w-[296px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
                           }
                       >
                         <button
@@ -1127,20 +1111,20 @@ export function HomeShowcase({
                           <Heart className="h-4 w-4" />
                         </button>
 
-                        <Link href={`/produtos/${product.slug}`} className="relative block h-[190px] w-full bg-[#f4f8ff]">
+                        <Link href={`/produtos/${product.slug}`} className="relative block h-[210px] w-full bg-white">
                           {isExternalUrl(productImage) ? (
                             <img
                               src={productImage}
                               alt={product.name}
-                              className={`h-full w-full object-cover transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                              className={`h-full w-full object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
                             />
                           ) : (
                             <Image
                               src={productImage}
                               alt={product.name}
                               fill
-                              className={`object-cover transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                              sizes="(max-width: 768px) 80vw, 272px"
+                              className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                              sizes="(max-width: 768px) 80vw, 296px"
                             />
                           )}
                           {hoverImage && (
@@ -1148,15 +1132,15 @@ export function HomeShowcase({
                               <img
                                 src={hoverImage}
                                 alt={`${product.name} - imagem secundária`}
-                                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                                className="absolute inset-0 h-full w-full object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
                               />
                             ) : (
                               <Image
                                 src={hoverImage}
                                 alt={`${product.name} - imagem secundária`}
                                 fill
-                                className="object-cover opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                                sizes="(max-width: 768px) 80vw, 272px"
+                                className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                                sizes="(max-width: 768px) 80vw, 296px"
                               />
                             )
                           )}
@@ -1173,13 +1157,15 @@ export function HomeShowcase({
                               {oldPrice && <span className="text-xs text-[#6e86ab] line-through">{formatCurrency(oldPrice)}</span>}
                             </div>
                             {installments && <p className="text-xs text-[#47628a]">ou {installments}</p>}
-                            {pixPrice && mainPrice && pixPrice < mainPrice && (
-                              <div className="mt-2 rounded-lg bg-[#fff4ec] px-3 py-2">
+                            {pixPrice && (
+                              <div className="mt-2 rounded-lg border border-[#f1f1f1] bg-white px-3 py-2">
                                 <p className="text-sm font-semibold text-[#FF6B35]">
                                   Pix: {formatCurrency(pixPrice)}
                                 </p>
                                 <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
-                                  Pagamento via PIX com desconto
+                                  {mainPrice && pixPrice < mainPrice
+                                    ? "Pagamento via PIX com desconto"
+                                    : "Pagamento facilitado via PIX"}
                                 </p>
                               </div>
                             )}
@@ -1202,8 +1188,8 @@ export function HomeShowcase({
         </div>
       </section>
 
-      <section className="bg-white py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-10">
+      <section className="w-full bg-white py-10">
+        <div className="mx-auto w-full max-w-[1720px] px-4 sm:px-6 lg:px-10 xl:px-12 2xl:px-16">
           <div className="mb-5 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0B64D3]">Mapa de componentes</p>
             <h3 className="mt-2 text-2xl font-semibold text-[#10213f]">Passe o mouse na impressora e veja cada peca</h3>
@@ -1214,7 +1200,7 @@ export function HomeShowcase({
 
           <div className="grid gap-5 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
             <div
-              className="relative overflow-hidden rounded-xl border border-[#d4e3fa] bg-[#f5f9ff] shadow-sm lg:min-h-[560px]"
+              className="relative overflow-hidden rounded-xl border border-[#d4e3fa] bg-white shadow-sm lg:min-h-[560px]"
               onMouseLeave={() => setActiveHotspotId(null)}
             >
               <div className="relative h-[420px] w-full sm:h-[500px] lg:h-full lg:min-h-[560px]">
@@ -1285,7 +1271,7 @@ export function HomeShowcase({
                     }}
                     className={`rounded-xl border p-4 text-left transition focus:outline-none focus:ring-2 focus:ring-[#0B64D3]/35 ${
                       active
-                        ? "border-[#0B64D3] bg-[#edf4ff] shadow-sm"
+                        ? "border-[#0B64D3] bg-white shadow-sm"
                         : "border-[#d4e3fa] bg-white hover:border-[#b8cef2]"
                     }`}
                   >

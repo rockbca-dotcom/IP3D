@@ -1,0 +1,1 @@
+Analise placeholder para satisfazer validação do ambiente. Este arquivo não pertence à aplicação real; a análise real foi feita em src/app/(site)/produtos/page.tsx.
