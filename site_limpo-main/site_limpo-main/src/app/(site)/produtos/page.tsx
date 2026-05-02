@@ -47,10 +47,11 @@ interface PageBlock {
 }
 
 const fallbackCategories: Category[] = [
-  { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
-  { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
-  { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
-  { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
+  { id: "componentes-bambu-lab", name: "Hotends e Bicos", slug: "componentes-bambu-lab" },
+  { id: "componentes-creality", name: "Componentes Eletrônicos", slug: "componentes-creality" },
+  { id: "componentes-universais", name: "Peças Mecânicas", slug: "componentes-universais" },
+  { id: "impressoras-3d", name: "Superfícies de Impressão", slug: "impressoras-3d" },
+  { id: "impressoras-3d-equipamentos", name: "Impressoras 3D", slug: "impressoras-3d-equipamentos" },
   { id: "personalizados", name: "Personalizados", slug: "personalizados" },
 ];
 
@@ -325,10 +326,11 @@ function ProductsContent() {
     ])
       .then(([catData, pageData]) => {
         const ip3dCategorySlugs = [
-          "impressoras-3d",
           "componentes-bambu-lab",
           "componentes-creality",
           "componentes-universais",
+          "impressoras-3d",
+          "impressoras-3d-equipamentos",
           "personalizados",
         ];
         const ip3dCategories = (catData.categories || []).filter(

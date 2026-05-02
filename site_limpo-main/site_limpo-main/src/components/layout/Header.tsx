@@ -36,16 +36,18 @@ const VALID_CATEGORY_SLUGS = new Set([
   "componentes-creality",
   "componentes-universais",
   "impressoras-3d",
+  "impressoras-3d-equipamentos",
   "personalizados",
 ]);
 
 // Fallback exibido enquanto /api/categories carrega ou quando nenhuma categoria
 // válida existe ainda no banco. Slugs e nomes espelham VALID_CATEGORY_SLUGS.
 const defaultCategories: CategoryNavItem[] = [
-  { id: "cat-bambu",          name: "Componentes Bambu Lab",  slug: "componentes-bambu-lab",  children: [] },
-  { id: "cat-creality",       name: "Componentes Creality",   slug: "componentes-creality",   children: [] },
-  { id: "cat-universais",     name: "Componentes Universais", slug: "componentes-universais", children: [] },
-  { id: "cat-impressoras",    name: "Impressoras 3D",         slug: "impressoras-3d",         children: [] },
+  { id: "cat-bambu",       name: "Hotends e Bicos",           slug: "componentes-bambu-lab",  children: [] },
+  { id: "cat-creality",    name: "Componentes Eletrônicos",   slug: "componentes-creality",   children: [] },
+  { id: "cat-universais",  name: "Peças Mecânicas",           slug: "componentes-universais", children: [] },
+  { id: "cat-superficies", name: "Superfícies de Impressão",  slug: "impressoras-3d",         children: [] },
+  { id: "cat-impressoras", name: "Impressoras 3D",            slug: "impressoras-3d-equipamentos", children: [] },
   { id: "cat-personalizados", name: "Personalizados",         slug: "personalizados",         children: [] },
 ];
 
@@ -62,6 +64,19 @@ interface CategoryNavItem {
   name: string;
   slug: string;
   children: { id: string; name: string; slug: string }[];
+}
+
+const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
+  "componentes-bambu-lab": "Hotends e Bicos",
+  "componentes-creality": "Componentes Eletrônicos",
+  "componentes-universais": "Peças Mecânicas",
+  "impressoras-3d": "Superfícies de Impressão",
+  "impressoras-3d-equipamentos": "Impressoras 3D",
+  "personalizados": "Personalizados",
+};
+
+function getCategoryDisplayName(category: Pick<CategoryNavItem, "slug" | "name">) {
+  return CATEGORY_DISPLAY_NAMES[category.slug] ?? category.name;
 }
 
 export function Header() {
@@ -171,23 +186,23 @@ export function Header() {
   return (
     <header className="relative z-50 text-sm">
       {/* Topbar */}
-      <div
-        className={`overflow-hidden bg-[#0B64D3] text-white transition-all duration-300 ${
-          floatingBrandBar ? "max-h-0 opacity-0 py-0" : "max-h-12 opacity-100"
-        }`}
+      <motion.div
+        initial={false}
+        animate={{ height: 48, opacity: 1, y: 0 }}
+        transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+        className="overflow-hidden bg-[#0B64D3] text-white"
       >
         <div className="container mx-auto px-6 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em]">
           Entregas para todo o Brasil
         </div>
-      </div>
+      </motion.div>
 
       {/* Brand Row */}
-      <div
-        className={`bg-white border-b border-gray-100 transition-all duration-300 ${
-          floatingBrandBar
-            ? "fixed left-0 right-0 top-0 z-50 shadow-[0_18px_50px_-28px_rgba(15,23,42,0.45)] backdrop-blur supports-[backdrop-filter]:bg-white/95"
-            : ""
-        }`}
+      <motion.div
+        initial={false}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        className="border-b border-gray-100 bg-white text-gray-900"
       >
         <div className="container mx-auto flex flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between">
           <Link href="/" className="flex items-center gap-3">
@@ -197,7 +212,7 @@ export function Header() {
             </div>
           </Link>
 
-          <form action="/produtos" method="get" className="flex w-full items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-600 md:max-w-xl">
+          <form action="/produtos" method="get" className="flex w-full items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-700 md:max-w-xl">
             <HiOutlineSearch className="h-4 w-4 text-gray-400" />
             <input
               type="text"
@@ -205,7 +220,7 @@ export function Header() {
               placeholder="Busque por impressoras, peças ou soluções IP3D"
               className="w-full bg-transparent outline-none placeholder:text-gray-400"
             />
-            <button type="submit" className="rounded-full bg-black px-4 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+            <button type="submit" className="rounded-full bg-black px-4 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-black/90">
               Buscar
             </button>
           </form>
@@ -215,15 +230,15 @@ export function Header() {
               href={whatsappLink}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-3 rounded-full border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:border-black"
+              className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 transition-colors hover:border-[#0B64D3] hover:text-[#0B64D3]"
             >
-              <FaWhatsapp className="h-5 w-5 text-green-500" />
+              <FaWhatsapp className="h-5 w-5 text-[#25D366]" />
               <div className="leading-tight text-left">
-                <span className="block text-[11px] uppercase tracking-wide text-gray-400">Central de Atendimento</span>
-                <span className="block text-sm font-semibold text-black">{contactPhone}</span>
+                <span className="block text-[11px] uppercase tracking-wide text-gray-500">Central de Atendimento</span>
+                <span className="block text-sm font-semibold text-[#0B64D3]">{contactPhone}</span>
               </div>
             </a>
-            <Link href="/carrinho" className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 text-gray-800 hover:border-black">
+            <Link href="/carrinho" className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-800 transition-colors hover:border-[#0B64D3] hover:text-[#0B64D3]">
               <HiOutlineShoppingCart className="h-5 w-5" />
               {cartCount > 0 && (
                 <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#0B64D3] px-1 text-[10px] font-semibold text-white">
@@ -234,42 +249,58 @@ export function Header() {
             </Link>
           </div>
         </div>
-      </div>
-
-      {floatingBrandBar && (
-        <div aria-hidden className="h-[172px] md:h-[96px] lg:h-[88px]" />
-      )}
+      </motion.div>
 
       {/* Main Nav */}
-      <div
+      <motion.div
+        layout
+        initial={false}
+        animate={isHomePage && isScrolled ? { y: 0, opacity: 1 } : { y: 0, opacity: 1 }}
+        transition={{
+          type: "spring",
+          stiffness: 95,
+          damping: 22,
+          mass: 1.08,
+        }}
         className={
           isHomePage
-            ? "relative z-40 -mb-6 px-4"
-            : `border-b ${showSolidHeader ? "bg-white shadow-sm" : "bg-white"}`
+            ? isScrolled
+              ? "relative z-40 px-4 pt-3"
+              : "relative z-40 border-b border-gray-200 bg-white"
+            : `border-b border-gray-200 bg-white ${showSolidHeader ? "shadow-sm" : ""}`
         }
       >
-        <div
+        <motion.div
+          layout
+          transition={{
+            type: "spring",
+            stiffness: 95,
+            damping: 22,
+            mass: 1.08,
+          }}
           className={
             isHomePage
-              ? "mx-auto flex max-w-screen-2xl items-center justify-between rounded-[1.75rem] border border-white/70 bg-white/95 px-6 py-3 shadow-[0_24px_60px_-38px_rgba(15,23,42,0.45)] backdrop-blur lg:py-4"
-              : "container mx-auto flex items-center justify-between px-6 py-3 lg:py-4"
+              ? isScrolled
+                ? "container mx-auto flex items-center justify-between px-6 py-3 text-gray-900 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] lg:py-4"
+                : "container mx-auto flex items-center justify-between px-6 py-4 text-gray-900 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
+              : "container mx-auto flex items-center justify-between px-6 py-3 text-gray-900 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] lg:py-4"
           }
         >
           <div className="hidden lg:flex items-center gap-6">
             <button
               type="button"
-              className="flex items-center gap-2 rounded-md bg-black px-4 py-2 text-xs font-semibold tracking-wide text-white shadow-sm"
+              className="flex items-center gap-2 rounded-md bg-black px-4 py-2 text-xs font-semibold tracking-wide text-white shadow-sm transition-colors hover:bg-black/90"
               onMouseEnter={() => {
                 setMegaOpen("categorias");
                 setIsHovering(true);
               }}
               onMouseLeave={() => setIsHovering(false)}
             >
-              Categorias <HiOutlineChevronDown className={`h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : "rotate-0"}`} />
+              Tipo de Peça <HiOutlineChevronDown className={`h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : "rotate-0"}`} />
             </button>
-            <div className="flex items-center gap-8 text-sm font-semibold text-gray-800">
+            <div className="flex items-center gap-8 text-sm font-semibold text-gray-900">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="hover:text-black transition-colors">
+                <Link key={link.href} href={link.href} className="transition-colors hover:text-gray-600">
                   {link.label}
                 </Link>
               ))}
@@ -281,23 +312,23 @@ export function Header() {
             {hasMounted ? (
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <button className="flex flex-col gap-1 rounded-md border border-gray-200 px-2 py-1 text-gray-800">
+                  <button className="flex flex-col gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-900">
                     <span className="block h-0.5 w-6 bg-current" />
                     <span className="block h-0.5 w-6 bg-current" />
                     <span className="block h-0.5 w-4 bg-current" />
                   </button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-full max-w-md bg-white p-8">
+                <SheetContent side="right" className="w-full max-w-md bg-white p-8 text-gray-900">
                   <div className="flex flex-col gap-6">
                     <Link href="/" onClick={() => setIsOpen(false)}>
                       <Image src={logoUrl} alt="Logo" width={160} height={40} />
                     </Link>
                     <div className="space-y-4">
-                      <p className="text-xs uppercase tracking-widest text-gray-500">Departamentos</p>
+                      <p className="text-xs uppercase tracking-widest text-gray-400">Tipo de Peça</p>
                       <div className="space-y-3">
                         {categories.map((cat) => (
                           <div key={cat.id}>
-                            <p className="font-semibold text-gray-900">{cat.name}</p>
+                            <p className="font-semibold text-black">{getCategoryDisplayName(cat)}</p>
                             <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-500">
                               {cat.children.map((child) => (
                                 <SheetClose asChild key={child.id}>
@@ -314,7 +345,7 @@ export function Header() {
                     <nav className="space-y-2">
                       {navLinks.map((link) => (
                         <SheetClose asChild key={link.href}>
-                          <Link href={link.href} className="block rounded-md border border-gray-100 px-4 py-2 text-gray-700">
+                          <Link href={link.href} className="block rounded-md border border-gray-100 px-4 py-2 text-gray-900">
                             {link.label}
                           </Link>
                         </SheetClose>
@@ -327,7 +358,7 @@ export function Header() {
               <button
                 type="button"
                 aria-label="Abrir menu"
-                className="flex flex-col gap-1 rounded-md border border-gray-200 px-2 py-1 text-gray-800"
+                className="flex flex-col gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-900"
               >
                 <span className="block h-0.5 w-6 bg-current" />
                 <span className="block h-0.5 w-6 bg-current" />
@@ -335,8 +366,8 @@ export function Header() {
               </button>
             )}
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* Mega Menu */}
       <AnimatePresence>
@@ -350,14 +381,14 @@ export function Header() {
               setIsHovering(false);
               setMegaOpen(null);
             }}
-            className="hidden lg:block bg-white shadow-xl"
+            className="hidden lg:block bg-white shadow-xl border-t border-gray-100"
           >
             <div className="container mx-auto grid gap-6 px-8 py-8 lg:grid-cols-5">
               {categories.map((cat) => (
                 <Link key={cat.id} href={`/categorias/${cat.slug}`} className="group">
-                  <div className="rounded-lg border border-gray-100 p-4 transition-all group-hover:border-black/40 group-hover:shadow-md">
-                    <p className="text-base font-semibold text-gray-900">{cat.name}</p>
-                    <p className="text-sm text-gray-500">Ver produtos</p>
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 transition-all group-hover:border-gray-300 group-hover:bg-gray-100">
+                    <p className="text-base font-semibold text-gray-900">{getCategoryDisplayName(cat)}</p>
+                    <p className="text-sm text-gray-600">Ver produtos</p>
                   </div>
                 </Link>
               ))}

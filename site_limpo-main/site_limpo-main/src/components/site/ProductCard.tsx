@@ -42,7 +42,7 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
     ? Math.round(((originalPrice - product.pricePromo) / originalPrice) * 100)
     : 10;
   const pixPrice = salePrice
-    ? product.pixPrice ?? Number((salePrice * 0.9).toFixed(2))
+    ? Number((salePrice * 0.95).toFixed(2))
     : null;
   const installmentBase = salePrice ?? originalPrice;
   const installmentCount = installmentBase
@@ -128,7 +128,7 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
           </h3>
         </Link>
 
-        <div className="mt-4 rounded-2xl bg-[#f6f9ff] px-4 py-3">
+        <div className="mt-4 rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-4 py-4 shadow-sm">
           {originalPrice && salePrice ? (
             <div className="text-xs font-medium text-[#6f85a8] line-through">
               De {formatBRL(originalPrice)}
@@ -137,20 +137,24 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
             <div className="text-xs font-medium text-[#6f85a8]">
               Melhor preço disponível
             </div>
-
           )}
 
           {salePrice ? (
             <>
-              <div className="mt-1 text-[13px] font-medium uppercase tracking-[0.18em] text-[#0B64D3]">
-                no pix com 10% de desconto
+              <div className="mt-1 flex items-center justify-center gap-2">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
+                  PIX
+                </span>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
+                  5% de desconto
+                </p>
               </div>
-              <div className="mt-1 flex items-end gap-2">
-                <span className="text-[2rem] font-extrabold leading-none text-[#10213f]">
+              <div className="mt-1 flex items-end justify-center gap-2">
+                <span className="text-[2rem] font-extrabold leading-none text-[#128C7E]">
                   {formatBRL(pixPrice ?? salePrice)}
                 </span>
               </div>
-              <div className="mt-2 text-sm text-[#47628a]">
+              <div className="mt-2 text-sm text-[#128C7E]">
                 ou <span className="font-semibold text-[#10213f]">{formatBRL(salePrice)}</span> no cartão
               </div>
               {installmentCount && installmentValue && (

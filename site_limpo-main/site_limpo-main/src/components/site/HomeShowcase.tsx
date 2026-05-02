@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { HiOutlineChevronLeft, HiOutlineChevronRight, HiArrowRight, HiPlay } from "react-icons/hi";
+import { HiArrowRight, HiPlay, HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { addToCart } from "@/lib/cart";
 
@@ -104,32 +104,32 @@ const DEFAULT_SLIDES = [
 const categorySections = [
   {
     slug: "componentes-bambu-lab",
-    title: "Os mais queridinhos",
-    description: "Seleção de componentes variados para atender diferentes necessidades e aplicações.",
+    title: "Hotends e Bicos",
+    description: "Componentes Bambu Lab",
     miniBanner: "/uploads/products/limpador-bico-bambu-lab-a1.jpg",
   },
-    {
-      slug: "componentes-creality",
-      title: "Os mais pedidos",
-      description: "Seleção variada de peças e upgrades para diferentes necessidades.",
-      miniBanner: "/uploads/products/kit-hotend-creality-cr-10.jpg",
-    },
-    {
-      slug: "componentes-universais",
-      title: "Seleção em destaque",
-      description: "Peças versáteis para atender diferentes necessidades e aplicações.",
-      miniBanner: "/uploads/products/kit-aquecedor-ceramico-60w.jpg",
-    },
+  {
+    slug: "componentes-creality",
+    title: "Componentes Eletrônicos",
+    description: "Componentes Creality",
+    miniBanner: "/uploads/products/kit-hotend-creality-cr-10.jpg",
+  },
+  {
+    slug: "componentes-universais",
+    title: "Peças Mecânicas",
+    description: "Componentes Universais",
+    miniBanner: "/uploads/products/kit-aquecedor-ceramico-60w.jpg",
+  },
   {
     slug: "impressoras-3d",
-    title: "Impressões 3D",
-    description: "Maquinas prontas para producao com suporte IP3D.",
+    title: "Superfícies de Impressão",
+    description: "Superfícies de Impressão 3D",
     miniBanner: "/uploads/products/mesa-pei-texturizada-bambu-lab-h2d.jpg",
   },
   {
-    slug: "personalizados",
-    title: "Personalizados",
-    description: "Projetos sob medida para o seu fluxo de fabricacao.",
+    slug: "impressoras-3d-equipamentos",
+    title: "Impressoras 3D",
+    description: "Máquinas prontas para produção com suporte IP3D.",
     miniBanner: "/images/banners/mini-personalizados.svg",
   },
 ];
@@ -139,6 +139,7 @@ const categoryCardImageFallbacks: Record<string, string> = {
   "componentes-creality": "/images/categories/componentes-creality.svg",
   "componentes-universais": "/images/categories/componentes-universais.svg",
   "impressoras-3d": "/images/categories/impressoras-3d.svg",
+  "impressoras-3d-equipamentos": "/images/categories/impressoras-3d.svg",
   personalizados: "/images/categories/personalizados.svg",
 };
 
@@ -228,7 +229,7 @@ export function HomeShowcase({
   categoryProducts,
   allProducts = [],
 }: HomeShowcaseProps) {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const currentSlide = 0;
   const [heroSlides, setHeroSlides] = useState<any[]>(DEFAULT_SLIDES);
   const [cartMessage, setCartMessage] = useState<string | null>(null);
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
@@ -351,13 +352,6 @@ export function HomeShowcase({
     return () => cancelAnimationFrame(marqueeRafRef.current);
   }, [allProducts.length]);
 
-  useEffect(() => {
-    if (heroSlides.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
-    }, 6500);
-    return () => clearInterval(interval);
-  }, [heroSlides.length]);
 
   const categoryProductsMap = useMemo(() => {
     const map: Record<string, ProductCard[]> = {};
@@ -466,7 +460,7 @@ export function HomeShowcase({
   });
 
   const categoriesToRender = displayCategories.length > 0 ? displayCategories : defaultCategories;
-  const compactSectionSlugs = new Set(["componentes-bambu-lab", "componentes-creality", "componentes-universais"]);
+  const compactSectionSlugs = new Set(["componentes-bambu-lab", "componentes-creality", "componentes-universais", "impressoras-3d", "impressoras-3d-equipamentos", "personalizados"]);
 
   const promoBannerSection = (
     <section className="w-full">
@@ -622,14 +616,6 @@ export function HomeShowcase({
               </motion.div>
             </AnimatePresence>
 
-            <div className="absolute inset-x-4 top-1/2 z-40 flex -translate-y-1/2 justify-between pointer-events-none">
-              <button onClick={() => setCurrentSlide((prev) => (prev === 0 ? heroSlides.length - 1 : prev - 1))} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:bg-[#0B64D3]" aria-label="Anterior">
-                <HiOutlineChevronLeft size={24} />
-              </button>
-              <button onClick={() => setCurrentSlide((prev) => (prev + 1) % heroSlides.length)} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white backdrop-blur-md transition-all hover:bg-[#0B64D3]" aria-label="Próximo">
-                <HiOutlineChevronRight size={24} />
-              </button>
-            </div>
 
             <div className="absolute left-0 top-0 z-30 h-px w-full bg-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.4)] animate-scan pointer-events-none" />
 
@@ -674,11 +660,6 @@ export function HomeShowcase({
               </div>
             </div>
 
-            <div className="absolute bottom-4 left-5 z-30 flex items-center gap-2 sm:left-8 sm:bottom-6">
-              {heroSlides.map((_, index) => (
-                <button key={index} onClick={() => setCurrentSlide(index)} className={`h-1.5 transition-all duration-300 ${index === currentSlide ? "w-10 bg-cyan-500" : "w-4 bg-white/30 hover:bg-white/50"}`} aria-label={`Slide ${index + 1}`} />
-              ))}
-            </div>
           </div>
         </div>
       </section>
@@ -696,8 +677,8 @@ export function HomeShowcase({
 
         <section>
           <div className="mx-auto w-full max-w-[1720px] px-4 sm:px-6 lg:px-10 xl:px-12 2xl:px-16">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-8">
-              {categorySections.slice(0, 4).map((section) => (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {categorySections.map((section) => (
                 <Link
                   key={section.slug}
                   href={`/categorias/${section.slug}`}
@@ -748,7 +729,7 @@ export function HomeShowcase({
                   product.pricePromo && product.priceOriginal && product.pricePromo < product.priceOriginal
                     ? product.priceOriginal
                     : null;
-                const pixPrice = product.pixPrice ?? (mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : null);
+                const pixPrice = mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : product.pixPrice ?? null;
                 const installments = getInstallments(mainPrice);
                 const hoverImage = product.hoverImage || product.gallery?.find((image) => image && image !== product.image) || null;
                 const productImage = product.image || defaultProductImage;
@@ -756,7 +737,7 @@ export function HomeShowcase({
                 return (
                 <div
                     key={product.id}
-                    className="group relative flex min-h-[500px] flex-col overflow-hidden rounded-2xl bg-white shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
+                    className="group relative flex min-h-[500px] flex-col items-center overflow-hidden rounded-2xl bg-white text-center shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
                   >
                     <button
                       type="button"
@@ -804,38 +785,58 @@ export function HomeShowcase({
                       </span>
                     </Link>
 
-                      <div className="flex flex-1 flex-col p-5">
+                      <div className="flex flex-1 flex-col items-center justify-start p-5 text-center">
                       <Link
                         href={`/produtos/${product.slug}`}
-                        className="line-clamp-2 min-h-[3.2rem] text-[15px] font-semibold text-[#0f274c]"
+                        className="line-clamp-2 mx-auto min-h-[3.2rem] max-w-[85%] text-[15px] font-semibold text-[#0f274c]"
                       >
                         {product.name}
                       </Link>
 
-                      <div className="mt-2 space-y-1">
-                        <div className="flex items-end gap-2">
-                          <span className="text-[1.25rem] font-bold text-[#10213f]">{formatCurrency(mainPrice)}</span>
-                          {oldPrice && (
-                            <span className="text-xs text-[#6e86ab] line-through">{formatCurrency(oldPrice)}</span>
-                          )}
-                        </div>
-                        {installments && <p className="text-xs text-[#47628a]">ou {installments}</p>}
-                        {pixPrice && (
-                          <div className="mt-2 rounded-lg border border-[#f1f1f1] bg-white px-3 py-2">
-                            <p className="text-sm font-semibold text-[#FF6B35]">
-                              Pix: {formatCurrency(pixPrice)}
-                            </p>
-                            <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
-                              {mainPrice && pixPrice < mainPrice
-                                ? "Pagamento via PIX com desconto"
-                                : "Pagamento facilitado via PIX"}
-                            </p>
+                      <div className="mt-4 rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-4 py-4 shadow-sm">
+                        {oldPrice && mainPrice ? (
+                          <div className="text-xs font-medium text-[#6f85a8] line-through">
+                            De {formatCurrency(oldPrice)}
+                          </div>
+                        ) : (
+                          <div className="text-xs font-medium text-[#6f85a8]">
+                            Melhor preço disponível
+                          </div>
+                        )}
+
+                        {mainPrice ? (
+                          <>
+                            <div className="mt-1 flex items-center justify-center gap-2">
+                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
+                                PIX
+                              </span>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
+                                5% de desconto
+                              </p>
+                            </div>
+                            <div className="mt-1 flex items-end justify-center gap-2">
+                              <span className="text-[2rem] font-extrabold leading-none text-[#128C7E]">
+                                {formatCurrency(pixPrice ?? mainPrice)}
+                              </span>
+                            </div>
+                            <div className="mt-2 text-sm text-[#128C7E]">
+                              ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
+                            </div>
+                            {installments && (
+                              <div className="mt-1 text-sm text-[#47628a]">
+                                em até <span className="font-semibold text-[#10213f]">{installments}</span> sem juros
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="mt-2 text-lg font-semibold text-[#10213f]">
+                            Preço sob consulta
                           </div>
                         )}
                       </div>
 
-                        <div className="pt-4">
-                          <Button asChild className="h-11 w-full translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
+                        <div className="flex justify-center pt-4">
+                          <Button asChild className="h-11 w-full max-w-[220px] translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
                           <Link href={`/produtos/${product.slug}`}>Comprar</Link>
                         </Button>
                       </div>
@@ -848,7 +849,7 @@ export function HomeShowcase({
         </section>
       )}
 
-      {allProducts.length > 0 && (
+      {false && (
         <section className="bg-white py-10">
           <div className="mx-auto w-full max-w-[1760px] px-4 sm:px-6 lg:px-10 xl:px-14 2xl:px-18">
             <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
@@ -963,30 +964,44 @@ export function HomeShowcase({
                         {product.name}
                       </Link>
 
-                      <div className="mt-5 space-y-2">
-                        <div className="flex items-end gap-2">
-                          <span className="text-[1.25rem] font-bold text-[#10213f]">
-                            {formatCurrency(mainPrice)}
-                          </span>
-                          {oldPrice && (
-                            <span className="text-xs text-[#6e86ab] line-through">
-                              {formatCurrency(oldPrice)}
-                            </span>
-                          )}
-                        </div>
-                        {installments && (
-                          <p className="text-xs text-[#47628a]">ou {installments}</p>
+                      <div className="mt-4 rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-3 py-3 shadow-sm">
+                        {oldPrice && mainPrice ? (
+                          <div className="text-xs font-medium text-[#6f85a8] line-through">
+                            De {formatCurrency(oldPrice)}
+                          </div>
+                        ) : (
+                          <div className="text-xs font-medium text-[#6f85a8]">
+                            Melhor preço disponível
+                          </div>
                         )}
-                        {pixPrice && (
-                          <div className="rounded-lg bg-[#fff4ec] px-3 py-2">
-                            <p className="text-sm font-semibold text-[#FF6B35]">
-                              Pix: {formatCurrency(pixPrice)}
-                            </p>
-                            <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
-                              {mainPrice && pixPrice < mainPrice
-                                ? "Pagamento via PIX com desconto"
-                                : "Pagamento facilitado via PIX"}
-                            </p>
+
+                        {mainPrice ? (
+                          <>
+                            <div className="mt-1 flex items-center justify-center gap-2">
+                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
+                                PIX
+                              </span>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
+                                5% de desconto
+                              </p>
+                            </div>
+                            <div className="mt-1 flex items-end justify-center gap-2">
+                              <span className="text-[1.5rem] font-extrabold leading-none text-[#128C7E]">
+                                {formatCurrency(pixPrice ?? mainPrice)}
+                              </span>
+                            </div>
+                            <div className="mt-2 text-sm text-[#128C7E]">
+                              ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
+                            </div>
+                            {installments && (
+                              <div className="mt-1 text-sm text-[#47628a]">
+                                em até <span className="font-semibold text-[#10213f]">{installments}</span> sem juros
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="mt-2 text-lg font-semibold text-[#10213f]">
+                            Preço sob consulta
                           </div>
                         )}
                       </div>
@@ -1099,8 +1114,8 @@ export function HomeShowcase({
                           key={product.id}
                           className={
                             isCompactSection
-                              ? "group relative flex min-h-[460px] flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-                              : "group relative flex h-[460px] w-[296px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                              ? "group relative flex min-h-[460px] flex-col items-center overflow-hidden rounded-xl border border-[#d5e3fa] bg-white text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                              : "group relative flex h-[460px] w-[296px] shrink-0 flex-col items-center overflow-hidden rounded-xl border border-[#d5e3fa] bg-white text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
                           }
                       >
                         <button
@@ -1146,33 +1161,55 @@ export function HomeShowcase({
                           )}
                         </Link>
 
-                        <div className="flex flex-col p-4">
-                          <Link href={`/produtos/${product.slug}`} className="line-clamp-2 min-h-[3.2rem] text-[15px] font-semibold text-[#0f274c]">
+                        <div className="flex flex-col items-center justify-start p-4 text-center">
+                          <Link href={`/produtos/${product.slug}`} className="line-clamp-2 mx-auto min-h-[3.2rem] max-w-[85%] text-[15px] font-semibold text-[#0f274c]">
                             {product.name}
                           </Link>
 
-                          <div className="mt-4 space-y-1">
-                            <div className="flex items-end gap-2">
-                              <span className="text-[1.25rem] font-bold text-[#10213f]">{formatCurrency(mainPrice)}</span>
-                              {oldPrice && <span className="text-xs text-[#6e86ab] line-through">{formatCurrency(oldPrice)}</span>}
-                            </div>
-                            {installments && <p className="text-xs text-[#47628a]">ou {installments}</p>}
-                            {pixPrice && (
-                              <div className="mt-2 rounded-lg border border-[#f1f1f1] bg-white px-3 py-2">
-                                <p className="text-sm font-semibold text-[#FF6B35]">
-                                  Pix: {formatCurrency(pixPrice)}
-                                </p>
-                                <p className="mt-0.5 text-xs font-medium text-[#b84f24]">
-                                  {mainPrice && pixPrice < mainPrice
-                                    ? "Pagamento via PIX com desconto"
-                                    : "Pagamento facilitado via PIX"}
-                                </p>
+                          <div className="mt-4 w-full rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-4 py-4 shadow-sm">
+                            {oldPrice && mainPrice ? (
+                              <div className="text-xs font-medium text-[#6f85a8] line-through">
+                                De {formatCurrency(oldPrice)}
+                              </div>
+                            ) : (
+                              <div className="text-xs font-medium text-[#6f85a8]">
+                                Melhor preço disponível
+                              </div>
+                            )}
+
+                            {mainPrice ? (
+                              <>
+                                <div className="mt-1 flex items-center justify-center gap-2">
+                                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
+                                    PIX
+                                  </span>
+                                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
+                                    5% de desconto
+                                  </p>
+                                </div>
+                                <div className="mt-1 flex items-end justify-center gap-2">
+                                  <span className="text-[1.75rem] font-extrabold leading-none text-[#128C7E]">
+                                    {formatCurrency(pixPrice ?? mainPrice)}
+                                  </span>
+                                </div>
+                                <div className="mt-2 text-sm text-[#128C7E]">
+                                  ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
+                                </div>
+                                {installments && (
+                                  <div className="mt-1 text-sm text-[#47628a]">
+                                    em até <span className="font-semibold text-[#10213f]">{installments}</span> sem juros
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="mt-2 text-lg font-semibold text-[#10213f]">
+                                Preço sob consulta
                               </div>
                             )}
                           </div>
 
-                          <div className="pt-3">
-                            <Button asChild className="h-10 w-full translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
+                            <div className="flex justify-center pt-3">
+                              <Button asChild className="h-10 w-full max-w-[220px] translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
                               <Link href={`/produtos/${product.slug}`}>Comprar</Link>
                             </Button>
                           </div>
@@ -1181,7 +1218,150 @@ export function HomeShowcase({
                     );
                       })}
                     </div>
-                  {section.slug === "componentes-bambu-lab" && promoBannerSection}
+                  {section.slug === "componentes-bambu-lab" && (
+                    <div className="mt-8 grid grid-cols-1 lg:grid-cols-[30%_1fr] gap-6">
+                      {/* Banner 30% */}
+                      <div className="relative overflow-hidden rounded-2xl border border-[#d8e5f8] bg-gradient-to-br from-[#0B64D3] to-[#10213f] text-white shadow-lg">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_40%)]" />
+                        <div className="relative p-6 flex flex-col h-full">
+                          <span className="inline-flex w-fit items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/90">
+                            Acessório para A1
+                          </span>
+                          <h3 className="mt-4 text-xl font-semibold leading-tight">
+                            Limpador de bocal para Bambu Lab A1
+                          </h3>
+                          <p className="mt-2 text-sm leading-5 text-white/80 line-clamp-3">
+                            Instalado na cama de aquecimento, o limpador de bocal ajuda a limpar o nozzle automaticamente antes da impressão.
+                          </p>
+                          <div className="mt-auto pt-4 flex flex-wrap gap-2">
+                            <Button
+                              asChild
+                              size="sm"
+                              className="rounded-full bg-white px-4 text-xs font-semibold text-[#0B64D3] hover:bg-white/90"
+                            >
+                              <Link href="/produtos/nozzle-wiper-bambu-lab-a1">Ver produto</Link>
+                            </Button>
+                          </div>
+                          <div className="relative mt-4 h-32 rounded-xl overflow-hidden">
+                            <Image
+                              src="/images/banners/banner4.png"
+                              alt="Limpador de bocal"
+                              fill
+                              className="object-cover"
+                              sizes="30vw"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 3 Cards de Produtos 70% */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        {favoriteProductsToRender.slice(0, 3).map((product) => {
+                          const mainPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
+                          const oldPrice = product.pricePromo && product.priceOriginal && product.pricePromo < product.priceOriginal ? product.priceOriginal : null;
+                          const pixPrice = product.pixPrice ?? (mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : null);
+                          const installments = getInstallments(mainPrice);
+                          const hoverImage = product.hoverImage || product.gallery?.find((image) => image && image !== product.image) || null;
+                          const productImage = product.image || defaultProductImage;
+
+                          return (
+                            <div
+                              key={product.id}
+                              className="group relative flex flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
+                            >
+                              <button
+                                type="button"
+                                aria-label={`Favoritar ${product.name}`}
+                                className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#d9e6fb] bg-white/95 text-[#0B64D3] shadow-sm transition-colors hover:bg-[#edf4ff]"
+                              >
+                                <Heart className="h-3 w-3" />
+                              </button>
+
+                              <Link href={`/produtos/${product.slug}`} className="relative block h-[140px] w-full bg-white">
+                                {isExternalUrl(productImage) ? (
+                                  <img
+                                    src={productImage}
+                                    alt={product.name}
+                                    className={`h-full w-full object-contain p-3 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                                  />
+                                ) : (
+                                  <Image
+                                    src={productImage}
+                                    alt={product.name}
+                                    fill
+                                    className={`object-contain p-3 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                                    sizes="(max-width: 768px) 80vw, 250px"
+                                  />
+                                )}
+                                {hoverImage && (
+                                  isExternalUrl(hoverImage) ? (
+                                    <img
+                                      src={hoverImage}
+                                      alt={`${product.name} - imagem secundária`}
+                                      className="absolute inset-0 h-full w-full object-contain p-3 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                                    />
+                                  ) : (
+                                    <Image
+                                      src={hoverImage}
+                                      alt={`${product.name} - imagem secundária`}
+                                      fill
+                                      className="object-contain p-3 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                                      sizes="(max-width: 768px) 80vw, 250px"
+                                    />
+                                  )
+                                )}
+                              </Link>
+
+                              <div className="flex flex-col p-3 text-center">
+                                <Link href={`/produtos/${product.slug}`} className="line-clamp-2 min-h-[2.5rem] text-[13px] font-semibold text-[#0f274c]">
+                                  {product.name}
+                                </Link>
+
+                                <div className="mt-2 rounded-xl border border-[#cdeed9] bg-[#f0fff5] px-2 py-2 shadow-sm">
+                                  {oldPrice && mainPrice ? (
+                                    <div className="text-[10px] font-medium text-[#6f85a8] line-through">
+                                      De {formatCurrency(oldPrice)}
+                                    </div>
+                                  ) : (
+                                    <div className="text-[10px] font-medium text-[#6f85a8]">
+                                      Melhor preço
+                                    </div>
+                                  )}
+
+                                  {mainPrice ? (
+                                    <>
+                                      <div className="flex items-center justify-center gap-1">
+                                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#25D366] text-[7px] font-black uppercase text-white">
+                                          PIX
+                                        </span>
+                                        <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-[#25D366]">
+                                          5% OFF
+                                        </p>
+                                      </div>
+                                      <p className="text-[1.1rem] font-extrabold leading-none text-[#128C7E]">
+                                        {formatCurrency(pixPrice ?? mainPrice)}
+                                      </p>
+                                      <p className="mt-1 text-[10px] text-[#128C7E]">
+                                        ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
+                                      </p>
+                                    </>
+                                  ) : (
+                                    <p className="text-sm font-semibold text-[#10213f]">
+                                      Sob consulta
+                                    </p>
+                                  )}
+                                </div>
+
+                                <Button asChild size="sm" className="mt-2 h-8 w-full rounded-lg bg-[#0B64D3] text-white opacity-100 hover:bg-[#0A4A9D]">
+                                  <Link href={`/produtos/${product.slug}`}>Comprar</Link>
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

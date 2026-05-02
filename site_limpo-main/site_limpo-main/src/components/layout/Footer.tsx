@@ -85,18 +85,18 @@ export function Footer() {
   const logoUrl = config?.logoUrl || "/images/Captura_de_tela_2026-02-28_210120-removebg-preview.webp";
   const subtitleText = config?.subtitle || "Integração completa IP3D";
   const description = config?.description || "Integramos hardware, componentes e suporte especializado para manufatura aditiva profissional no Brasil.";
-  const contactEmail = config?.contactEmail || "";
-  const contactPhone = config?.contactPhone || "";
-  const contactCity = config?.contactCity || "";
+  const contactEmail = config?.contactEmail || "contato@ip3d.com.br";
+  const contactPhone = config?.contactPhone || "018 9 9692-1583";
+  const contactCity = config?.contactCity || "Rua Golden PArk • Palmital • São Paulo";
   const linkGroups = config?.linkGroups || defaultLinkGroups;
   const socials = config?.socialLinks || defaultSocialLinks;
   const copyrightText = (config?.copyrightText || "© {year} IP3D. Todos os direitos reservados.").replace("{year}", new Date().getFullYear().toString());
 
   return (
-    <footer className="bg-[#f5f6fa] text-gray-900">
+    <footer className="bg-white text-gray-900 border-t border-gray-200">
       {/* Main Footer */}
-      <div className="container mx-auto px-6 lg:px-12 py-16 lg:py-20">
-        <div className={`grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-8 ${
+      <div className="mx-auto w-full max-w-[1720px] px-4 py-16 sm:px-6 lg:py-20 lg:px-10 xl:px-12 2xl:px-16">
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-12 lg:gap-x-16 xl:gap-x-24 ${
           linkGroups.length === 1 ? "lg:grid-cols-3" :
           linkGroups.length === 2 ? "lg:grid-cols-4" :
           linkGroups.length === 3 ? "lg:grid-cols-5" :
@@ -119,11 +119,11 @@ export function Footer() {
                   height={48}
                   className="mb-2"
                 />
-                <span className="block text-xs tracking-[0.2em] text-gray-400 uppercase">
+                <span className="block text-base tracking-[0.2em] text-gray-500 uppercase">
                   {subtitleText}
                 </span>
               </Link>
-              <p className="text-gray-600 text-sm leading-relaxed max-w-sm mb-8">
+              <p className="text-gray-600 text-lg leading-relaxed max-w-sm mb-8">
                 {description}
               </p>
 
@@ -131,19 +131,19 @@ export function Footer() {
               <div className="space-y-3">
                 <a
                   href={`mailto:${contactEmail}`}
-                  className="flex items-center gap-3 text-gray-600 hover:text-black transition-colors text-sm"
+                  className="flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-colors text-lg"
                 >
                   <HiOutlineMail className="w-5 h-5" />
                   {contactEmail}
                 </a>
                 <a
                   href={`tel:${contactPhone.replace(/\D/g, "")}`}
-                  className="flex items-center gap-3 text-gray-600 hover:text-black transition-colors text-sm"
+                  className="flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-colors text-lg"
                 >
                   <HiOutlinePhone className="w-5 h-5" />
                   {contactPhone}
                 </a>
-                <div className="flex items-center gap-3 text-gray-600 text-sm">
+                <div className="flex items-center gap-3 text-gray-600 text-lg">
                   <HiOutlineLocationMarker className="w-5 h-5 shrink-0" />
                   {contactCity}
                 </div>
@@ -160,7 +160,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.1 * (idx + 1) }}
             >
-              <h4 className="text-sm font-semibold uppercase tracking-wider mb-6 text-gray-800">
+              <h4 className="text-lg font-semibold uppercase tracking-wider mb-6 text-gray-900">
                 {group.title}
               </h4>
               <ul className="space-y-3">
@@ -171,14 +171,14 @@ export function Footer() {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-black transition-colors text-sm"
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-lg"
                       >
                         {link.label}
                       </a>
                     ) : (
                       <Link
                         href={link.href}
-                        className="text-gray-600 hover:text-black transition-colors text-sm"
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-lg"
                       >
                         {link.label}
                       </Link>
@@ -192,10 +192,10 @@ export function Footer() {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-gray-200 bg-white/60">
-        <div className="container mx-auto px-6 lg:px-12 py-6">
+      <div className="border-t border-gray-200 bg-gray-50">
+        <div className="mx-auto w-full max-w-[1720px] px-4 py-6 sm:px-6 lg:px-10 xl:px-12 2xl:px-16">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-600 text-lg">
               {copyrightText}
             </p>
 
@@ -211,7 +211,7 @@ export function Footer() {
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:text-black hover:border-black transition-colors"
+                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:border-gray-900 transition-colors"
                     aria-label={social.platform}
                   >
                     <Icon className="w-4 h-4" />
