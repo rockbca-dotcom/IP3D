@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "next-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:\\Users\\Rafael\\AppData\\Roaming\\npm\\node_modules\\pnpm\\bin\\pnpm.cjs", "run", "dev"],
+      "port": 3003,
+      "cwd": "D:\\IP3D Node\\site_limpo-main\\site_limpo-main"
+    },
+    {
+      "name": "maletti-preview",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["_serve.js"],
+      "port": 3080,
+      "cwd": "D:\\IP3D Node"
+    }
+  ]
+}

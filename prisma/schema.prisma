@@ -1,0 +1,437 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  role      UserRole @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+}
+
+model Category {
+  id                String            @id @default(cuid())
+  name              String
+  slug              String            @unique
+  description       String?
+  image             String?
+  color             String?
+  icon              String?
+  order             Int               @default(0)
+  active            Boolean           @default(true)
+  parentId          String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  parent            Category?         @relation("CategoryChildren", fields: [parentId], references: [id])
+  children          Category[]        @relation("CategoryChildren")
+  products          Product[]
+  productCategories ProductCategory[]
+}
+
+model Product {
+  id               String            @id @default(cuid())
+  name             String
+  slug             String            @unique
+  shortDescription String?
+  description      String?
+  features         String[]          @default([])
+  image            String?
+  gallery          String[]          @default([])
+  video            String?
+  catalog          String?
+  warranty         String?
+  sku              String?
+  priceOriginal    Decimal?          @db.Decimal(18, 2)
+  pricePromo       Decimal?          @db.Decimal(18, 2)
+  pixPrice         Decimal?          @db.Decimal(18, 2)
+  installments     Int?              @default(0)
+  installmentValue Decimal?          @db.Decimal(18, 2)
+  stockQuantity    Int               @default(0)
+  featured         Boolean           @default(false)
+  active           Boolean           @default(true)
+  metaTitle        String?
+  metaDescription  String?
+  metaKeywords     String?
+  ogImage          String?
+  categoryId       String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  height           Int?
+  length           Int?
+  weight           Decimal?          @db.Decimal(8, 3)
+  width            Int?
+  inventoryLogs    InventoryLog[]
+  orderItems       OrderItem[]
+  category         Category?         @relation(fields: [categoryId], references: [id])
+  categories       ProductCategory[]
+  specifications   Specification[]
+}
+
+model ProductCategory {
+  id         String   @id @default(cuid())
+  productId  String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@unique([productId, categoryId])
+}
+
+model Specification {
+  id        String  @id @default(cuid())
+  label     String
+  value     String
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id             String        @id @default(cuid())
+  code           String        @unique
+  customerName   String
+  customerEmail  String
+  customerPhone  String?
+  document       String?
+  shippingStreet String?
+  shippingNumber String?
+  shippingCity   String?
+  shippingState  String?
+  shippingZip    String?
+  notes          String?
+  status         OrderStatus   @default(PENDING)
+  paymentStatus  PaymentStatus @default(PAYMENT_PENDING)
+  subtotal       Decimal       @db.Decimal(18, 2)
+  shippingCost   Decimal?      @db.Decimal(18, 2)
+  discount       Decimal?      @db.Decimal(18, 2)
+  total          Decimal       @db.Decimal(18, 2)
+  mpPreferenceId String?
+  mpPaymentId    String?
+  paymentProvider String?
+  providerOrderId String?
+  providerTransactionId String?
+  providerPaymentMethod String?
+  providerRawStatus String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId String
+  name      String
+  sku       String?
+  quantity  Int
+  unitPrice Decimal @db.Decimal(18, 2)
+  total     Decimal @db.Decimal(18, 2)
+  order     Order   @relation(fields: [orderId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model InventoryLog {
+  id          String        @id @default(cuid())
+  productId   String
+  change      Int
+  reason      String?
+  referenceId String?
+  type        InventoryType @default(MANUAL)
+  createdAt   DateTime      @default(now())
+  product     Product       @relation(fields: [productId], references: [id])
+}
+
+model Brand {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  image       String?
+  highlights  String[] @default([])
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Partner {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  website     String?
+  priority    Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BlogPost {
+  id              String             @id @default(cuid())
+  title           String
+  slug            String             @unique
+  excerpt         String?
+  content         String?
+  image           String?
+  tags            String[]           @default([])
+  published       Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  cover           String?
+  metaDescription String?
+  metaKeywords    String?
+  metaTitle       String?
+  ogImage         String?
+  publishedAt     DateTime?
+  views           Int                @default(0)
+  comments        BlogComment[]
+  categories      BlogPostCategory[]
+  postTags        BlogPostTag[]
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  userAgent String?
+  ip        String?
+  country   String?
+  createdAt DateTime @default(now())
+}
+
+model Click {
+  id        String    @id @default(cuid())
+  type      ClickType
+  label     String?
+  metadata  Json?
+  createdAt DateTime  @default(now())
+}
+
+model BlogCategory {
+  id          String             @id @default(cuid())
+  name        String
+  slug        String             @unique
+  description String?
+  color       String?
+  active      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  posts       BlogPostCategory[]
+}
+
+model BlogTag {
+  id        String        @id @default(cuid())
+  name      String
+  slug      String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  posts     BlogPostTag[]
+}
+
+model BlogPostCategory {
+  id         String       @id @default(cuid())
+  postId     String
+  categoryId String
+  category   BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  post       BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, categoryId])
+}
+
+model BlogPostTag {
+  id     String   @id @default(cuid())
+  postId String
+  tagId  String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, tagId])
+}
+
+model BlogComment {
+  id        String   @id @default(cuid())
+  postId    String
+  name      String
+  email     String
+  content   String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Page {
+  id              String      @id @default(cuid())
+  name            String
+  slug            String      @unique
+  title           String?
+  description     String?
+  published       Boolean     @default(false)
+  isSystem        Boolean     @default(false)
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  ogImage         String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  blocks          PageBlock[]
+}
+
+model PageBlock {
+  id        String   @id @default(cuid())
+  pageId    String
+  type      String
+  content   Json
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  page      Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, order])
+}
+
+model Banner {
+  id             String   @id @default(cuid())
+  badge          String?
+  subtitle       String?
+  title          String
+  description    String?
+  image          String?
+  video          String?
+  button1Text    String?
+  button1Link    String?
+  button1Color   String?
+  button1Rounded Boolean  @default(false)
+  button2Text    String?
+  button2Link    String?
+  button2Color   String?
+  button2Rounded Boolean  @default(false)
+  order          Int      @default(0)
+  active         Boolean  @default(true)
+  crosshairPos   Json?    // { top: string, left: string }
+  techLabels     Json?    // Array of { label: string, value: string }
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model HomeSection {
+  id          String   @id @default(cuid())
+  sectionId   String   @unique
+  title       String?
+  subtitle    String?
+  description String?
+  content     Json?
+  image       String?
+  active      Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LayoutConfig {
+  id        String   @id @default(cuid())
+  type      String
+  variant   String
+  content   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([type, variant])
+}
+
+model Script {
+  id        String         @id @default(cuid())
+  name      String
+  type      ScriptType     @default(CUSTOM)
+  position  ScriptPosition @default(HEAD)
+  code      String
+  active    Boolean        @default(true)
+  site      ScriptSite     @default(BOTH)
+  order     Int            @default(0)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Catalog {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  file        String
+  thumbnail   String?
+  downloads   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PAYMENT_PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+  CHARGEBACK
+}
+
+enum InventoryType {
+  MANUAL
+  ORDER
+  RETURN
+  ADJUSTMENT
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+enum ClickType {
+  CTA
+  WHATSAPP
+  EMAIL
+  DOWNLOAD
+  OTHER
+}
+
+enum ScriptType {
+  GOOGLE_ANALYTICS
+  GOOGLE_ADS
+  GOOGLE_TAG_MANAGER
+  META_PIXEL
+  CUSTOM
+}
+
+enum ScriptPosition {
+  HEAD
+  BODY_START
+  BODY_END
+}
+
+enum ScriptSite {
+  MAIN
+  BOTH
+}

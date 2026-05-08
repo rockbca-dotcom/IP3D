@@ -1,0 +1,33 @@
+<svg width="1920" height="760" viewBox="0 0 1920 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="hero1_bg" x1="0" y1="0" x2="1920" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B64D3"/>
+      <stop offset="0.55" stop-color="#084BA0"/>
+      <stop offset="1" stop-color="#062D63"/>
+    </linearGradient>
+    <linearGradient id="hero1_accent" x1="1220" y1="90" x2="1760" y2="610" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6B35"/>
+      <stop offset="1" stop-color="#FF8A50"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="760" fill="url(#hero1_bg)"/>
+  <circle cx="1610" cy="220" r="290" fill="url(#hero1_accent)" fill-opacity="0.18"/>
+  <circle cx="1440" cy="580" r="260" fill="#FF6B35" fill-opacity="0.16"/>
+  <rect x="1160" y="130" width="600" height="500" rx="28" fill="white" fill-opacity="0.12"/>
+  <rect x="1198" y="176" width="162" height="20" rx="10" fill="white" fill-opacity="0.42"/>
+  <rect x="1198" y="218" width="278" height="22" rx="11" fill="white" fill-opacity="0.9"/>
+  <rect x="1198" y="252" width="392" height="22" rx="11" fill="white" fill-opacity="0.9"/>
+  <rect x="1198" y="286" width="332" height="18" rx="9" fill="white" fill-opacity="0.55"/>
+  <rect x="1198" y="335" width="245" height="66" rx="33" fill="#FF6B35"/>
+  <rect x="1198" y="432" width="524" height="170" rx="22" fill="white" fill-opacity="0.14"/>
+  <rect x="128" y="178" width="236" height="34" rx="17" fill="#FF6B35" fill-opacity="0.92"/>
+  <rect x="128" y="230" width="620" height="88" rx="18" fill="white" fill-opacity="0.96"/>
+  <rect x="128" y="334" width="560" height="60" rx="16" fill="white" fill-opacity="0.9"/>
+  <rect x="128" y="416" width="510" height="26" rx="13" fill="white" fill-opacity="0.56"/>
+  <rect x="128" y="454" width="448" height="26" rx="13" fill="white" fill-opacity="0.56"/>
+  <rect x="128" y="512" width="294" height="70" rx="35" fill="white"/>
+  <rect x="440" y="512" width="294" height="70" rx="35" fill="#FF6B35"/>
+  <circle cx="896" cy="126" r="10" fill="white" fill-opacity="0.65"/>
+  <circle cx="930" cy="126" r="10" fill="white" fill-opacity="0.45"/>
+  <circle cx="964" cy="126" r="10" fill="white" fill-opacity="0.3"/>
+</svg>

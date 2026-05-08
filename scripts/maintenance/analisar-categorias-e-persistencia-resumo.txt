@@ -1,0 +1,98 @@
+Arquivos analisados:
+- prisma/schema.prisma
+- src/app/api/products/route.ts
+- src/app/api/products/[slug]/route.ts
+
+Resumo objetivo
+
+1) Categoria mais adequada para o novo produto
+- Produto: “Fep Film Lcd Para Halot Mage/pro Original Creality - 5 Un”
+- Pela modelagem real, a categoria principal fica em Product.categoryId e categorias adicionais podem ser vinculadas em ProductCategory.
+- A categoria mais adequada é Acessórios, idealmente usando o registro existente com slug correspondente no banco.
+- Se houver categoria/subcategoria mais específica já cadastrada, como algo de reposição/consumíveis para resina, ela pode ser adicionada também em ProductCategory, mas a principal mais segura continua sendo Acessórios.
+
+2) Campos/relacionamentos que precisam ser populados para um produto completo
+
+Product
+- Obrigatórios no schema:
+  - name
+  - slug
+- Fortemente necessários para o site funcionar bem e aparecer nas APIs:
+  - active = true
+  - image
+  - shortDescription
+  - description
+  - categoryId (opcional no schema, mas importante na prática)
+- Campos de preço usados nas APIs:
+  - priceOriginal
+  - pricePromo
+  - pixPrice
+  - installments
+  - installmentValue
+- Outros campos úteis/completos:
+  - features
+  - gallery
+  - sku
+  - stockQuantity
+  - featured (se quiser destaque na home)
+  - metaTitle
+  - metaDescription
+  - metaKeywords
+  - ogImage
+  - video
+  - catalog
+  - warranty
+  - height
+  - length
+  - width
+  - weight
+
+Relacionamentos de Product
+- category via categoryId
+- categories via tabela ProductCategory
+- specifications via tabela Specification
+
+Specification
+- Obrigatórios:
+  - label
+  - value
+  - productId
+
+ProductImage
+- No schema real atual não existe model ProductImage.
+- O projeto usa:
+  - image como imagem principal
+  - gallery como array de imagens
+- Portanto, não há relacionamento ProductImage para preencher neste banco.
+
+3) Se o banco usa featured ou outro critério para destaque na home
+- Sim, existe campo real Product.featured.
+- Em src/app/api/products/route.ts:
+  - query featured=true filtra where.featured = true
+- A listagem geral da API está ordenada por:
+  - createdAt desc
+- Portanto, para destaque na home, o critério real disponível no banco/API é featured = true.
+- Para posição entre destacados, neste arquivo analisado não há outro campo específico de ordenação para home além da ordem por createdAt desc da API geral. Logo, sem lógica adicional em outro componente, o critério de destaque persistido no banco é featured.
+
+Contrato de integração real para o parent
+- Não usar ProductImage; usar Product.image e Product.gallery
+- Preencher no mínimo:
+  - name
+  - slug
+  - active: true
+  - image
+  - shortDescription
+  - description
+  - categoryId
+- Para home/destaque:
+  - featured: true
+- Para produto completo:
+  - preços (pricePromo, idealmente também priceOriginal e pixPrice)
+  - stockQuantity
+  - specifications com label e value
+  - opcionalmente categorias adicionais em ProductCategory
+
+Observações
+- Não encontrei arquivos relevantes em src/lib além do uso de Prisma nas rotas.
+- A conclusão sobre categoria é semântica, baseada no tipo de produto e na estrutura real do schema.
+- Não houve bloqueadores.

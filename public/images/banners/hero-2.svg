@@ -1,0 +1,31 @@
+<svg width="1920" height="760" viewBox="0 0 1920 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="hero2_bg" x1="110" y1="65" x2="1860" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#051B3E"/>
+      <stop offset="0.48" stop-color="#0B64D3"/>
+      <stop offset="1" stop-color="#0A52AE"/>
+    </linearGradient>
+    <linearGradient id="hero2_orange" x1="1400" y1="70" x2="1675" y2="682" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF8A50"/>
+      <stop offset="1" stop-color="#FF6B35"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="760" fill="url(#hero2_bg)"/>
+  <path d="M0 620L480 540L960 630L1440 520L1920 640V760H0V620Z" fill="white" fill-opacity="0.08"/>
+  <rect x="146" y="104" width="880" height="556" rx="30" fill="white" fill-opacity="0.08"/>
+  <rect x="190" y="162" width="202" height="22" rx="11" fill="white" fill-opacity="0.4"/>
+  <rect x="190" y="206" width="548" height="74" rx="16" fill="white" fill-opacity="0.94"/>
+  <rect x="190" y="296" width="472" height="62" rx="16" fill="white" fill-opacity="0.9"/>
+  <rect x="190" y="384" width="628" height="22" rx="11" fill="white" fill-opacity="0.52"/>
+  <rect x="190" y="418" width="534" height="22" rx="11" fill="white" fill-opacity="0.52"/>
+  <rect x="190" y="480" width="272" height="66" rx="33" fill="#FF6B35"/>
+  <rect x="482" y="480" width="272" height="66" rx="33" fill="white"/>
+  <rect x="1130" y="102" width="646" height="558" rx="36" fill="url(#hero2_orange)" fill-opacity="0.22"/>
+  <rect x="1208" y="178" width="490" height="300" rx="24" fill="white" fill-opacity="0.16"/>
+  <rect x="1246" y="224" width="284" height="24" rx="12" fill="white" fill-opacity="0.92"/>
+  <rect x="1246" y="260" width="392" height="24" rx="12" fill="white" fill-opacity="0.92"/>
+  <rect x="1246" y="312" width="218" height="54" rx="27" fill="#051B3E"/>
+  <circle cx="1620" cy="236" r="18" fill="white" fill-opacity="0.4"/>
+  <circle cx="1662" cy="236" r="18" fill="white" fill-opacity="0.24"/>
+  <circle cx="1704" cy="236" r="18" fill="white" fill-opacity="0.12"/>
+</svg>

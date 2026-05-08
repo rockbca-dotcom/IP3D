@@ -1,0 +1,19 @@
+<svg width="900" height="450" viewBox="0 0 900 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="m4_bg" x1="0" y1="0" x2="900" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A4FA9"/>
+      <stop offset="1" stop-color="#062E65"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="450" rx="26" fill="url(#m4_bg)"/>
+  <path d="M0 340L220 300L420 338L610 294L900 352V450H0V340Z" fill="white" fill-opacity="0.12"/>
+  <rect x="40" y="44" width="170" height="22" rx="11" fill="white" fill-opacity="0.42"/>
+  <rect x="40" y="84" width="446" height="62" rx="15" fill="white" fill-opacity="0.95"/>
+  <rect x="40" y="160" width="388" height="22" rx="11" fill="white" fill-opacity="0.58"/>
+  <rect x="40" y="194" width="328" height="22" rx="11" fill="white" fill-opacity="0.58"/>
+  <rect x="40" y="250" width="228" height="58" rx="29" fill="#FF6B35"/>
+  <rect x="536" y="78" width="324" height="294" rx="24" fill="white" fill-opacity="0.12"/>
+  <rect x="586" y="122" width="226" height="220" rx="20" fill="white" fill-opacity="0.22"/>
+  <rect x="624" y="162" width="150" height="20" rx="10" fill="white" fill-opacity="0.9"/>
+  <rect x="624" y="194" width="150" height="20" rx="10" fill="white" fill-opacity="0.9"/>
+</svg>
