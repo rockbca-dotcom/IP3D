@@ -1,10 +1,8 @@
 import { MercadoPagoConfig, Preference, Payment } from "mercadopago";
 
-const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+import { env } from "@/lib/env";
 
-if (!accessToken && process.env.NODE_ENV !== "production") {
-  console.warn("MERCADO_PAGO_ACCESS_TOKEN is not configured. Mercado Pago integration will be disabled.");
-}
+const accessToken = env.MERCADO_PAGO_ACCESS_TOKEN;
 
 const config = accessToken ? new MercadoPagoConfig({ accessToken }) : null;
 

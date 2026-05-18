@@ -1,9 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
+import { handleApiError, apiSuccess } from "@/lib/api-utils";
+
+// Schema de validação para scripts
+const scriptSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  type: z.enum(["GOOGLE_ANALYTICS", "FACEBOOK_PIXEL", "CUSTOM"]).default("CUSTOM"),
+  position: z.enum(["HEAD", "BODY_START", "BODY_END"]).default("HEAD"),
+  code: z.string().min(1, "Código do script é obrigatório"),
+  active: z.boolean().default(true),
+  site: z.enum(["CATALOG", "STORE", "BOTH"]).default("BOTH"),
+  order: z.number().int().default(0),
+});
 
 export async function GET() {
-  const deny = await requireAdmin();
+  const deny = await requireSuperAdmin();
   if (deny) return deny;
 
   try {
@@ -11,35 +24,27 @@ export async function GET() {
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
 
-    return NextResponse.json({ scripts });
+    return apiSuccess({ scripts });
   } catch (error) {
-    console.error("Error fetching admin scripts:", error);
-    return NextResponse.json({ error: "Erro ao buscar scripts" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
-  const deny = await requireAdmin();
+  const deny = await requireSuperAdmin();
   if (deny) return deny;
 
   try {
-    const data = await request.json();
+    const json = await request.json();
+    const data = scriptSchema.parse(json);
 
     const script = await prisma.script.create({
-      data: {
-        name: data.name,
-        type: data.type || "CUSTOM",
-        position: data.position || "HEAD",
-        code: data.code,
-        active: data.active !== false,
-        site: data.site || "BOTH",
-        order: Number(data.order ?? 0),
-      },
+      data,
     });
 
-    return NextResponse.json({ success: true, script });
+    return apiSuccess({ success: true, script }, 201);
   } catch (error) {
-    console.error("Error creating admin script:", error);
-    return NextResponse.json({ error: "Erro ao criar script" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

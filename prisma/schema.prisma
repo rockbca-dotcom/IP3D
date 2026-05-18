@@ -16,6 +16,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   active    Boolean  @default(true)
+  
+  resetTokenHash    String?   @unique
+  resetTokenExpires DateTime?
+
+  @@index([role])
+  @@index([active])
+  @@index([resetTokenExpires])
 }
 
 model Category {
@@ -35,6 +42,8 @@ model Category {
   children          Category[]        @relation("CategoryChildren")
   products          Product[]
   productCategories ProductCategory[]
+
+  @@index([active, order])
 }
 
 model Product {
@@ -74,6 +83,10 @@ model Product {
   category         Category?         @relation(fields: [categoryId], references: [id])
   categories       ProductCategory[]
   specifications   Specification[]
+
+  @@index([active, featured])
+  @@index([createdAt(sort: Desc)])
+  @@index([categoryId])
 }
 
 model ProductCategory {
@@ -84,6 +97,8 @@ model ProductCategory {
   product    Product  @relation(fields: [productId], references: [id])
 
   @@unique([productId, categoryId])
+  @@index([categoryId])
+  @@index([productId])
 }
 
 model Specification {
@@ -92,6 +107,8 @@ model Specification {
   value     String
   productId String
   product   Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
 }
 
 model Order {
@@ -123,6 +140,11 @@ model Order {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   items          OrderItem[]
+
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt(sort: Desc)])
+  @@index([customerEmail])
 }
 
 model OrderItem {
@@ -136,6 +158,9 @@ model OrderItem {
   total     Decimal @db.Decimal(18, 2)
   order     Order   @relation(fields: [orderId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model InventoryLog {
@@ -147,6 +172,8 @@ model InventoryLog {
   type        InventoryType @default(MANUAL)
   createdAt   DateTime      @default(now())
   product     Product       @relation(fields: [productId], references: [id])
+
+  @@index([productId, createdAt(sort: Desc)])
 }
 
 model Brand {
@@ -160,6 +187,8 @@ model Brand {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([active])
 }
 
 model Partner {
@@ -173,6 +202,8 @@ model Partner {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([active, priority])
 }
 
 model BlogPost {
@@ -196,6 +227,8 @@ model BlogPost {
   comments        BlogComment[]
   categories      BlogPostCategory[]
   postTags        BlogPostTag[]
+
+  @@index([published, createdAt(sort: Desc)])
 }
 
 model PageView {
@@ -205,6 +238,9 @@ model PageView {
   ip        String?
   country   String?
   createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([path])
 }
 
 model Click {
@@ -213,6 +249,9 @@ model Click {
   label     String?
   metadata  Json?
   createdAt DateTime  @default(now())
+
+  @@index([createdAt(sort: Desc)])
+  @@index([type])
 }
 
 model BlogCategory {
@@ -225,6 +264,8 @@ model BlogCategory {
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   posts       BlogPostCategory[]
+
+  @@index([active])
 }
 
 model BlogTag {
@@ -244,6 +285,7 @@ model BlogPostCategory {
   post       BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([postId, categoryId])
+  @@index([categoryId])
 }
 
 model BlogPostTag {
@@ -254,6 +296,7 @@ model BlogPostTag {
   tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([postId, tagId])
+  @@index([tagId])
 }
 
 model BlogComment {
@@ -265,6 +308,8 @@ model BlogComment {
   approved  Boolean  @default(false)
   createdAt DateTime @default(now())
   post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, approved])
 }
 
 model Page {
@@ -282,6 +327,8 @@ model Page {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   blocks          PageBlock[]
+
+  @@index([published])
 }
 
 model PageBlock {
@@ -320,6 +367,8 @@ model Banner {
   techLabels     Json?    // Array of { label: string, value: string }
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  @@index([active, order])
 }
 
 model HomeSection {
@@ -334,6 +383,8 @@ model HomeSection {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([active, order])
 }
 
 model LayoutConfig {
@@ -358,6 +409,8 @@ model Script {
   order     Int            @default(0)
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+
+  @@index([active, site, order])
 }
 
 model Setting {

@@ -1,9 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
+import { apiSuccess, handleApiError } from "@/lib/api-utils";
+import { z } from "zod";
+
+const bannerSchema = z.object({
+  badge: z.string().nullable().optional(),
+  subtitle: z.string().nullable().optional(),
+  title: z.string().min(1, "O título do banner é obrigatório"),
+  description: z.string().nullable().optional(),
+  image: z.string().nullable().optional(),
+  video: z.string().nullable().optional(),
+  button1Text: z.string().nullable().optional(),
+  button1Link: z.string().nullable().optional(),
+  button1Color: z.string().nullable().optional(),
+  button1Rounded: z.boolean().optional(),
+  button2Text: z.string().nullable().optional(),
+  button2Link: z.string().nullable().optional(),
+  button2Color: z.string().nullable().optional(),
+  button2Rounded: z.boolean().optional(),
+  order: z.number().int().nonnegative().optional(),
+  active: z.boolean().optional(),
+  crosshairPos: z.any().nullable().optional(),
+  techLabels: z.any().nullable().optional(),
+});
 
 export async function GET() {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
@@ -11,19 +34,19 @@ export async function GET() {
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
 
-    return NextResponse.json({ banners });
+    return apiSuccess({ banners });
   } catch (error) {
-    console.error("Error fetching admin banners:", error);
-    return NextResponse.json({ error: "Erro ao buscar banners" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
-    const data = await request.json();
+    const rawData = await request.json();
+    const data = bannerSchema.parse(rawData);
 
     const banner = await prisma.banner.create({
       data: {
@@ -48,9 +71,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, banner });
+    return apiSuccess({ success: true, banner }, 201);
   } catch (error) {
-    console.error("Error creating admin banner:", error);
-    return NextResponse.json({ error: "Erro ao criar banner" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

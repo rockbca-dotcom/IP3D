@@ -1,6 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { apiSuccess, handleApiError } from "@/lib/api-utils";
+import { z } from "zod";
+import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
+
+const querySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.nativeEnum(OrderStatus).optional(),
+  orderStatus: z.nativeEnum(OrderStatus).optional(),
+  paymentStatus: z.nativeEnum(PaymentStatus).optional(),
+  search: z.string().optional(),
+});
 
 export async function GET(request: NextRequest) {
   const deny = await requireAdmin();
@@ -8,23 +20,30 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const paymentStatus = searchParams.get("paymentStatus");
-    const orderStatus = searchParams.get("orderStatus");
-    const page = Number(searchParams.get("page") || 1);
-    const limit = Number(searchParams.get("limit") || 20);
-    const skip = Math.max(0, (page - 1) * limit);
+    const parsed = querySchema.parse(Object.fromEntries(searchParams.entries()));
 
-    const where: {
-      paymentStatus?: "PAYMENT_PENDING" | "APPROVED" | "REJECTED" | "REFUNDED" | "CHARGEBACK";
-      status?: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
-    } = {};
+    const page = parsed.page;
+    const limit = parsed.limit;
+    const skip = (page - 1) * limit;
 
-    if (paymentStatus) {
-      where.paymentStatus = paymentStatus as typeof where.paymentStatus;
+    const where: Prisma.OrderWhereInput = {};
+
+    const statusFilter = parsed.status || parsed.orderStatus;
+    if (statusFilter) {
+      where.status = statusFilter;
     }
 
-    if (orderStatus) {
-      where.status = orderStatus as typeof where.status;
+    if (parsed.paymentStatus) {
+      where.paymentStatus = parsed.paymentStatus;
+    }
+
+    if (parsed.search) {
+      const searchTerm = parsed.search.trim();
+      where.OR = [
+        { code: { contains: searchTerm, mode: "insensitive" } },
+        { customerName: { contains: searchTerm, mode: "insensitive" } },
+        { customerEmail: { contains: searchTerm, mode: "insensitive" } },
+      ];
     }
 
     const [orders, total] = await Promise.all([
@@ -42,7 +61,7 @@ export async function GET(request: NextRequest) {
       prisma.order.count({ where }),
     ]);
 
-    return NextResponse.json({
+    return apiSuccess({
       orders,
       pagination: {
         page,
@@ -52,7 +71,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error fetching admin orders:", error);
-    return NextResponse.json({ error: "Erro ao buscar pedidos." }, { status: 500 });
+    return handleApiError(error);
   }
 }

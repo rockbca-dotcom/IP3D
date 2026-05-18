@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const deny = await requireAdmin();
+  const deny = await requireSuperAdmin();
   if (deny) return deny;
 
   try {
@@ -37,7 +37,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const deny = await requireAdmin();
+  const deny = await requireSuperAdmin();
   if (deny) return deny;
 
   try {

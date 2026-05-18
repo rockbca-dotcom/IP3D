@@ -40,12 +40,34 @@ const defaultData: SectionData = {
   },
 };
 
-export function WhyChooseUs() {
+interface WhyChooseUsProps {
+  initialData?: {
+    title?: string | null;
+    subtitle?: string | null;
+    description?: string | null;
+    content?: unknown;
+  };
+}
+
+export function WhyChooseUs({ initialData }: WhyChooseUsProps = {}) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const [data, setData] = useState<SectionData>(defaultData);
+
+  const [data, setData] = useState<SectionData>(() => {
+    if (initialData) {
+      return {
+        title: initialData.title || defaultData.title,
+        subtitle: initialData.subtitle || defaultData.subtitle,
+        description: initialData.description || defaultData.description,
+        content: (initialData.content as SectionData["content"]) || defaultData.content,
+      };
+    }
+    return defaultData;
+  });
 
   useEffect(() => {
+    if (initialData) return;
+
     fetch("/api/home-sections?sectionId=why-choose-us")
       .then((res) => res.json())
       .then((result) => {
@@ -59,7 +81,8 @@ export function WhyChooseUs() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [initialData]);
+
 
   return (
     <section ref={ref} className="py-24 lg:py-32 bg-gray-50">

@@ -1,24 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireSuperAdmin } from "@/lib/auth";
+import { handleApiError, apiSuccess } from "@/lib/api-utils";
 
 const SETTINGS_KEY = "site-settings-main";
 
 export async function GET() {
-  const deny = await requireAdmin();
+  const deny = await requireSuperAdmin();
   if (deny) return deny;
 
   try {
     const setting = await prisma.setting.findUnique({ where: { key: SETTINGS_KEY } });
-    return NextResponse.json({ settings: (setting?.value as Record<string, unknown>) || null });
+    return apiSuccess({ settings: (setting?.value as Record<string, unknown>) || null });
   } catch (error) {
-    console.error("Error fetching settings:", error);
-    return NextResponse.json({ error: "Erro ao buscar configurações" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
-  const deny = await requireAdmin();
+  const deny = await requireSuperAdmin();
   if (deny) return deny;
 
   try {
@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
       create: { key: SETTINGS_KEY, value: data || {} },
     });
 
-    return NextResponse.json({ success: true, settings: setting.value });
+    return apiSuccess({ success: true, settings: setting.value });
   } catch (error) {
-    console.error("Error saving settings:", error);
-    return NextResponse.json({ error: "Erro ao salvar configurações" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

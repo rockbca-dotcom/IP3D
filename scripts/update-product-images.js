@@ -1,8 +1,8 @@
-import {  PrismaClient  } from "@prisma/client";
-import fs from "fs";
-import path from "path";
-
+const { PrismaClient } = require("@prisma/client");
+const fs = require("fs");
+const path = require("path");
 const prisma = new PrismaClient();
+const { parseSeedArgs, validateEnvironment } = require("./seed-utils");
 
 const productImageMap = [
   {
@@ -44,6 +44,18 @@ const productImageMap = [
 ];
 
 async function main() {
+  const options = parseSeedArgs(process.argv.slice(2));
+  validateEnvironment("update-product-images.js", options);
+
+  if (options.dryRun) {
+    console.log("[SIMULAÇÃO] Modo dry-run ativo. Nenhuma operação executada.");
+    console.log("   Mapeamento de caminhos de imagem a sincronizar:");
+    productImageMap.forEach((item) => {
+      console.log(`   - ${item.slug} -> public/images/products/${item.folder}`);
+    });
+    return;
+  }
+
   const publicDir = path.join(__dirname, "..", "public", "images", "products");
 
   for (const item of productImageMap) {
@@ -76,18 +88,22 @@ async function main() {
       });
       console.log(`✓ Atualizado: ${item.slug}`);
     } catch (error) {
-      console.log(`✗ Erro ao atualizar ${item.slug}:`, error.message);
+      console.log(`✗ Erro ao atualizar ${item.slug}: ${error.message}`);
     }
   }
 
   console.log("\nAtualização concluída!");
 }
 
-main()
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (require.main === module) {
+  main()
+    .catch((error) => {
+      console.error(error);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}
+
+module.exports = { main };

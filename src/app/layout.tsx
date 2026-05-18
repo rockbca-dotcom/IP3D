@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Poppins, Playfair_Display } from "next/font/google";
+import { Suspense } from "react";
 // TrackingScripts desativado — produção antiga ainda ativa com os mesmos IDs
 // Reativar após descomissionar o site antigo
 // import { TrackingScripts, TrackingNoscript } from "@/components/TrackingScripts";
 import { DynamicFavicon } from "@/components/DynamicFavicon";
 import { DynamicScripts } from "@/components/DynamicScripts";
+import CookieConsent from "@/components/CookieConsent";
 import { buildMetadata } from "@/lib/seo";
 import "./globals.css";
 
@@ -47,6 +49,9 @@ export default function RootLayout({
       <body className={`${poppins.variable} ${playfair.variable} font-sans antialiased min-w-[320px]`}>
         {/* <TrackingNoscript /> — desativado */}
         <DynamicScripts />
+        <Suspense fallback={null}>
+          <CookieConsent />
+        </Suspense>
         <main className="w-full">
           {children}
         </main>

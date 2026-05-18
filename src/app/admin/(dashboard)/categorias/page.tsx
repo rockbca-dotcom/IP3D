@@ -338,7 +338,7 @@ export default function CategoriasPage() {
         );
       } else {
         const data = await res.json();
-        showError(data.error || "Erro ao salvar categoria.");
+        showError(data.error?.message || data.error || "Erro ao salvar categoria.");
       }
     } catch {
       showError("Erro de conexão. Tente novamente.");
@@ -364,7 +364,7 @@ export default function CategoriasPage() {
       } else {
         const data = await res.json();
         setSelectedCategory(null);
-        showError(data.error || "Erro ao excluir categoria.");
+        showError(data.error?.message || data.error || "Erro ao excluir categoria.");
       }
     } catch {
       setDeleteModalOpen(false);
@@ -404,7 +404,7 @@ export default function CategoriasPage() {
       } else {
         const data = await res.json();
         setSelectedCategory(null);
-        showError(data.error || "Erro ao atualizar categoria.");
+        showError(data.error?.message || data.error || "Erro ao atualizar categoria.");
       }
     } catch {
       setToggleModalOpen(false);

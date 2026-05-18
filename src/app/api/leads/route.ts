@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { sendWeb3FormNotification } from "@/lib/notifications";
+import { rateLimiter } from "@/lib/rate-limit";
+import { apiError } from "@/lib/api-utils";
 
 interface LeadPayload {
   name?: string;
@@ -19,6 +21,19 @@ function isValidEmail(value: string) {
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResult = rateLimiter(request, "leads", {
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!rateLimitResult.success) {
+    return apiError(
+      "Muitas requisições de contato. Tente novamente mais tarde.",
+      "TOO_MANY_REQUESTS",
+      429
+    );
+  }
+
   try {
     const body: LeadPayload = await request.json();
     const name = sanitize(body.name);

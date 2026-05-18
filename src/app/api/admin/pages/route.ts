@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
 
 const SYSTEM_PAGES: Array<{ name: string; slug: string }> = [
   { name: "Home", slug: "home" },
@@ -39,7 +39,7 @@ function slugify(value: string) {
 }
 
 export async function GET() {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
@@ -58,7 +58,7 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {

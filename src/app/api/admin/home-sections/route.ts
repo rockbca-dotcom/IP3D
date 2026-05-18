@@ -1,6 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
+import { apiSuccess, handleApiError } from "@/lib/api-utils";
+import { z } from "zod";
+
+const homeSectionSchema = z.object({
+  sectionId: z.string().min(1, "sectionId é obrigatório"),
+  title: z.string().nullable().optional(),
+  subtitle: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  content: z.any().nullable().optional(),
+  image: z.string().nullable().optional(),
+  active: z.boolean().optional(),
+  order: z.number().int().nonnegative().optional(),
+});
 
 const DEFAULT_SECTIONS = [
   {
@@ -76,7 +89,7 @@ async function ensureDefaultSections() {
 }
 
 export async function GET() {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
@@ -86,19 +99,19 @@ export async function GET() {
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
 
-    return NextResponse.json({ sections });
+    return apiSuccess({ sections });
   } catch (error) {
-    console.error("Error fetching admin home sections:", error);
-    return NextResponse.json({ error: "Erro ao buscar seções da home" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
 export async function POST(request: NextRequest) {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
-    const data = await request.json();
+    const rawData = await request.json();
+    const data = homeSectionSchema.parse(rawData);
 
     const section = await prisma.homeSection.upsert({
       where: { sectionId: data.sectionId },
@@ -123,9 +136,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, section });
+    return apiSuccess({ success: true, section });
   } catch (error) {
-    console.error("Error saving admin home section:", error);
-    return NextResponse.json({ error: "Erro ao salvar seção da home" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

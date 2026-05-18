@@ -1,17 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
+import { apiSuccess, handleApiError } from "@/lib/api-utils";
+import { z } from "zod";
+
+const bannerSchema = z.object({
+  badge: z.string().nullable().optional(),
+  subtitle: z.string().nullable().optional(),
+  title: z.string().min(1, "O título do banner é obrigatório"),
+  description: z.string().nullable().optional(),
+  image: z.string().nullable().optional(),
+  video: z.string().nullable().optional(),
+  button1Text: z.string().nullable().optional(),
+  button1Link: z.string().nullable().optional(),
+  button1Color: z.string().nullable().optional(),
+  button1Rounded: z.boolean().optional(),
+  button2Text: z.string().nullable().optional(),
+  button2Link: z.string().nullable().optional(),
+  button2Color: z.string().nullable().optional(),
+  button2Rounded: z.boolean().optional(),
+  order: z.number().int().nonnegative().optional(),
+  active: z.boolean().optional(),
+  crosshairPos: z.any().nullable().optional(),
+  techLabels: z.any().nullable().optional(),
+});
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
     const { id } = await params;
-    const data = await request.json();
+    const rawData = await request.json();
+    const data = bannerSchema.parse(rawData);
 
     const banner = await prisma.banner.update({
       where: { id },
@@ -37,10 +61,9 @@ export async function PUT(
       },
     });
 
-    return NextResponse.json({ success: true, banner });
+    return apiSuccess({ success: true, banner });
   } catch (error) {
-    console.error("Error updating admin banner:", error);
-    return NextResponse.json({ error: "Erro ao atualizar banner" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -48,7 +71,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
@@ -56,9 +79,9 @@ export async function DELETE(
 
     await prisma.banner.delete({ where: { id } });
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    console.error("Error deleting admin banner:", error);
-    return NextResponse.json({ error: "Erro ao excluir banner" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

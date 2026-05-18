@@ -1,9 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { requireEditor } from "@/lib/auth";
+import { apiSuccess, badRequest, handleApiError } from "@/lib/api-utils";
+import { z } from "zod";
+
+const layoutConfigSchema = z.object({
+  type: z.string().min(1, "type é obrigatório"),
+  variant: z.string().min(1, "variant é obrigatória"),
+  content: z.any().nullable().optional(),
+});
 
 export async function GET(request: NextRequest) {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
@@ -12,7 +20,7 @@ export async function GET(request: NextRequest) {
     const variant = searchParams.get("variant") || "main";
 
     if (!type) {
-      return NextResponse.json({ error: "type é obrigatório" }, { status: 400 });
+      return badRequest("type é obrigatório");
     }
 
     const config = await prisma.layoutConfig.findUnique({
@@ -24,23 +32,19 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ config });
+    return apiSuccess({ config });
   } catch (error) {
-    console.error("Error fetching admin layout config:", error);
-    return NextResponse.json({ error: "Erro ao buscar configuração de layout" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
 export async function PUT(request: NextRequest) {
-  const deny = await requireAdmin();
+  const deny = await requireEditor();
   if (deny) return deny;
 
   try {
-    const data = await request.json();
-
-    if (!data.type || !data.variant) {
-      return NextResponse.json({ error: "type e variant são obrigatórios" }, { status: 400 });
-    }
+    const rawData = await request.json();
+    const data = layoutConfigSchema.parse(rawData);
 
     const config = await prisma.layoutConfig.upsert({
       where: {
@@ -59,9 +63,9 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ success: true, config });
+    return apiSuccess({ success: true, config });
   } catch (error) {
-    console.error("Error saving admin layout config:", error);
-    return NextResponse.json({ error: "Erro ao salvar configuração de layout" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

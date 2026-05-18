@@ -7,6 +7,10 @@
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { parseSeedArgs, validateEnvironment } = require("./seed-utils");
+
+const options = parseSeedArgs(process.argv.slice(2));
+validateEnvironment("seed-page-blocks.js", options);
 
 const PAGE_BLOCKS = {
   home: [
@@ -269,6 +273,12 @@ const PAGE_BLOCKS = {
 
 async function main() {
   console.log("📌 Populando blocos das páginas do sistema...\n");
+
+  if (options.dryRun) {
+    console.log("[SIMULAÇÃO] Modo dry-run ativo. Nenhuma operação executada.");
+    console.log("   Blocos de páginas padrão a preencher para: home, contato, sobre, produtos, 404");
+    return;
+  }
 
   const pages = await prisma.page.findMany({
     include: { blocks: true },

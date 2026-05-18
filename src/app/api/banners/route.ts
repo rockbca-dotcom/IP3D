@@ -1,5 +1,5 @@
-﻿import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { apiSuccess, handleApiError } from "@/lib/api-utils";
 
 export async function GET() {
   try {
@@ -8,9 +8,9 @@ export async function GET() {
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
 
-    return NextResponse.json({ banners });
+    return apiSuccess({ banners });
   } catch (error) {
-    console.error("Error fetching public banners:", error);
-    return NextResponse.json({ error: "Erro ao buscar banners" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

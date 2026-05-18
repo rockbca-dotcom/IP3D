@@ -1,37 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { getSession } from "@/lib/auth";
-
-// ─────────────────────────────────────────────────────────────────────────────
-// /api/admin/users/[id]   [SUPER_ADMIN only]
-//
-// GET    → detalhe de um usuário
-// PUT    → atualiza nome, e-mail, role, active; opcionalmente troca senha
-// DELETE → inativa o usuário (active = false) em vez de apagar definitivamente
-//
-// Proteções:
-//  • Não é possível degradar ou inativar o último SUPER_ADMIN
-//  • Não é possível excluir/inativar a própria conta
-//  • passwords nunca retornados nas respostas
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function requireSuperAdmin() {
-  const session = await getSession();
-  if (!session.isLoggedIn) {
-    return { denied: NextResponse.json({ error: "Não autenticado" }, { status: 401 }), session: null };
-  }
-  if (session.role !== "SUPER_ADMIN") {
-    return {
-      denied: NextResponse.json(
-        { error: "Acesso negado — apenas SUPER_ADMIN" },
-        { status: 403 }
-      ),
-      session: null,
-    };
-  }
-  return { denied: null, session };
-}
+import { requireSuperAdmin, getSession } from "@/lib/auth";
 
 async function countActiveSuperAdmins(): Promise<number> {
   return prisma.user.count({
@@ -44,7 +14,7 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { denied } = await requireSuperAdmin();
+  const denied = await requireSuperAdmin();
   if (denied) return denied;
 
   const { id } = await params;
@@ -74,8 +44,9 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { denied, session } = await requireSuperAdmin();
+  const denied = await requireSuperAdmin();
   if (denied) return denied;
+  const session = await getSession();
 
   const { id } = await params;
   const body = await request.json();
@@ -176,8 +147,9 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { denied, session } = await requireSuperAdmin();
+  const denied = await requireSuperAdmin();
   if (denied) return denied;
+  const session = await getSession();
 
   const { id } = await params;
 

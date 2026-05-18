@@ -1,5 +1,6 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { apiSuccess, handleApiError } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,7 +11,7 @@ export async function GET(request: NextRequest) {
       const section = await prisma.homeSection.findFirst({
         where: { sectionId, active: true },
       });
-      return NextResponse.json({ section });
+      return apiSuccess({ section });
     }
 
     const sections = await prisma.homeSection.findMany({
@@ -18,9 +19,9 @@ export async function GET(request: NextRequest) {
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
     });
 
-    return NextResponse.json({ sections });
+    return apiSuccess({ sections });
   } catch (error) {
-    console.error("Error fetching public home sections:", error);
-    return NextResponse.json({ error: "Erro ao buscar seções da home" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

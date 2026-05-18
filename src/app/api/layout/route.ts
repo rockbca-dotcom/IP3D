@@ -1,5 +1,6 @@
-﻿import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { apiSuccess, badRequest, handleApiError } from "@/lib/api-utils";
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,7 +9,7 @@ export async function GET(request: NextRequest) {
     const variant = searchParams.get("variant") || "main";
 
     if (!type) {
-      return NextResponse.json({ error: "type é obrigatório" }, { status: 400 });
+      return badRequest("type é obrigatório");
     }
 
     const config = await prisma.layoutConfig.findUnique({
@@ -20,9 +21,9 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ config });
+    return apiSuccess({ config });
   } catch (error) {
-    console.error("Error fetching public layout config:", error);
-    return NextResponse.json({ error: "Erro ao buscar configuração de layout" }, { status: 500 });
+    return handleApiError(error);
   }
 }
+

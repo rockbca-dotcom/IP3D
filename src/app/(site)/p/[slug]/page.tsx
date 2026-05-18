@@ -1,67 +1,70 @@
-"use client";
-
-import { useEffect, useState, use } from "react";
 import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import { buildMetadata } from "@/lib/seo";
+import { Metadata } from "next";
 
-interface PageBlock {
-  id: string;
-  type: string;
-  content: Record<string, unknown>;
-  order: number;
-  active: boolean;
+interface Props {
+  params: Promise<{ slug: string }>;
 }
 
-interface Page {
-  id: string;
-  name: string;
-  slug: string;
-  title: string | null;
-  description: string | null;
-  blocks: PageBlock[];
-}
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  
+  const page = await prisma.page.findFirst({
+    where: { slug, published: true },
+    select: {
+      name: true,
+      title: true,
+      metaTitle: true,
+      metaDescription: true,
+      metaKeywords: true,
+      ogImage: true,
+    },
+  });
 
-export default function DynamicPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = use(params);
-  const [page, setPage] = useState<Page | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    fetch(`/api/pages/${slug}`)
-      .then((res) => {
-        if (!res.ok) throw new Error("Not found");
-        return res.json();
-      })
-      .then((data) => {
-        setPage(data.page);
-      })
-      .catch(() => {
-        setError(true);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" />
-      </div>
-    );
+  if (!page) {
+    return {
+      title: "Página Não Encontrada",
+    };
   }
 
-  if (error || !page) {
+  return buildMetadata("main", {
+    title: page.metaTitle || page.title || page.name,
+    description: page.metaDescription || undefined,
+    keywords: page.metaKeywords || undefined,
+    path: `/p/${slug}`,
+    ogImage: page.ogImage || undefined,
+  });
+}
+
+export default async function DynamicPage({ params }: Props) {
+  const { slug } = await params;
+
+  const page = await prisma.page.findFirst({
+    where: { slug, published: true },
+    include: {
+      blocks: {
+        where: { active: true },
+        orderBy: { order: "asc" },
+      },
+    },
+  });
+
+  if (!page) {
     notFound();
   }
 
+  // Serializa os blocos JSON do Prisma para a estrutura estrita esperada pelo BlockRenderer
+  const serializedBlocks = page.blocks.map((block) => ({
+    id: block.id,
+    type: block.type,
+    content: block.content as Record<string, unknown>,
+    order: block.order,
+    active: block.active,
+  }));
+
   return (
-    <>
-      {page.title && (
-        <title>{page.title}</title>
-      )}
-      <BlockRenderer blocks={page.blocks} />
-    </>
+    <BlockRenderer blocks={serializedBlocks} />
   );
 }
