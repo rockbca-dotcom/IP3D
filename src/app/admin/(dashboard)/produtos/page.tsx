@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineEye, HiOutlineSearch, HiOutlineCog, HiX, HiOutlineLink, HiOutlineBan, HiOutlineCheck, HiCheckCircle, HiXCircle } from "react-icons/hi";
 import { Modal, ConfirmModal } from "@/components/admin/Modal";
@@ -252,7 +252,7 @@ export default function ProdutosPage() {
     setTimeout(() => setNotif(null), 3000);
   };
 
-  async function fetchProducts() {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/products?page=${page}&search=${search}`);
@@ -264,9 +264,9 @@ export default function ProdutosPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [page, search]);
 
-  async function fetchCategories() {
+  const fetchCategories = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/categories");
       const data = await res.json();
@@ -274,13 +274,13 @@ export default function ProdutosPage() {
     } catch (error) {
       console.error("Error:", error);
     }
-  }
+  }, []);
   useEffect(() => {
     queueMicrotask(() => {
       void fetchProducts();
       void fetchCategories();
     });
-  }, [page, search]);
+  }, [fetchProducts, fetchCategories]);
 
   const openCreate = () => {
     setSelectedProduct(null);
