@@ -28,13 +28,21 @@ export const defaultSession: SessionData = {
 // anyone who reads the source to forge valid admin session cookies.
 // ---------------------------------------------------------------------------
 
+import { env } from "@/lib/env";
+
 export const sessionOptions: SessionOptions = {
-  password: process.env.SESSION_SECRET ?? "",
-  cookieName: "admin-session",
+  password: env.SESSION_SECRET,
+  cookieName: "ip3d-admin-session",
   cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
+    // secure: true only in production (HTTPS required)
+    secure: env.NODE_ENV === "production",
+    // httpOnly: prevent client-side JS access
     httpOnly: true,
+    // sameSite: "lax" protects against CSRF while allowing some cross-site nav
     sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+    // explicit path to restrict cookie scope
+    path: "/",
+    // maxAge: 7 days
+    maxAge: 60 * 60 * 24 * 7,
   },
 };

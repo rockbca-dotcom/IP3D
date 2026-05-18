@@ -1,16 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { apiSuccess, handleApiError, notFound } from "@/lib/api-utils";
 
-type SerializableProduct = {
-  priceOriginal?: unknown;
-  pricePromo?: unknown;
-  pixPrice?: unknown;
-  installments?: unknown;
-  installmentValue?: unknown;
-  stockQuantity?: unknown;
-} & Record<string, unknown>;
+interface RawProductInput {
+  priceOriginal?: number | string | object | null;
+  pricePromo?: number | string | object | null;
+  pixPrice?: number | string | object | null;
+  installments?: number | null;
+  installmentValue?: number | string | object | null;
+  stockQuantity?: number | null;
+  [key: string]: unknown;
+}
 
-function serializeProduct(product: SerializableProduct | null) {
+function serializeProduct(product: RawProductInput) {
   if (!product) return product;
   return {
     ...product,
@@ -30,16 +32,18 @@ export async function GET(
   try {
     const { slug } = await params;
 
-    const product = await prisma.product.findUnique({
-      where: { slug },
+    const product = await prisma.product.findFirst({
+      where: { slug, active: true },
       include: {
         category: true,
-        specifications: true,
+        specifications: {
+          orderBy: { name: "asc" }
+        },
       },
     });
 
     if (!product) {
-      return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 });
+      return notFound("Produto não encontrado");
     }
 
     // Get related products (same category, excluding current)
@@ -53,13 +57,19 @@ export async function GET(
           include: {
             category: true,
           },
-          take: 3,
+          take: 4, // Aumentado para 4 para flexibilidade de grid
+          orderBy: { createdAt: "desc" }
         })
       : [];
 
-    return NextResponse.json({ product: serializeProduct(product), relatedProducts: relatedProducts.map(serializeProduct) });
+    return apiSuccess({
+      success: true,
+      data: {
+        product: serializeProduct(product),
+        relatedProducts: relatedProducts.map(serializeProduct)
+      }
+    });
   } catch (error) {
-    console.error("Error fetching product:", error);
-    return NextResponse.json({ error: "Erro ao buscar produto" }, { status: 500 });
+    return handleApiError(error);
   }
 }

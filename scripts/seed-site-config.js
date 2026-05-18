@@ -7,6 +7,10 @@
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { parseSeedArgs, validateEnvironment } = require("./seed-utils");
+
+const options = parseSeedArgs(process.argv.slice(2));
+validateEnvironment("seed-site-config.js", options);
 
 // ── Header Config ─────────────────────────────────────────────────────────────
 const HEADER_CONFIG = {
@@ -194,6 +198,13 @@ const HOME_SECTIONS = [
 // ── Execução ──────────────────────────────────────────────────────────────────
 async function main() {
   console.log("🔧 Populando configurações do site...\n");
+
+  if (options.dryRun) {
+    console.log("[SIMULAÇÃO] Modo dry-run ativo. Nenhuma operação executada.");
+    console.log("   Configurações a atualizar: Header, Footer, Site Settings, Home Sections, Page Configs");
+    console.log(`   Banners a recriar: ${BANNERS.length}`);
+    return;
+  }
 
   // 1. Header Layout
   console.log("📌 Header...");

@@ -1,16 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { apiSuccess, handleApiError } from "@/lib/api-utils";
 
-type SerializableProduct = {
-  priceOriginal?: unknown;
-  pricePromo?: unknown;
-  pixPrice?: unknown;
-  installments?: unknown;
-  installmentValue?: unknown;
-  stockQuantity?: unknown;
-} & Record<string, unknown>;
+interface RawProductInput {
+  priceOriginal?: number | string | object | null;
+  pricePromo?: number | string | object | null;
+  pixPrice?: number | string | object | null;
+  installments?: number | null;
+  installmentValue?: number | string | object | null;
+  stockQuantity?: number | null;
+  [key: string]: unknown;
+}
 
-function serializeProduct(product: SerializableProduct | null) {
+// Schema de validação para query params
+const productsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(50).default(9),
+  search: z.string().min(2, "Busca muito curta").max(50).optional(),
+  category: z.string().optional(),
+  featured: z.coerce.boolean().optional(),
+  minPrice: z.coerce.number().nonnegative().optional(),
+  maxPrice: z.coerce.number().nonnegative().optional(),
+  sort: z.enum(["newest", "price_asc", "price_desc", "name_asc", "featured"]).default("newest"),
+});
+
+function serializeProduct(product: RawProductInput) {
   if (!product) return product;
   return {
     ...product,
@@ -26,50 +42,67 @@ function serializeProduct(product: SerializableProduct | null) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const featured = searchParams.get("featured");
-    const categorySlug = searchParams.get("category");
-    const search = searchParams.get("search");
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "9");
+    const query = productsQuerySchema.parse(Object.fromEntries(searchParams));
+    const { page, limit, search, category, featured, minPrice, maxPrice, sort } = query;
+
     const skip = (page - 1) * limit;
 
-    const where: Record<string, unknown> = { active: true };
-    const andConditions: Record<string, unknown>[] = [];
-    
-    if (featured === "true") {
-      where.featured = true;
+    // Filtros base
+    const where: Prisma.ProductWhereInput = { active: true };
+    const andConditions: Prisma.ProductWhereInput[] = [];
+
+    if (featured !== undefined) {
+      where.featured = featured;
     }
 
     if (search) {
       andConditions.push({
         OR: [
           { name: { contains: search, mode: "insensitive" } },
-          { slug: { contains: search, mode: "insensitive" } },
           { shortDescription: { contains: search, mode: "insensitive" } },
           { description: { contains: search, mode: "insensitive" } },
           { category: { name: { contains: search, mode: "insensitive" } } },
-          { categories: { some: { category: { name: { contains: search, mode: "insensitive" } } } } },
         ]
       });
     }
-    
-    if (categorySlug) {
-      const category = await prisma.category.findUnique({
-        where: { slug: categorySlug },
+
+    if (category) {
+      andConditions.push({
+        OR: [
+          { category: { slug: category } },
+          { categories: { some: { category: { slug: category } } } }
+        ]
       });
-      if (category) {
-        andConditions.push({
-          OR: [
-            { categoryId: category.id },
-            { categories: { some: { categoryId: category.id } } }
-          ]
-        });
-      }
+    }
+
+    if (minPrice !== undefined) {
+      andConditions.push({
+        OR: [
+          { pricePromo: { gte: minPrice } },
+          { priceOriginal: { gte: minPrice }, pricePromo: null }
+        ]
+      });
+    }
+
+    if (maxPrice !== undefined) {
+      andConditions.push({
+        OR: [
+          { pricePromo: { lte: maxPrice } },
+          { priceOriginal: { lte: maxPrice }, pricePromo: null }
+        ]
+      });
     }
 
     if (andConditions.length > 0) {
       where.AND = andConditions;
     }
+
+    // Ordenação
+    let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
+    if (sort === "price_asc") orderBy = { priceOriginal: "asc" };
+    else if (sort === "price_desc") orderBy = { priceOriginal: "desc" };
+    else if (sort === "name_asc") orderBy = { name: "asc" };
+    else if (sort === "featured") orderBy = { featured: "desc" };
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
@@ -80,13 +113,13 @@ export async function GET(request: NextRequest) {
           slug: true,
           shortDescription: true,
           image: true,
-          gallery: true,
           priceOriginal: true,
           pricePromo: true,
           pixPrice: true,
           installments: true,
           installmentValue: true,
           stockQuantity: true,
+          featured: true,
           category: {
             select: { id: true, name: true, slug: true },
           },
@@ -98,24 +131,30 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy,
         skip,
         take: limit,
       }),
       prisma.product.count({ where }),
     ]);
 
-    return NextResponse.json({ 
-      products: products.map(serializeProduct), 
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
+    const totalPages = Math.ceil(total / limit);
+
+    return apiSuccess({
+      success: true,
+      data: {
+        items: products.map(serializeProduct),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+        }
       }
     });
   } catch (error) {
-    console.error("Error fetching products:", error);
-    return NextResponse.json({ error: "Erro ao buscar produtos" }, { status: 500 });
+    return handleApiError(error);
   }
 }

@@ -125,6 +125,11 @@ export default function EstoquePage() {
       setAdjustError("Informe um valor de ajuste diferente de zero");
       return;
     }
+    const reasonTrimmed = adjustReason.trim();
+    if (!reasonTrimmed) {
+      setAdjustError("O motivo do ajuste é obrigatório");
+      return;
+    }
     setAdjusting(true);
     try {
       const res  = await fetch("/api/admin/inventory", {
@@ -132,13 +137,14 @@ export default function EstoquePage() {
         headers: { "Content-Type": "application/json" },
         body:    JSON.stringify({
           productId: adjustProduct.id,
-          change:    delta,
-          reason:    adjustReason.trim() || null,
+          action:    "MANUAL",
+          quantity:  delta,
+          reason:    reasonTrimmed,
         }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setAdjustError(data.error ?? "Erro ao ajustar estoque");
+        setAdjustError(data.error?.message ?? data.error ?? "Erro ao ajustar estoque");
         return;
       }
       setAdjustProduct(null);
@@ -390,10 +396,11 @@ export default function EstoquePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Motivo <span className="text-gray-400 font-normal">(opcional)</span>
+                  Motivo *
                 </label>
                 <input
                   type="text"
+                  required
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
                   placeholder="Ex.: Entrada de NF 1234, Quebra, Inventário…"
@@ -446,6 +453,11 @@ export default function EstoquePage() {
                           {log.reason && <span className="mx-1">·</span>}
                           {log.reason && <span>{log.reason}</span>}
                         </p>
+                        {log.previousStock !== undefined && log.newStock !== undefined && (
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            Saldo: {log.previousStock} un. &rarr; {log.newStock} un.
+                          </p>
+                        )}
                         <p className="text-[11px] text-gray-400">
                           {new Date(log.createdAt).toLocaleString("pt-BR")}
                         </p>

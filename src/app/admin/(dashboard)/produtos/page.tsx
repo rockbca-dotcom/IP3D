@@ -369,7 +369,7 @@ export default function ProdutosPage() {
         showNotif("success", selectedProduct ? "Produto atualizado com sucesso." : "Produto criado com sucesso.");
       } else {
         const data = await res.json().catch(() => null);
-        showNotif("error", data?.error || "Erro ao salvar produto.");
+        showNotif("error", data?.error?.message || data?.error || "Erro ao salvar produto.");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -392,7 +392,7 @@ export default function ProdutosPage() {
         showNotif("success", "Produto excluído com sucesso.");
       } else {
         const data = await res.json();
-        showNotif("error", data.error || "Erro ao excluir produto.");
+        showNotif("error", data?.error?.message || data?.error || "Erro ao excluir produto.");
       }
     } catch (error) {
       console.error("Error:", error);

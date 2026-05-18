@@ -1,118 +1,81 @@
-import { randomBytes } from "crypto";
-import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import { randomBytes, createHash } from "crypto";
+import { NextRequest } from "next/server";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth";
+import { handleApiError, apiSuccess, apiError } from "@/lib/api-utils";
+import { sendWeb3FormNotification } from "@/lib/notifications";
+import { env } from "@/lib/env";
+import { rateLimiter } from "@/lib/rate-limit";
 
-// ---------------------------------------------------------------------------
-// Password reset endpoint — ADMIN ONLY, DISABLED IN PRODUCTION WITHOUT SMTP.
-//
-// Security model (two independent guards, applied in order):
-//
-//   Guard 1 — requireAdmin()
-//     Any unauthenticated request receives 401 before reaching any logic.
-//     This prevents account-lockout attacks: an anonymous actor who knows
-//     an admin's email cannot overwrite their password via this endpoint.
-//     Applied in ALL environments.
-//
-//   Guard 2 — production block
-//     Even an authenticated admin cannot use this route in production until
-//     email delivery is confirmed working. Without SMTP the new password is
-//     generated, written to the DB, and then lost — locking the account.
-//     Remove this guard (or replace with hasNotificationChannel()) once
-//     SMTP_* env vars are configured and tested.
-//
-// SMTP env vars required before enabling in production:
-//   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM,
-//   SALES_NOTIFICATION_EMAIL  (or WEB3FORMS_ACCESS_KEY for Web3Forms)
-//
-// Implementation path for full reset flow:
-//   1. Configure SMTP_* env vars
-//   2. Remove the NODE_ENV === "production" guard below
-//   3. Uncomment the sendWeb3FormNotification() call
-//   4. Test that the email is received before deploying
-// ---------------------------------------------------------------------------
-
-// Factory function — creates a new Response object per request.
-// A NextResponse.json() object wraps a ReadableStream that can only be
-// consumed once. Reusing a single module-level instance across concurrent
-// requests would cause the second caller to receive an empty body.
-function makeResetResponse() {
-  return NextResponse.json({
-    success: true,
-    message:
-      "Se o e-mail existir em nossa base, uma nova senha será enviada em breve.",
-  });
-}
+const forgotPasswordSchema = z.object({
+  email: z.string().email("E-mail inválido"),
+});
 
 export async function POST(request: NextRequest) {
-  // Guard 1: active admin session required.
-  // Returns 401 { error: "Não autorizado." } for any unauthenticated caller.
-  // Placed first so that the production block is never reached by external actors.
-  const deny = await requireAdmin();
-  if (deny) return deny;
+  const rateLimitResult = rateLimiter(request, "forgot-password", {
+    limit: 5,
+    windowMs: 15 * 60 * 1000,
+  });
 
-  // Guard 2: disabled in production until SMTP is configured.
-  // An authenticated admin must not be able to lock accounts by overwriting
-  // passwords that are never delivered. Remove this block once email delivery
-  // is implemented and confirmed working in production.
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json(
-      {
-        error:
-          "Redefinição de senha desabilitada. Configure o envio de e-mail (SMTP_*) antes de usar esta função.",
-      },
-      { status: 503 }
+  if (!rateLimitResult.success) {
+    return apiError(
+      "Muitas tentativas de recuperação de senha. Tente novamente mais tarde.",
+      "TOO_MANY_REQUESTS",
+      429
     );
   }
 
   try {
-    const { email } = await request.json();
+    const json = await request.json();
+    const { email } = forgotPasswordSchema.parse(json);
 
-    if (!email) {
-      return NextResponse.json(
-        { error: "Email é obrigatório" },
-        { status: 400 }
-      );
-    }
+    // Resposta neutra para evitar enumeração de e-mails
+    const successResponse = apiSuccess({
+      success: true,
+      message: "Se o e-mail existir em nossa base, as instruções de recuperação serão enviadas em breve.",
+    });
 
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    // Return the same response whether the email exists or not.
-    // Prevents user enumeration even for authenticated admin callers.
-    if (!user) {
-      return makeResetResponse();
+    // Se o usuário não existir ou estiver inativo, retornamos sucesso neutro
+    if (!user || !user.active) {
+      return successResponse;
     }
 
-    // Generate a cryptographically secure random password.
-    // randomBytes(16) → 128 bits of entropy → base64url-encoded (22 chars).
-    const newPassword = randomBytes(16).toString("base64url");
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    // Gerar token seguro (Regra 4: 32 bytes hex)
+    const token = randomBytes(32).toString("hex");
+    
+    // Armazenar apenas o hash SHA-256 (Regra 5)
+    const tokenHash = createHash("sha256").update(token).digest("hex");
+    
+    // Expiração em 1 hora (Regra 7)
+    const expires = new Date(Date.now() + 1000 * 60 * 60);
 
     await prisma.user.update({
-      where: { email },
-      data: { password: hashedPassword },
+      where: { id: user.id },
+      data: {
+        resetTokenHash: tokenHash,
+        resetTokenExpires: expires,
+      },
     });
 
-    // TODO: Send newPassword to the user via email before returning.
-    // Uncomment after configuring SMTP and removing the production block above.
-    //
-    //   await sendWeb3FormNotification({
-    //     subject: "Sua nova senha",
-    //     message: `Sua nova senha é: ${newPassword}\nAlter-a no primeiro acesso.`,
-    //     customerEmail: email,
-    //   });
-    //
-    // WARNING: Do NOT log newPassword. Do NOT include it in the JSON response.
+    // Montar link (Regra 4)
+    const resetUrl = `${env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${token}`;
 
-    return makeResetResponse();
+    // Enviar e-mail (falha no envio também retorna resposta neutra conforme Regra 3)
+    await sendWeb3FormNotification({
+      to: email,
+      subject: "Recuperação de Senha - IP3D",
+      message: `Você solicitou a recuperação de senha no IP3D.\n\nClique no link abaixo para criar uma nova senha:\n${resetUrl}\n\nEste link expira em 1 hora. Se você não solicitou esta alteração, ignore este e-mail.`,
+    });
+
+    return successResponse;
   } catch (error) {
-    console.error("Forgot password error:", error);
-    return NextResponse.json(
-      { error: "Erro ao recuperar senha" },
-      { status: 500 }
-    );
+    // Erros de validação (Zod) retornam 400 via handleApiError
+    // Outros erros podem retornar 500 mas sem vazar detalhes
+    return handleApiError(error);
   }
 }
+

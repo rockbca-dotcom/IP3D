@@ -32,15 +32,38 @@ const defaultData: SectionData = {
   },
 };
 
-export function CatalogCTA() {
+interface CatalogCTAProps {
+  initialData?: {
+    title?: string | null;
+    subtitle?: string | null;
+    description?: string | null;
+    content?: unknown;
+  };
+}
+
+export function CatalogCTA({ initialData }: CatalogCTAProps = {}) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [email, setEmail] = useState("");
-  const [data, setData] = useState<SectionData>(defaultData);
+
+  const [data, setData] = useState<SectionData>(() => {
+    if (initialData) {
+      return {
+        title: initialData.title || defaultData.title,
+        subtitle: initialData.subtitle || defaultData.subtitle,
+        description: initialData.description || defaultData.description,
+        content: (initialData.content as SectionData["content"]) || defaultData.content,
+      };
+    }
+    return defaultData;
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   useEffect(() => {
+    if (initialData) return;
+
     fetch("/api/home-sections?sectionId=catalog-cta")
       .then((res) => res.json())
       .then((result) => {
@@ -54,7 +77,8 @@ export function CatalogCTA() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [initialData]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

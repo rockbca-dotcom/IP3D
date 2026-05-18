@@ -8,8 +8,9 @@ class MercadoPagoProvider implements PaymentProvider {
       throw new Error("Mercado Pago nao configurado.");
     }
 
+    const { env } = await import("@/lib/env");
     const notificationUrl =
-      process.env.MERCADO_PAGO_WEBHOOK_URL ||
+      env.MERCADO_PAGO_WEBHOOK_URL ||
       `${input.siteUrl.replace(/\/$/, "")}/api/payments/mercadopago/webhook`;
 
     const backUrls = {
@@ -71,6 +72,8 @@ class MercadoPagoProvider implements PaymentProvider {
     return {
       redirectUrl: preference.init_point || preference.sandbox_init_point || "",
       providerOrderId: preference.id ?? null,
+      initPoint: preference.init_point || "",
+      sandboxInitPoint: preference.sandbox_init_point || "",
     };
   }
 }

@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, Suspense } from "react";
+import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { HiArrowRight, HiOutlineViewGrid, HiOutlineViewList, HiOutlineSearch, HiX } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/site/ProductCard";
 
-// Função para limpar tags HTML
 function stripHtml(html: string): string {
   if (!html) return "";
   return html.replace(/<[^>]*>/g, "").trim();
@@ -36,6 +36,7 @@ interface Product {
   priceOriginal?: number | null;
   pricePromo?: number | null;
   pixPrice?: number | null;
+  stockQuantity?: number | null;
 }
 
 interface PageBlock {
@@ -46,232 +47,6 @@ interface PageBlock {
   active: boolean;
 }
 
-const fallbackCategories: Category[] = [
-  { id: "componentes-bambu-lab", name: "Hotends e Bicos", slug: "componentes-bambu-lab" },
-  { id: "componentes-creality", name: "Componentes Eletrônicos", slug: "componentes-creality" },
-  { id: "componentes-universais", name: "Peças Mecânicas", slug: "componentes-universais" },
-  { id: "impressoras-3d", name: "Superfícies de Impressão", slug: "impressoras-3d" },
-  { id: "impressoras-3d-equipamentos", name: "Impressoras 3D", slug: "impressoras-3d-equipamentos" },
-  { id: "personalizados", name: "Personalizados", slug: "personalizados" },
-];
-
-const fallbackProducts: Product[] = [
-  {
-    id: "fallback-hotend-creality-ender-3-v2",
-    name: "Kit Hotend Completo Creality Ender 3 / Pro / V2 24V",
-    slug: "kit-hotend-completo-creality-ender-3-pro-v2-24v-nozzle-cortesia",
-    shortDescription: "Kit hotend completo 24V para Ender 3 / Pro / V2 com nozzle de cortesia, cabo de 1 metro e instalação prática.",
-    image: "https://http2.mlstatic.com/D_Q_NP_607343-MLA110079794477_042026-F.webp",
-    gallery: [
-      "https://http2.mlstatic.com/D_Q_NP_607343-MLA110079794477_042026-F.webp",
-      "https://http2.mlstatic.com/D_Q_NP_656866-MLA110079853361_042026-F.webp",
-      "https://http2.mlstatic.com/D_Q_NP_826407-MLA109232233940_042026-F.webp"
-    ],
-    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
-    priceOriginal: 129.9,
-    pricePromo: 119.99,
-    pixPrice: 119.99,
-  },
-  {
-    id: "fallback-hotend-bambu-a1",
-    name: "Hotend Bambu Lab A1 Mini",
-    slug: "hotend-bambu-lab-a1-mini",
-    shortDescription: "Reposição premium para impressão com precisão e consistência.",
-    image: "/uploads/products/bico-nozzle-aco-endurecido-bambu-lab-a1.jpg",
-    category: { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
-    priceOriginal: 199.9,
-    pricePromo: 179.9,
-    pixPrice: 169.9,
-  },
-  {
-    id: "fallback-silicone-creality-k1-max",
-    name: "Capa De Silicone Blue Makers Creality",
-    slug: "capa-de-silicone-blue-makers-creality-k1-max-antiaderente-300c",
-    shortDescription: "Capa antiaderente em silicone para Creality K1 / K1 Max com resistência térmica de até 300°C.",
-    image: "https://http2.mlstatic.com/D_Q_NP_770204-MLA100095605391_122025-F.webp",
-    gallery: [
-      "https://http2.mlstatic.com/D_Q_NP_770204-MLA100095605391_122025-F.webp",
-      "https://http2.mlstatic.com/D_Q_NP_817420-MLA99610440976_122025-F.webp",
-      "https://http2.mlstatic.com/D_Q_NP_780886-MLA99610470822_122025-F.webp"
-    ],
-    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
-    priceOriginal: 19,
-    pricePromo: 19,
-    pixPrice: 18.75,
-  },
-  {
-    id: "fallback-nozzle-bambu-a1",
-    name: "Nozzle Aço Bambu Lab A1",
-    slug: "nozzle-aco-bambu-lab-a1",
-    shortDescription: "Alta durabilidade para materiais abrasivos.",
-    image: "/uploads/products/bico-nozzle-aco-endurecido-bambu-lab-a1.jpg",
-    category: { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
-    priceOriginal: 89.9,
-    pricePromo: 79.9,
-    pixPrice: 75.9,
-  },
-  {
-    id: "fallback-wiper-bambu-a1",
-    name: "Nozzle Wiper Bambu Lab A1",
-    slug: "nozzle-wiper-bambu-lab-a1",
-    shortDescription: "Limpeza automática do bocal antes da impressão.",
-    image: "/uploads/products/limpador-bico-bambu-lab-a1.jpg",
-    category: { id: "componentes-bambu-lab", name: "Componentes Bambu Lab", slug: "componentes-bambu-lab" },
-    priceOriginal: 59.9,
-    pricePromo: 49.9,
-    pixPrice: 47.9,
-  },
-  {
-    id: "fallback-hotend-creality-cr10",
-    name: "Hotend Creality CR10",
-    slug: "hotend-creality-cr10",
-    shortDescription: "Reposição técnica para impressoras Creality.",
-    image: "/uploads/products/kit-hotend-creality-cr-10.jpg",
-    category: { id: "componentes-creality", name: "Componentes Creality", slug: "componentes-creality" },
-    priceOriginal: 149.9,
-    pricePromo: 129.9,
-    pixPrice: 123.9,
-  },
-  {
-    id: "fallback-termistor-ntc",
-    name: "Termistor NTC 100K",
-    slug: "termistor-ntc-100k-3950",
-    shortDescription: "Sensor de temperatura estável para hotends universais.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
-    priceOriginal: 34.9,
-    pricePromo: 29.9,
-    pixPrice: 28.4,
-  },
-  {
-    id: "fallback-aquecedor-ceramico",
-    name: "Kit Aquecedor Cerâmico 60W",
-    slug: "kit-aquecedor-ceramico-60w",
-    shortDescription: "Aquecimento rápido para montagem e reposição técnica.",
-    image: "/uploads/products/kit-aquecedor-ceramico-60w.jpg",
-    category: { id: "componentes-universais", name: "Componentes Universais", slug: "componentes-universais" },
-    priceOriginal: 69.9,
-    pricePromo: 59.9,
-    pixPrice: 56.9,
-  },
-  {
-    id: "fallback-mesa-pei-h2d",
-    name: "Mesa PEI Texturizada H2D",
-    slug: "mesa-pei-bambu-lab-h2d",
-    shortDescription: "Superfície de aderência com acabamento profissional.",
-    image: "/uploads/products/mesa-pei-texturizada-bambu-lab-h2d.jpg",
-    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
-    priceOriginal: 299.9,
-    pricePromo: 279.9,
-    pixPrice: 265.9,
-  },
-  {
-    id: "fallback-astro-a50-headband",
-    name: "Headband Astro A50 / SteelSeries",
-    slug: "astro-a50-headband-steelseries",
-    shortDescription: "Peça de reposição impressa em 3D com acabamento técnico.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
-    priceOriginal: 119.9,
-    pricePromo: 99.9,
-    pixPrice: 94.9,
-  },
-  {
-    id: "fallback-logitech-g29-paddle",
-    name: "Extensor Paddle Logitech G29",
-    slug: "logitech-g29-extensor-paddle",
-    shortDescription: "Acessório funcional impresso em 3D para sim racing.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
-    priceOriginal: 89.9,
-    pricePromo: 74.9,
-    pixPrice: 71.2,
-  },
-  {
-    id: "fallback-suporte-starlink",
-    name: "Suporte Ethernet Starlink",
-    slug: "suporte-ethernet-starlink",
-    shortDescription: "Solução impressa em 3D para organização e fixação.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "impressoras-3d", name: "Impressões 3D", slug: "impressoras-3d" },
-    priceOriginal: 99.9,
-    pricePromo: 84.9,
-    pixPrice: 80.7,
-  },
-  {
-    id: "fallback-bobblehead-3d",
-    name: "Boneco Bobblehead 3D Personalizado",
-    slug: "boneco-bobblehead-3d",
-    shortDescription: "Projeto personalizado sob medida em impressão 3D.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
-    priceOriginal: 249.9,
-    pricePromo: 219.9,
-    pixPrice: 208.9,
-  },
-  {
-    id: "fallback-protecao-dji-neo",
-    name: "Proteção DJI Neo",
-    slug: "protecao-dji-neo",
-    shortDescription: "Projeto personalizado com prototipagem e ajuste sob medida.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
-    priceOriginal: 139.9,
-    pricePromo: 119.9,
-    pixPrice: 113.9,
-  },
-  {
-    id: "fallback-suporte-lanterna-dji-neo",
-    name: "Suporte de Lanterna DJI Neo",
-    slug: "suporte-lanterna-dji-neo",
-    shortDescription: "Solução personalizada para uso específico e encaixe preciso.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
-    priceOriginal: 129.9,
-    pricePromo: 109.9,
-    pixPrice: 104.4,
-  },
-  {
-    id: "fallback-suporte-xiaomi-vacum",
-    name: "Suporte Xiaomi Vacuum",
-    slug: "suporte-xiaomi-vacum",
-    shortDescription: "Peça personalizada para organização e instalação sob medida.",
-    image: "/images/products/components-placeholder.svg",
-    category: { id: "personalizados", name: "Personalizados", slug: "personalizados" },
-    priceOriginal: 119.9,
-    pricePromo: 99.9,
-    pixPrice: 94.9,
-  },
-];
-
-const fallbackBlocks: PageBlock[] = [
-  {
-    id: "fallback-products-hero",
-    type: "products-hero",
-    order: 1,
-    active: true,
-    content: {
-      badge: "Catálogo",
-      title: "Nossos Produtos",
-      description: "Peças e componentes de alta qualidade para impressoras 3D. Hotends, bicos, termistores e acessórios para Bambu Lab, Creality e outras marcas. Entrega rápida em todo o Brasil."
-    },
-  },
-  {
-    id: "fallback-products-cta",
-    type: "products-cta",
-    order: 2,
-    active: true,
-    content: {
-      title: "Dúvidas sobre compatibilidade?",
-      description: "Nossa equipe técnica está pronta para ajudar você a encontrar as peças certas para sua impressora 3D.",
-      buttonText: "Falar com Suporte Técnico",
-      whatsappLink: "https://wa.me/5511999999999?text=Olá! Preciso de ajuda para escolher peças para minha impressora 3D.",
-      secondaryButtonText: "Ver Catálogo Completo",
-      secondaryLink: "/contato"
-    },
-  },
-];
-
 function ProductsContent() {
   const searchParams = useSearchParams();
   const buscaParam = searchParams.get("busca") || "";
@@ -281,7 +56,9 @@ function ProductsContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(categoriaParam);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortMode, setSortMode] = useState<string>("newest");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   const [searchQuery, setSearchQuery] = useState(buscaParam);
   const [blocks, setBlocks] = useState<PageBlock[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -290,16 +67,12 @@ function ProductsContent() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
 
-  // Debounced search para evitar fetches a cada tecla
   const [debouncedSearch, setDebouncedSearch] = useState(buscaParam);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  // Buscar blocos da página
   const heroBlock = blocks.find(b => b.type === "products-hero")?.content || {};
-  const gridBlock = blocks.find(b => b.type === "products-grid")?.content || {};
   const ctaBlock = blocks.find(b => b.type === "products-cta")?.content || {};
 
-  // Sync busca do URL
   useEffect(() => {
     queueMicrotask(() => {
       setSearchQuery(buscaParam);
@@ -307,7 +80,6 @@ function ProductsContent() {
     });
   }, [buscaParam]);
 
-  // Debounce: atrasa a busca 400ms após parar de digitar
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -315,95 +87,65 @@ function ProductsContent() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset página ao mudar categoria ou busca
-  // Carregar categorias e blocos uma vez
   useEffect(() => {
     Promise.all([
-      fetch("/api/categories").then((r) => (r.ok ? r.json() : Promise.reject(new Error("categories-unavailable")))),
-      fetch("/api/pages/produtos").then((r) => (r.ok ? r.json() : Promise.reject(new Error("page-unavailable")))),
+      fetch("/api/categories").then((r) => (r.ok ? r.json() : { categories: [] })),
+      fetch("/api/pages/produtos").then((r) => (r.ok ? r.json() : { page: { blocks: [] } })),
     ])
       .then(([catData, pageData]) => {
-        const ip3dCategorySlugs = [
-          "componentes-bambu-lab",
-          "componentes-creality",
-          "componentes-universais",
-          "impressoras-3d",
-          "impressoras-3d-equipamentos",
-          "personalizados",
-        ];
-        const ip3dCategories = (catData.categories || []).filter(
-          (cat: Category) => ip3dCategorySlugs.includes(cat.slug)
-        );
-
-        setCategories(ip3dCategories.length > 0 ? ip3dCategories : fallbackCategories);
-        setBlocks(pageData.page?.blocks?.length ? pageData.page.blocks : fallbackBlocks);
+        setCategories(catData.categories || []);
+        setBlocks(pageData.page?.blocks || []);
       })
       .catch(() => {
-        setCategories(fallbackCategories);
-        setBlocks(fallbackBlocks);
+        setCategories([]);
+        setBlocks([]);
       });
   }, []);
 
-  // Carregar produtos com paginação (usa AbortController para evitar race conditions)
   useEffect(() => {
     const abortController = new AbortController();
+    const frame = requestAnimationFrame(() => {
+      setLoading(true);
+      setError(false);
+    });
+
     const params = new URLSearchParams();
     params.set("page", currentPage.toString());
     params.set("limit", "9");
+    params.set("sort", sortMode);
     if (selectedCategory && !debouncedSearch.trim()) params.set("category", selectedCategory);
     if (debouncedSearch.trim()) params.set("search", debouncedSearch.trim());
 
     fetch(`/api/products?${params.toString()}`, { signal: abortController.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("products-unavailable"))))
-      .then((data) => {
+      .then((payload) => {
         if (!abortController.signal.aborted) {
-          setProducts(data.products || []);
-          setTotalPages(data.pagination?.totalPages || 1);
-          setTotalProducts(data.pagination?.total || 0);
+          // A API suporta o wrapper { success: true, data: { items, pagination } }
+          const items = payload.data?.items || payload.products || [];
+          const pagination = payload.data?.pagination || payload.pagination || {};
+          
+          setProducts(items);
+          setTotalPages(pagination.totalPages || 1);
+          setTotalProducts(pagination.total || 0);
           setInitialLoad(false);
+          setLoading(false);
         }
       })
       .catch((err) => {
         if (err.name === "AbortError") return;
-
-        const normalizedSearch = debouncedSearch.trim().toLowerCase();
-        const fallbackFiltered = fallbackProducts.filter((product) => {
-          const matchesCategory = selectedCategory ? product.category?.slug === selectedCategory : true;
-          const matchesSearch = normalizedSearch
-            ? [product.name, product.shortDescription, product.category?.name]
-                .filter(Boolean)
-                .some((value) => value!.toLowerCase().includes(normalizedSearch))
-            : true;
-
-          return matchesCategory && matchesSearch;
-        });
-
-        const pageSize = 9;
-        const total = fallbackFiltered.length;
-        const pages = Math.max(1, Math.ceil(total / pageSize));
-        const safePage = Math.min(currentPage, pages);
-        const start = (safePage - 1) * pageSize;
-        const paginated = fallbackFiltered.slice(start, start + pageSize);
-
-        setProducts(paginated);
-        setTotalPages(pages);
-        setTotalProducts(total);
+        setError(true);
         setInitialLoad(false);
-      })
-      .finally(() => {
-        if (!abortController.signal.aborted) setLoading(false);
+        setLoading(false);
       });
 
     return () => {
+      cancelAnimationFrame(frame);
       if (!initialLoad) abortController.abort();
     };
-  }, [currentPage, selectedCategory, debouncedSearch, initialLoad]);
-
-  const filteredProducts = products;
+  }, [currentPage, selectedCategory, debouncedSearch, sortMode, initialLoad]);
 
   return (
     <>
-      {/* Hero Section */}
       <section className="pt-32 pb-16 bg-white">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
@@ -419,42 +161,45 @@ function ProductsContent() {
               {(heroBlock.title as string) || "Nossos Produtos"}
             </h1>
             <p className="text-gray-600 text-lg leading-relaxed">
-              {(heroBlock.description as string) || "Peças e componentes de alta qualidade para impressoras 3D. Hotends, bicos, termistores e acessórios para Bambu Lab, Creality e outras marcas. Entrega rápida em todo o Brasil."}
+              {(heroBlock.description as string) || "Peças e componentes de alta qualidade para impressoras 3D. Acesso exclusivo e confiável às melhores marcas do mercado."}
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Categories Filter */}
       <section className="py-8 bg-white border-y border-gray-100">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            {/* Search + Category Pills */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              {/* Search Input */}
               <div className="relative w-full sm:w-64">
                 <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1); // reset page on search
+                  }}
                   placeholder="Buscar produtos..."
                   className="w-full pl-10 pr-8 py-2 text-sm border border-gray-200 focus:border-black outline-none transition-colors"
                 />
                 {searchQuery && (
                   <button
-                    onClick={() => setSearchQuery("")}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCurrentPage(1);
+                    }}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    aria-label="Limpar busca"
                   >
                     <HiX className="w-4 h-4" />
                   </button>
                 )}
               </div>
 
-              {/* Category Pills */}
               <div className="flex flex-wrap items-center gap-3">
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => { setSelectedCategory(null); setCurrentPage(1); }}
                   className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
                     selectedCategory === null
                       ? "bg-black text-white"
@@ -466,7 +211,7 @@ function ProductsContent() {
                 {categories.map((category) => (
                   <button
                     key={category.id}
-                    onClick={() => setSelectedCategory(category.slug)}
+                    onClick={() => { setSelectedCategory(category.slug); setCurrentPage(1); }}
                     className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
                       selectedCategory === category.slug
                         ? "bg-black text-white"
@@ -479,13 +224,19 @@ function ProductsContent() {
               </div>
             </div>
 
-            {/* View Toggle & Count */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">
-                {loading
-                  ? "Carregando produtos..."
-                  : `${filteredProducts.length} produto${filteredProducts.length !== 1 ? "s" : ""}`}
-              </span>
+            <div className="flex flex-wrap items-center gap-4">
+              <select
+                value={sortMode}
+                onChange={(e) => { setSortMode(e.target.value); setCurrentPage(1); }}
+                className="px-3 py-2 text-sm border border-gray-200 outline-none hover:border-black transition-colors"
+                aria-label="Ordenar produtos"
+              >
+                <option value="newest">Mais recentes</option>
+                <option value="price_asc">Menor preço</option>
+                <option value="price_desc">Maior preço</option>
+                <option value="name_asc">Nome (A-Z)</option>
+              </select>
+
               <div className="flex items-center border border-gray-200">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -511,26 +262,45 @@ function ProductsContent() {
         </div>
       </section>
 
-      {/* Products Grid/List */}
-      <section ref={ref} className="py-16 lg:py-24 bg-white">
+      <section ref={ref} className="py-16 lg:py-24 bg-white min-h-[50vh]">
         <div className="container mx-auto px-6 lg:px-12">
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          
+          {error && !loading && (
+            <div className="text-center py-20 bg-red-50 text-red-600 rounded-2xl border border-red-100" data-testid="error-state">
+              <h2 className="text-2xl font-bold mb-4">Ops! Ocorreu um problema.</h2>
+              <p className="mb-6">Não foi possível carregar o catálogo de produtos no momento.</p>
+              <Button onClick={() => window.location.reload()} variant="outline">
+                Tentar Novamente
+              </Button>
+            </div>
+          )}
+
+          {!error && !loading && products.length === 0 && (
+            <div className="text-center py-20 bg-gray-50 text-gray-500 rounded-2xl border border-gray-100" data-testid="empty-state">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-900">Nenhum produto encontrado.</h2>
+              <p className="mb-6">Tente ajustar seus filtros ou remover o termo de busca.</p>
+              <Button onClick={() => { setSearchQuery(""); setSelectedCategory(null); setCurrentPage(1); }} variant="outline" className="bg-white">
+                Limpar Filtros
+              </Button>
+            </div>
+          )}
+
+          {loading && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" data-testid="loading-state">
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={`skeleton-${i}`} className="animate-pulse rounded-lg border border-gray-200 bg-white p-4">
                   <div className="h-60 w-full bg-gray-200 rounded" />
                   <div className="mt-4 h-4 w-24 bg-gray-200 rounded" />
                   <div className="mt-3 h-5 w-full bg-gray-200 rounded" />
                   <div className="mt-2 h-5 w-2/3 bg-gray-200 rounded" />
-                  <div className="mt-4 h-4 w-full bg-gray-200 rounded" />
-                  <div className="mt-2 h-4 w-3/4 bg-gray-200 rounded" />
-                  <div className="mt-6 h-10 w-full bg-gray-200 rounded" />
                 </div>
               ))}
             </div>
-          ) : viewMode === "grid" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product, index) => (
+          )}
+
+          {!error && !loading && products.length > 0 && viewMode === "grid" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" data-testid="product-grid">
+              {products.map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -541,9 +311,11 @@ function ProductsContent() {
                 </motion.div>
               ))}
             </div>
-          ) : (
-            <div className="space-y-6">
-              {filteredProducts.map((product, index) => (
+          )}
+
+          {!error && !loading && products.length > 0 && viewMode === "list" && (
+            <div className="space-y-6" data-testid="product-list">
+              {products.map((product, index) => (
                 <motion.div
                   key={product.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -554,19 +326,16 @@ function ProductsContent() {
                     href={`/produtos/${product.slug}`}
                     className="group flex flex-col md:flex-row gap-6 bg-white p-6 border border-gray-200 hover:border-gray-300 transition-colors"
                   >
-                    {/* Image */}
                     <div className="relative w-full md:w-64 aspect-square md:aspect-auto md:h-48 bg-white overflow-hidden flex-shrink-0">
-                      <div
-                        className="absolute inset-0 bg-gradient-to-br from-gray-200 to-gray-300 transition-transform duration-700 group-hover:scale-105"
-                        style={{
-                          backgroundImage: `url(${product.image})`,
-                          backgroundSize: "cover",
-                          backgroundPosition: "center",
-                        }}
+                      <Image
+                        src={product.image || "/images/products/components-placeholder.svg"}
+                        alt={product.name}
+                        fill
+                        className="object-contain p-4 transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 100vw, 256px"
+                        loading="lazy"
                       />
                     </div>
-
-                    {/* Content */}
                     <div className="flex flex-col justify-center flex-1">
                       <span className="text-xs uppercase tracking-wider text-gray-500 mb-2">
                         {product.categories && product.categories.length > 0 
@@ -595,9 +364,8 @@ function ProductsContent() {
             </div>
           )}
 
-          {/* Paginação */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-12">
+          {!error && !loading && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-12" data-testid="pagination-controls">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
@@ -605,7 +373,6 @@ function ProductsContent() {
               >
                 Anterior
               </button>
-              
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                 <button
                   key={page}
@@ -615,11 +382,12 @@ function ProductsContent() {
                       ? "bg-black text-white"
                       : "border border-gray-200 hover:border-black"
                   }`}
+                  aria-label={`Página ${page}`}
+                  aria-current={currentPage === page ? "page" : undefined}
                 >
                   {page}
                 </button>
               ))}
-              
               <button
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
@@ -629,16 +397,16 @@ function ProductsContent() {
               </button>
             </div>
           )}
+          
+          {!error && !loading && (
+            <p className="text-center text-sm text-gray-500 mt-8">
+              Mostrando {products.length} de {totalProducts} produtos
+            </p>
+          )}
 
-          <p className="text-center text-sm text-gray-500 mt-4">
-            {loading
-              ? "Carregando produtos do catálogo..."
-              : `Mostrando ${filteredProducts.length} de ${totalProducts} produtos`}
-          </p>
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24 bg-black text-white">
         <div className="container mx-auto px-6 lg:px-12 text-center">
           <motion.div
@@ -651,31 +419,13 @@ function ProductsContent() {
               {(ctaBlock.title as string) || "Dúvidas sobre compatibilidade?"}
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto mb-8">
-              {(ctaBlock.description as string) || "Nossa equipe técnica está pronta para ajudar você a encontrar as peças certas para sua impressora 3D."}
+              {(ctaBlock.description as string) || "Nossa equipe técnica está pronta para ajudar."}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                size="lg"
-                className="bg-white text-black hover:bg-gray-100 transition-all duration-300"
-                asChild
-              >
-                <a
-                  href={(ctaBlock.whatsappLink as string) || "https://wa.me/5511999999999?text=Olá! Preciso de ajuda para escolher peças para minha impressora 3D."}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {(ctaBlock.buttonText as string) || "Falar com Suporte Técnico"}
+              <Button size="lg" className="bg-white text-black hover:bg-gray-100" asChild>
+                <a href={(ctaBlock.whatsappLink as string) || "#"} target="_blank" rel="noopener noreferrer">
+                  {(ctaBlock.buttonText as string) || "Falar com Suporte"}
                 </a>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white/30 text-white bg-transparent hover:bg-white/10 transition-all duration-300"
-                asChild
-              >
-                <Link href={(ctaBlock.secondaryLink as string) || "/contato"}>
-                  {(ctaBlock.secondaryButtonText as string) || "Ver Catálogo Completo"}
-                </Link>
               </Button>
             </div>
           </motion.div>
@@ -693,7 +443,6 @@ export default function ProductsPage() {
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-32 mb-4"></div>
             <div className="h-16 bg-gray-200 rounded w-96 mb-6"></div>
-            <div className="h-6 bg-gray-200 rounded w-full max-w-2xl"></div>
           </div>
         </div>
       </div>

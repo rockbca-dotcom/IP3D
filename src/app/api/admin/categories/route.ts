@@ -1,6 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { apiSuccess, handleApiError, badRequest, conflict } from "@/lib/api-utils";
+import { z } from "zod";
+
+const categoryCreateSchema = z.object({
+  name: z.string({ required_error: "Nome é obrigatório" }).min(1, "Nome é obrigatório"),
+  slug: z.string({ required_error: "Slug é obrigatório" })
+    .min(1, "Slug é obrigatório")
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug inválido. Use apenas letras minúsculas, números e hifens"),
+  description: z.string().nullable().optional(),
+  image: z.string().nullable().optional(),
+  color: z.string().nullable().optional(),
+  icon: z.string().nullable().optional(),
+  order: z.number().int().default(0),
+  active: z.boolean().default(true),
+  parentId: z.string().nullable().optional(),
+});
 
 export async function GET() {
   const deny = await requireAdmin();
@@ -20,10 +36,9 @@ export async function GET() {
       },
       orderBy: [{ order: "asc" }, { name: "asc" }],
     });
-    return NextResponse.json({ categories });
+    return apiSuccess({ categories });
   } catch (error) {
-    console.error("Error fetching categories:", error);
-    return NextResponse.json({ error: "Erro ao buscar categorias" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -32,23 +47,43 @@ export async function POST(request: NextRequest) {
   if (deny) return deny;
 
   try {
-    const data = await request.json();
+    const body = await request.json();
+    const validatedData = categoryCreateSchema.parse(body);
+
+    // 1. Slug único
+    const existing = await prisma.category.findUnique({
+      where: { slug: validatedData.slug },
+    });
+    if (existing) {
+      return conflict("Já existe uma categoria com este slug.");
+    }
+
+    // 2. ParentId existe
+    if (validatedData.parentId) {
+      const parent = await prisma.category.findUnique({
+        where: { id: validatedData.parentId },
+      });
+      if (!parent) {
+        return badRequest("Categoria pai não encontrada.");
+      }
+    }
+
     const category = await prisma.category.create({
       data: {
-        name: data.name,
-        slug: data.slug,
-        description: data.description || null,
-        image: data.image || null,
-        color: data.color || null,
-        icon: data.icon || null,
-        order: data.order !== undefined ? parseInt(String(data.order)) : 0,
-        active: data.active ?? true,
-        parentId: data.parentId || null,
+        name: validatedData.name,
+        slug: validatedData.slug,
+        description: validatedData.description || null,
+        image: validatedData.image || null,
+        color: validatedData.color || null,
+        icon: validatedData.icon || null,
+        order: validatedData.order,
+        active: validatedData.active,
+        parentId: validatedData.parentId || null,
       },
     });
-    return NextResponse.json({ success: true, category });
+
+    return apiSuccess({ success: true, category }, 201);
   } catch (error) {
-    console.error("Error creating category:", error);
-    return NextResponse.json({ error: "Erro ao criar categoria" }, { status: 500 });
+    return handleApiError(error);
   }
 }

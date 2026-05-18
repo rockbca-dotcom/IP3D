@@ -27,10 +27,6 @@ const defaultNavLinks = [
   { href: "/contato", label: "Contato" },
 ];
 
-// Whitelist definitiva de slugs válidos para o dropdown de categorias.
-// Categorias fora desta lista são ignoradas mesmo que estejam ativas no banco —
-// garante que dados legados do template antigo nunca apareçam no menu.
-// Sincronizado com categorySections em HomeShowcase.tsx.
 const VALID_CATEGORY_SLUGS = new Set([
   "componentes-bambu-lab",
   "componentes-creality",
@@ -40,8 +36,6 @@ const VALID_CATEGORY_SLUGS = new Set([
   "personalizados",
 ]);
 
-// Fallback exibido enquanto /api/categories carrega ou quando nenhuma categoria
-// válida existe ainda no banco. Slugs e nomes espelham VALID_CATEGORY_SLUGS.
 const defaultCategories: CategoryNavItem[] = [
   { id: "cat-bambu",       name: "Hotends e Bicos",           slug: "componentes-bambu-lab",  children: [] },
   { id: "cat-creality",    name: "Componentes Eletrônicos",   slug: "componentes-creality",   children: [] },
@@ -90,7 +84,6 @@ export function Header() {
   const [cartCount, setCartCount] = useState(0);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
-  const showSolidHeader = isScrolled || !isHomePage;
 
   const navLinks = config?.navLinks || defaultNavLinks;
   const logoUrl = config?.logoUrl || "/images/Captura_de_tela_2026-02-28_210120-removebg-preview.webp";
@@ -99,10 +92,10 @@ export function Header() {
   const whatsappLink = digitsPhone
     ? `https://wa.me/${digitsPhone.length >= 12 ? digitsPhone : `55${digitsPhone}`}`
     : "#";
-  const floatingBrandBar = isHomePage && isScrolled;
 
   useEffect(() => {
-    setHasMounted(true);
+    const frame = requestAnimationFrame(() => setHasMounted(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -136,9 +129,6 @@ export function Header() {
             })),
           }));
 
-        // Aplica whitelist: apenas slugs em VALID_CATEGORY_SLUGS chegam ao dropdown.
-        // Categorias legadas do template antigo são descartadas aqui, mesmo que
-        // ainda estejam marcadas como ativas no banco.
         const filtered = mapped.filter(
           (cat: CategoryNavItem) => VALID_CATEGORY_SLUGS.has(cat.slug)
         );
@@ -146,8 +136,6 @@ export function Header() {
         if (filtered.length > 0) {
           setCategories(filtered);
         }
-        // Se filtered.length === 0 (banco vazio ou sem slugs válidos),
-        // defaultCategories permanece — o fallback já é correto.
       })
       .catch(() => {});
   }, []);
@@ -185,39 +173,40 @@ export function Header() {
 
   return (
     <>
-    <header className="relative z-50 text-sm">
-      {/* Topbar */}
-      <motion.div
-        initial={false}
-        animate={{ height: 32, opacity: 1, y: 0 }}
-        transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-        className="overflow-hidden bg-[#0B64D3] text-white"
-      >
-        <div className="flex h-full items-center justify-center text-xs font-semibold uppercase tracking-[0.3em]">
-          Entregas para todo o Brasil
-        </div>
-      </motion.div>
-    </header>
+      <header className="relative z-50 text-sm">
+        {/* Topbar */}
+        <motion.div
+          initial={false}
+          animate={{ height: 32, opacity: 1, y: 0 }}
+          transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          className="overflow-hidden bg-[#0B64D3] text-white"
+        >
+          <div className="flex h-full items-center justify-center text-xs font-semibold uppercase tracking-[0.3em]">
+            Entregas para todo o Brasil
+          </div>
+        </motion.div>
+      </header>
 
-    {/* Brand Row - sticky independent do header */}
-    <div className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white text-gray-900 text-sm">
+      {/* Brand Row - sticky independent do header */}
+      <div className="sticky top-0 z-50 w-full border-b border-gray-100 bg-white text-gray-900 text-sm">
         <div className="container mx-auto flex flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <Image src={logoUrl} alt="IP3D" width={170} height={50} className="object-contain" priority />
+          <Link href="/" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded-md p-1">
+            <Image src={logoUrl} alt="IP3D - Tecnologia em Impressão 3D" width={170} height={50} className="object-contain" priority />
             <div className="hidden border-l border-gray-200 pl-4 text-xs uppercase tracking-[0.3em] text-gray-500 md:block">
               Tecnologia em Impressão 3D
             </div>
           </Link>
 
-          <form action="/produtos" method="get" className="flex w-full items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-700 md:max-w-xl">
-            <HiOutlineSearch className="h-4 w-4 text-gray-400" />
+          <form action="/produtos" method="get" className="flex w-full items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm text-gray-700 md:max-w-xl focus-within:ring-2 focus-within:ring-black">
+            <HiOutlineSearch className="h-4 w-4 text-gray-400" aria-hidden="true" />
             <input
               type="text"
               name="busca"
+              aria-label="Buscar produtos"
               placeholder="Busque por impressoras, peças ou soluções IP3D"
-              className="w-full bg-transparent outline-none placeholder:text-gray-400"
+              className="w-full bg-transparent outline-none placeholder:text-gray-400 focus:outline-none"
             />
-            <button type="submit" className="rounded-full bg-black px-4 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-black/90">
+            <button type="submit" className="rounded-full bg-black px-4 py-1 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-black/90 focus-visible:ring-2 focus-visible:ring-[#0B64D3]">
               Buscar
             </button>
           </form>
@@ -227,16 +216,17 @@ export function Header() {
               href={whatsappLink}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 transition-colors hover:border-[#0B64D3] hover:text-[#0B64D3]"
+              aria-label={`Central de Atendimento pelo WhatsApp ${contactPhone} (abre em nova guia)`}
+              className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700 transition-colors hover:border-[#0B64D3] hover:text-[#0B64D3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B64D3]"
             >
-              <FaWhatsapp className="h-5 w-5 text-[#25D366]" />
+              <FaWhatsapp className="h-5 w-5 text-[#25D366]" aria-hidden="true" />
               <div className="leading-tight text-left">
                 <span className="block text-[11px] uppercase tracking-wide text-gray-500">Central de Atendimento</span>
                 <span className="block text-sm font-semibold text-[#0B64D3]">{contactPhone}</span>
               </div>
             </a>
-            <Link href="/carrinho" className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-800 transition-colors hover:border-[#0B64D3] hover:text-[#0B64D3]">
-              <HiOutlineShoppingCart className="h-5 w-5" />
+            <Link href="/carrinho" aria-label={`Carrinho de compras com ${cartCount} itens`} className="relative flex h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-800 transition-colors hover:border-[#0B64D3] hover:text-[#0B64D3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B64D3]">
+              <HiOutlineShoppingCart className="h-5 w-5" aria-hidden="true" />
               {cartCount > 0 && (
                 <span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-[#0B64D3] px-1 text-[10px] font-semibold text-white">
                   {cartCount > 99 ? "99+" : cartCount}
@@ -251,42 +241,44 @@ export function Header() {
       {/* Main Nav */}
       <div className="relative z-40 border-b border-gray-200 bg-white">
         <div className="container mx-auto flex items-center justify-between px-6 py-3 text-gray-900 lg:py-4">
-          <div className="hidden lg:flex items-center gap-6">
+          <nav aria-label="Navegação Principal" className="hidden lg:flex items-center gap-6">
             <button
               type="button"
-              className="flex items-center gap-2 rounded-md bg-black px-4 py-2 text-xs font-semibold tracking-wide text-white shadow-sm transition-colors hover:bg-black/90"
+              aria-haspopup="true"
+              aria-expanded={megaOpen !== null}
+              className="flex items-center gap-2 rounded-md bg-black px-4 py-2 text-xs font-semibold tracking-wide text-white shadow-sm transition-colors hover:bg-black/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
               onMouseEnter={() => {
                 setMegaOpen("categorias");
                 setIsHovering(true);
               }}
               onMouseLeave={() => setIsHovering(false)}
             >
-              Tipo de Peça <HiOutlineChevronDown className={`h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : "rotate-0"}`} />
+              Tipo de Peça <HiOutlineChevronDown className={`h-4 w-4 transition-transform ${megaOpen ? "rotate-180" : "rotate-0"}`} aria-hidden="true" />
             </button>
             <div className="flex items-center gap-8 text-sm font-semibold text-gray-900">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} className="transition-colors hover:text-gray-600">
+                <Link key={link.href} href={link.href} className="transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:underline">
                   {link.label}
                 </Link>
               ))}
             </div>
-          </div>
+          </nav>
 
           {/* Mobile actions */}
           <div className="flex items-center gap-3 lg:hidden">
             {hasMounted ? (
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
-                  <button className="flex flex-col gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-900">
-                    <span className="block h-0.5 w-6 bg-current" />
-                    <span className="block h-0.5 w-6 bg-current" />
-                    <span className="block h-0.5 w-4 bg-current" />
+                  <button aria-label="Abrir menu de navegação" className="flex flex-col gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">
+                    <span className="block h-0.5 w-6 bg-current" aria-hidden="true" />
+                    <span className="block h-0.5 w-6 bg-current" aria-hidden="true" />
+                    <span className="block h-0.5 w-4 bg-current" aria-hidden="true" />
                   </button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-full max-w-md bg-white p-8 text-gray-900">
                   <div className="flex flex-col gap-6">
-                    <Link href="/" onClick={() => setIsOpen(false)}>
-                      <Image src={logoUrl} alt="Logo" width={160} height={40} />
+                    <Link href="/" onClick={() => setIsOpen(false)} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded p-1 inline-block">
+                      <Image src={logoUrl} alt="Logo IP3D" width={160} height={40} />
                     </Link>
                     <div className="space-y-4">
                       <p className="text-xs uppercase tracking-widest text-gray-400">Tipo de Peça</p>
@@ -297,7 +289,7 @@ export function Header() {
                             <div className="mt-2 flex flex-wrap gap-2 text-sm text-gray-500">
                               {cat.children.map((child) => (
                                 <SheetClose asChild key={child.id}>
-                                  <Link href={`/categorias/${child.slug}`} className="rounded-full bg-gray-100 px-3 py-1">
+                                  <Link href={`/categorias/${child.slug}`} className="rounded-full bg-gray-100 px-3 py-1 hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">
                                     {child.name}
                                   </Link>
                                 </SheetClose>
@@ -307,10 +299,10 @@ export function Header() {
                         ))}
                       </div>
                     </div>
-                    <nav className="space-y-2">
+                    <nav aria-label="Menu Mobile" className="space-y-2">
                       {navLinks.map((link) => (
                         <SheetClose asChild key={link.href}>
-                          <Link href={link.href} className="block rounded-md border border-gray-100 px-4 py-2 text-gray-900">
+                          <Link href={link.href} className="block rounded-md border border-gray-100 px-4 py-2 text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black">
                             {link.label}
                           </Link>
                         </SheetClose>
@@ -322,12 +314,12 @@ export function Header() {
             ) : (
               <button
                 type="button"
-                aria-label="Abrir menu"
-                className="flex flex-col gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-900"
+                aria-label="Abrir menu de navegação"
+                className="flex flex-col gap-1 rounded-md border border-gray-300 px-2 py-1 text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
               >
-                <span className="block h-0.5 w-6 bg-current" />
-                <span className="block h-0.5 w-6 bg-current" />
-                <span className="block h-0.5 w-4 bg-current" />
+                <span className="block h-0.5 w-6 bg-current" aria-hidden="true" />
+                <span className="block h-0.5 w-6 bg-current" aria-hidden="true" />
+                <span className="block h-0.5 w-4 bg-current" aria-hidden="true" />
               </button>
             )}
           </div>

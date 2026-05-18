@@ -69,12 +69,16 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
       <button
         type="button"
         aria-label={`Favoritar ${product.name}`}
-        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#d9e6fb] bg-white/95 text-[#0B64D3] shadow-sm transition-colors hover:bg-[#edf4ff]"
+        className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#d9e6fb] bg-white/95 text-[#0B64D3] shadow-sm transition-colors hover:bg-[#edf4ff] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B64D3]"
       >
-        <Heart className="h-4 w-4" />
+        <Heart className="h-4 w-4" aria-hidden="true" />
       </button>
 
-      <Link href={`/produtos/${product.slug}`} className="relative block w-full flex-shrink-0 overflow-hidden bg-white">
+      <Link 
+        href={`/produtos/${product.slug}`} 
+        className="relative block w-full flex-shrink-0 overflow-hidden bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B64D3] rounded-t-[22px]"
+        aria-label={`Ver detalhes de ${product.name}`}
+      >
         <div className="absolute left-3 top-3 z-10 rounded-full bg-[#0B64D3] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white shadow-sm">
           {displayDiscountPercent}% OFF
         </div>
@@ -86,43 +90,29 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
         )}
 
         <div className="relative h-[250px] w-full sm:h-[270px]">
-          {useExternalMainImage ? (
-            <img
-              src={productImage}
-              alt={product.name}
-              className={`h-full w-full object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-            />
-          ) : (
-            <Image
-              src={productImage}
-              alt={product.name}
-              fill
-              className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-            />
-          )}
+          <Image
+            src={productImage}
+            alt={`Imagem de ${product.name}`}
+            fill
+            className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            loading="lazy"
+          />
           {hoverImage && (
-            useExternalHoverImage ? (
-              <img
-                src={hoverImage}
-                alt={`${product.name} - imagem secundária`}
-                className="absolute inset-0 h-full w-full object-contain p-5 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
-              />
-            ) : (
-              <Image
-                src={hoverImage}
-                alt={`${product.name} - imagem secundária`}
-                fill
-                className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-              />
-            )
+            <Image
+              src={hoverImage}
+              alt={`Imagem secundária de ${product.name}`}
+              fill
+              className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-105"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+              loading="lazy"
+            />
           )}
         </div>
       </Link>
 
       <div className="flex flex-1 flex-col px-4 pb-4 pt-5 sm:px-5 sm:pb-5">
-        <Link href={`/produtos/${product.slug}`}>
+        <Link href={`/produtos/${product.slug}`} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B64D3] rounded p-0.5">
           <h3 className="min-h-[3.25rem] text-[15px] font-semibold leading-6 text-[#10213f] transition-colors hover:text-[#0B64D3] line-clamp-2">
             {product.name}
           </h3>
@@ -142,7 +132,7 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
           {salePrice ? (
             <>
               <div className="mt-1 flex items-center justify-center gap-2">
-                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm" aria-hidden="true">
                   PIX
                 </span>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
@@ -172,9 +162,9 @@ export default function ProductCard({ product, className = "" }: ProductCardProp
 
         <Link
           href={`/produtos/${product.slug}`}
-          className="mt-auto flex h-12 w-full translate-y-2 items-center justify-center gap-2 rounded-xl bg-[#0B64D3] px-4 text-sm font-semibold uppercase tracking-[0.14em] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]"
+          className="mt-auto flex h-12 w-full translate-y-2 items-center justify-center gap-2 rounded-xl bg-[#0B64D3] px-4 text-sm font-semibold uppercase tracking-[0.14em] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D] focus-visible:translate-y-0 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0B64D3]"
         >
-          <ShoppingCart className="h-4 w-4" />
+          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           {canBuy ? "Comprar" : "Ver produto"}
         </Link>
       </div>

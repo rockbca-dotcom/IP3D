@@ -39,7 +39,20 @@ export function readCart(): CartItem[] {
     if (!stored) return [];
     const parsed = JSON.parse(stored);
     if (!Array.isArray(parsed)) return [];
-    return parsed as CartItem[];
+
+    return parsed.filter((item): item is CartItem => {
+      return (
+        item &&
+        typeof item === "object" &&
+        typeof item.productId === "string" &&
+        item.productId.trim().length > 0 &&
+        typeof item.name === "string" &&
+        typeof item.slug === "string" &&
+        typeof item.quantity === "number" &&
+        Number.isFinite(item.quantity) &&
+        item.quantity >= 1
+      );
+    }) as CartItem[];
   } catch (error) {
     console.error("Failed to read cart:", error);
     return [];
@@ -59,22 +72,37 @@ export function clearCart() {
 export function addToCart(input: AddToCartInput) {
   const cart = readCart();
   const quantity = normalizeQuantity(input.quantity, 1);
+  const maxQuantity = input.maxQuantity !== undefined ? input.maxQuantity : null;
+
+  // Bloqueia produto esgotado
+  if (maxQuantity !== null && maxQuantity <= 0) {
+    throw new Error("Produto esgotado no momento.");
+  }
+
   const existingIndex = cart.findIndex((item) => item.productId === input.productId);
-  const maxQuantity = input.maxQuantity ?? null;
 
   if (existingIndex >= 0) {
     const current = cart[existingIndex];
-    const nextQuantity = maxQuantity
-      ? Math.min(current.quantity + quantity, maxQuantity)
-      : current.quantity + quantity;
+    const nextQuantity = current.quantity + quantity;
+
+    // Bloqueia quantidade acumulada maior que estoque
+    if (maxQuantity !== null && nextQuantity > maxQuantity) {
+      throw new Error(`Quantidade solicitada indisponível. Estoque máximo: ${maxQuantity}`);
+    }
+
     cart[existingIndex] = {
       ...current,
       quantity: nextQuantity,
-      price: input.price ?? current.price,
-      image: input.image ?? current.image,
+      price: input.price !== undefined ? input.price : current.price,
+      image: input.image !== undefined ? input.image : current.image,
       maxQuantity,
     };
   } else {
+    // Bloqueia quantidade maior que estoque
+    if (maxQuantity !== null && quantity > maxQuantity) {
+      throw new Error(`Quantidade solicitada indisponível. Estoque máximo: ${maxQuantity}`);
+    }
+
     cart.push({
       productId: input.productId,
       name: input.name,
@@ -97,13 +125,19 @@ export function removeFromCart(productId: string) {
 }
 
 export function setCartItemQuantity(productId: string, quantity: number) {
-  const nextQuantity = normalizeQuantity(quantity, 1);
+  if (!Number.isFinite(quantity) || quantity < 1) {
+    throw new Error("Quantidade deve ser maior ou igual a 1.");
+  }
+  const nextQuantity = Math.floor(quantity);
   const items = readCart();
   const target = items.find((item) => item.productId === productId);
   if (!target) return items;
 
   const limit = target.maxQuantity ?? null;
-  target.quantity = limit ? Math.min(nextQuantity, limit) : nextQuantity;
+  if (limit !== null && nextQuantity > limit) {
+    throw new Error(`Quantidade solicitada indisponível. Estoque máximo: ${limit}`);
+  }
+  target.quantity = nextQuantity;
   writeCart(items);
   return items;
 }

@@ -9,6 +9,10 @@
 const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const { parseSeedArgs, validateEnvironment } = require("./seed-utils");
+
+const options = parseSeedArgs(process.argv.slice(2));
+validateEnvironment("seed-all.js", options);
 
 // ── Categorias ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -387,6 +391,14 @@ const ADMIN = {
 async function main() {
   console.log("🔧 Iniciando seed completo...\n");
 
+  if (options.dryRun) {
+    console.log("[SIMULAÇÃO] Modo dry-run ativo. Nenhuma operação executada.");
+    console.log(`   Categorias a criar/atualizar: ${CATEGORIES.length}`);
+    console.log(`   Produtos a criar/atualizar: ${PRODUCTS.length}`);
+    console.log(`   Admin a garantir: ${ADMIN.email}`);
+    return;
+  }
+
   // 1. Categorias
   console.log("📁 Criando categorias...");
   const categoryMap = {};
@@ -457,7 +469,8 @@ async function main() {
   console.log("\n✅ Seed completo finalizado!");
   console.log(`   ${CATEGORIES.length} categorias`);
   console.log(`   ${PRODUCTS.length} produtos`);
-  console.log(`   Login: ${ADMIN.email} / ${ADMIN.password}`);
+  const maskedPassword = process.env.NODE_ENV === "production" ? "[MASCARADO EM PRODUÇÃO]" : ADMIN.password;
+  console.log(`   Login: ${ADMIN.email} / ${maskedPassword}`);
 
   await prisma.$disconnect();
 }

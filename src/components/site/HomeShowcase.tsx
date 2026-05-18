@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { HiArrowRight, HiPlay, HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { addToCart } from "@/lib/cart";
+import { WhyChooseUs, MaintenancePreview, CatalogCTA } from "@/components/sections";
+
 
 function isExternalUrl(value?: string | null) {
   if (!value) return false;
@@ -117,6 +119,18 @@ type ApiBanner = {
   active?: boolean;
 };
 
+type ApiHomeSection = {
+  id: string;
+  sectionId: string;
+  title?: string | null;
+  subtitle?: string | null;
+  description?: string | null;
+  content?: unknown;
+  active: boolean;
+  order: number;
+};
+
+
 const categorySections = [
   {
     slug: "componentes-bambu-lab",
@@ -224,6 +238,8 @@ export interface HomeShowcaseProps {
   /** Todos os produtos activos (componentes + personalizados), sem filtro de imagem.
    *  Alimenta a seção "Todos os nossos produtos" com carrossel automático infinito. */
   allProducts?: ProductCard[];
+  banners?: ApiBanner[];
+  homeSections?: ApiHomeSection[];
 }
 
 function formatCurrency(value?: number | null) {
@@ -244,14 +260,45 @@ export function HomeShowcase({
   promoProducts,
   categoryProducts,
   allProducts = [],
+  banners,
+  homeSections,
 }: HomeShowcaseProps) {
   const currentSlide = 0;
-  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(DEFAULT_SLIDES);
+
+  const initialSlides = useMemo(() => {
+    if (banners && banners.length > 0) {
+      return banners.map((b) => ({
+        id: b.id,
+        image: b.image || "/images/banners/banner-hero1.png",
+        alt: b.title,
+        label: b.badge || "DESTAQUE",
+        title: b.title,
+        subtitle: b.subtitle || "",
+        description: b.description || "",
+        button1: { text: b.button1Text || "Ver Mais", link: b.button1Link || "#" },
+        button2: { text: b.button2Text || "", link: b.button2Link || "" },
+        crosshairPos: b.crosshairPos || { top: "50%", left: "50%" },
+        tech: b.techLabels || [{ label: "STATUS", value: "ONLINE" }],
+      }));
+    }
+    return DEFAULT_SLIDES;
+  }, [banners]);
+
+  const [heroSlides, setHeroSlides] = useState<HeroSlide[]>(initialSlides);
+  const [prevBanners, setPrevBanners] = useState(banners);
+  if (banners !== prevBanners) {
+    setPrevBanners(banners);
+    setHeroSlides(initialSlides);
+  }
   const [cartMessage, setCartMessage] = useState<string | null>(null);
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
   const sectionCarouselRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
+    if (banners && banners.length > 0) {
+      return;
+    }
+
     const fetchBanners = async () => {
       try {
         const res = await fetch("/api/banners");
@@ -279,7 +326,8 @@ export function HomeShowcase({
       }
     };
     fetchBanners();
-  }, []);
+  }, [banners, initialSlides]);
+
 
   const MARQUEE_CARD_W = 296;
   const MARQUEE_GAP = 20;
@@ -507,18 +555,24 @@ export function HomeShowcase({
 
   const handleAddToCart = (product: ProductCard) => {
     const basePrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
-    addToCart({
-      productId: product.id,
-      name: product.name,
-      slug: product.slug,
-      image: product.image,
-      price: basePrice,
-      quantity: 1,
-      maxQuantity: product.stockQuantity ?? null,
-    });
+    try {
+      addToCart({
+        productId: product.id,
+        name: product.name,
+        slug: product.slug,
+        image: product.image,
+        price: basePrice,
+        quantity: 1,
+        maxQuantity: product.stockQuantity ?? null,
+      });
 
-    setCartMessage(`${product.name} adicionado ao carrinho.`);
-    setTimeout(() => setCartMessage(null), 3000);
+      setCartMessage(`${product.name} adicionado ao carrinho.`);
+      setTimeout(() => setCartMessage(null), 3000);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Erro ao adicionar ao carrinho.";
+      setCartMessage(msg);
+      setTimeout(() => setCartMessage(null), 3000);
+    }
   };
 
   const scrollSection = (slug: string, direction: "left" | "right") => {
@@ -713,37 +767,23 @@ export function HomeShowcase({
                     </button>
 
                       <Link href={`/produtos/${product.slug}`} className="relative block h-[250px] w-full bg-white">
-                      {isExternalUrl(productImage) ? (
-                        <img
-                          src={productImage}
-                          alt={product.name}
-                          className={`h-full w-full object-contain p-6 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                        />
-                      ) : (
-                        <Image
-                          src={productImage}
-                          alt={product.name}
-                          fill
-                          className={`object-contain p-6 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                          sizes="(max-width: 768px) 80vw, 320px"
-                        />
-                      )}
+                      <Image
+                        src={productImage}
+                        alt={product.name}
+                        fill
+                        className={`object-contain p-6 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                        sizes="(max-width: 768px) 80vw, 320px"
+                        loading="lazy"
+                      />
                       {hoverImage && (
-                        isExternalUrl(hoverImage) ? (
-                          <img
-                            src={hoverImage}
-                            alt={`${product.name} - imagem secundária`}
-                            className="absolute inset-0 h-full w-full object-contain p-6 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                          />
-                        ) : (
-                          <Image
-                            src={hoverImage}
-                            alt={`${product.name} - imagem secundária`}
-                            fill
-                            className="object-contain p-6 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                            sizes="(max-width: 768px) 80vw, 320px"
-                          />
-                        )
+                        <Image
+                          src={hoverImage}
+                          alt={`${product.name} - imagem secundária`}
+                          fill
+                          className="object-contain p-6 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                          sizes="(max-width: 768px) 80vw, 320px"
+                          loading="lazy"
+                        />
                       )}
                       <span className="absolute left-3 top-3 rounded-full bg-[#0B64D3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
                         Mais vendido
@@ -886,37 +926,23 @@ export function HomeShowcase({
                       className="relative block h-[210px] w-full bg-white"
                       tabIndex={index >= allProducts.length ? -1 : undefined}
                     >
-                      {isExternalUrl(productImage) ? (
-                        <img
-                          src={productImage}
-                          alt={product.name}
-                          className={`h-full w-full object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                        />
-                      ) : (
-                        <Image
-                          src={productImage}
-                          alt={product.name}
-                          fill
-                          className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                          sizes="296px"
-                        />
-                      )}
+                      <Image
+                        src={productImage}
+                        alt={product.name}
+                        fill
+                        className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                        sizes="296px"
+                        loading="lazy"
+                      />
                       {hoverImage && (
-                        isExternalUrl(hoverImage) ? (
-                          <img
-                            src={hoverImage}
-                            alt={`${product.name} - imagem secundária`}
-                            className="absolute inset-0 h-full w-full object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                          />
-                        ) : (
-                          <Image
-                            src={hoverImage}
-                            alt={`${product.name} - imagem secundária`}
-                            fill
-                            className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                            sizes="296px"
-                          />
-                        )
+                        <Image
+                          src={hoverImage}
+                          alt={`${product.name} - imagem secundária`}
+                          fill
+                          className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                          sizes="296px"
+                          loading="lazy"
+                        />
                       )}
                     </Link>
 
@@ -1092,37 +1118,23 @@ export function HomeShowcase({
                         </button>
 
                         <Link href={`/produtos/${product.slug}`} className="relative block h-[210px] w-full bg-white">
-                          {isExternalUrl(productImage) ? (
-                            <img
-                              src={productImage}
-                              alt={product.name}
-                              className={`h-full w-full object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                            />
-                          ) : (
-                            <Image
-                              src={productImage}
-                              alt={product.name}
-                              fill
-                              className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                              sizes="(max-width: 768px) 80vw, 296px"
-                            />
-                          )}
+                          <Image
+                            src={productImage}
+                            alt={product.name}
+                            fill
+                            className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                            sizes="(max-width: 768px) 80vw, 296px"
+                            loading="lazy"
+                          />
                           {hoverImage && (
-                            isExternalUrl(hoverImage) ? (
-                              <img
-                                src={hoverImage}
-                                alt={`${product.name} - imagem secundária`}
-                                className="absolute inset-0 h-full w-full object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                              />
-                            ) : (
-                              <Image
-                                src={hoverImage}
-                                alt={`${product.name} - imagem secundária`}
-                                fill
-                                className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                                sizes="(max-width: 768px) 80vw, 296px"
-                              />
-                            )
+                            <Image
+                              src={hoverImage}
+                              alt={`${product.name} - imagem secundária`}
+                              fill
+                              className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                              sizes="(max-width: 768px) 80vw, 296px"
+                              loading="lazy"
+                            />
                           )}
                         </Link>
 
@@ -1243,37 +1255,23 @@ export function HomeShowcase({
                               </button>
 
                               <Link href={`/produtos/${product.slug}`} className="relative block h-[140px] w-full bg-white">
-                                {isExternalUrl(productImage) ? (
-                                  <img
-                                    src={productImage}
-                                    alt={product.name}
-                                    className={`h-full w-full object-contain p-3 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                                  />
-                                ) : (
-                                  <Image
-                                    src={productImage}
-                                    alt={product.name}
-                                    fill
-                                    className={`object-contain p-3 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                                    sizes="(max-width: 768px) 80vw, 250px"
-                                  />
-                                )}
+                                <Image
+                                  src={productImage}
+                                  alt={product.name}
+                                  fill
+                                  className={`object-contain p-3 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
+                                  sizes="(max-width: 768px) 80vw, 250px"
+                                  loading="lazy"
+                                />
                                 {hoverImage && (
-                                  isExternalUrl(hoverImage) ? (
-                                    <img
-                                      src={hoverImage}
-                                      alt={`${product.name} - imagem secundária`}
-                                      className="absolute inset-0 h-full w-full object-contain p-3 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                                    />
-                                  ) : (
-                                    <Image
-                                      src={hoverImage}
-                                      alt={`${product.name} - imagem secundária`}
-                                      fill
-                                      className="object-contain p-3 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                                      sizes="(max-width: 768px) 80vw, 250px"
-                                    />
-                                  )
+                                  <Image
+                                    src={hoverImage}
+                                    alt={`${product.name} - imagem secundária`}
+                                    fill
+                                    className="object-contain p-3 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
+                                    sizes="(max-width: 768px) 80vw, 250px"
+                                    loading="lazy"
+                                  />
                                 )}
                               </Link>
 
@@ -1333,7 +1331,27 @@ export function HomeShowcase({
         </div>
       </section>
 
+      {/* Dynamic CMS Home Sections */}
+      {homeSections && homeSections.length > 0 && (
+        <div className="space-y-0">
+          {homeSections.map((section) => {
+            if (!section.active) return null;
+            if (section.sectionId === "why-choose-us") {
+              return <WhyChooseUs key={section.id} initialData={section} />;
+            }
+            if (section.sectionId === "maintenance-preview") {
+              return <MaintenancePreview key={section.id} initialData={section} />;
+            }
+            if (section.sectionId === "catalog-cta") {
+              return <CatalogCTA key={section.id} initialData={section} />;
+            }
+            return null;
+          })}
+        </div>
+      )}
+
       <section className="w-full bg-white py-10">
+
         <div className="mx-auto w-full max-w-[1720px] px-4 sm:px-6 lg:px-10 xl:px-12 2xl:px-16">
           <div className="mb-5 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#0B64D3]">Mapa de componentes</p>

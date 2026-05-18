@@ -3,36 +3,36 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWeb3FormNotification } from "@/lib/notifications";
 import { formatBRL } from "@/lib/utils";
+import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
-// ---------------------------------------------------------------------------
-// Webhook signature verification — Mercado Pago canonical algorithm
-// Docs: https://www.mercadopago.com.br/developers/pt/docs/your-integrations/notifications/webhooks
-//
-// Required env vars:
-//   MERCADO_PAGO_WEBHOOK_SECRET  — secret key configured in MP dashboard for
-//                                   this webhook endpoint (NOT the access token)
-//
-// In development (NODE_ENV !== "production"), if the secret is absent the
-// check is skipped with a warning so that manual testing remains possible.
-// In production the handler fails closed (401) when the secret is missing.
-// ---------------------------------------------------------------------------
-
-const WEBHOOK_REPLAY_WINDOW_SECONDS = 300; // reject webhooks older than 5 min
+const WEBHOOK_REPLAY_WINDOW_SECONDS = 300; // rejeitar webhooks com mais de 5 minutos
 
 async function verifyWebhookSignature(request: NextRequest): Promise<boolean> {
-  const secret = process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+  const validateSignature =
+    process.env.MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE === "true" ||
+    env.MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE === "true" ||
+    process.env.MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE === true;
+
+  if (!validateSignature) {
+    logger.info(
+      "[webhook] Validação de assinatura de webhook desativada (MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE não é true). Pulando verificação."
+    );
+    return true;
+  }
+
+  const secret = env.MERCADO_PAGO_WEBHOOK_SECRET;
 
   if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      console.error(
-        "[webhook] MERCADO_PAGO_WEBHOOK_SECRET is not set. " +
-          "Configure it in the Mercado Pago dashboard and add it to env. Rejecting."
+    if (env.NODE_ENV === "production") {
+      logger.error(
+        "[webhook] MERCADO_PAGO_WEBHOOK_SECRET não está definido, mas a validação de assinatura está ativa. Rejeitando."
       );
       return false;
     }
-    // Development fallback: MP cannot reach localhost, allow without signature.
-    console.warn(
-      "[webhook] MERCADO_PAGO_WEBHOOK_SECRET not set — skipping signature check (development only)."
+    // Fallback em ambiente de testes/desenvolvimento
+    logger.warn(
+      "[webhook] MERCADO_PAGO_WEBHOOK_SECRET não definido — pulando validação de assinatura (fallback de desenvolvimento/testes)."
     );
     return true;
   }
@@ -41,11 +41,11 @@ async function verifyWebhookSignature(request: NextRequest): Promise<boolean> {
   const xRequestId = request.headers.get("x-request-id");
 
   if (!xSignature) {
-    console.warn("[webhook] Rejected: missing x-signature header.");
+    logger.warn("[webhook] Rejeitado: header x-signature ausente.");
     return false;
   }
 
-  // Parse "ts=<timestamp>,v1=<hmac>" from x-signature header.
+  // Parse "ts=<timestamp>,v1=<hmac>" do header x-signature.
   const sigParts: Record<string, string> = {};
   for (const segment of xSignature.split(",")) {
     const eqIdx = segment.indexOf("=");
@@ -57,27 +57,24 @@ async function verifyWebhookSignature(request: NextRequest): Promise<boolean> {
   const v1 = sigParts["v1"];
 
   if (!ts || !v1) {
-    console.warn("[webhook] Rejected: malformed x-signature header (missing ts or v1).");
+    logger.warn("[webhook] Rejeitado: header x-signature malformado (faltando ts ou v1).");
     return false;
   }
 
-  // Replay-attack guard: reject webhooks with a stale timestamp.
+  // Replay attack guard: rejeitar webhooks com timestamp antigo
   const tsNum = parseInt(ts, 10);
   if (
     !Number.isFinite(tsNum) ||
     Math.abs(Date.now() / 1000 - tsNum) > WEBHOOK_REPLAY_WINDOW_SECONDS
   ) {
-    console.warn(`[webhook] Rejected: stale or invalid timestamp (ts=${ts}).`);
+    logger.warn(`[webhook] Rejeitado: timestamp antigo ou inválido (ts=${ts}).`);
     return false;
   }
 
-  // data.id comes from the query parameter in the webhook notification URL,
-  // NOT from the request body — this is the canonical MP approach.
   const { searchParams } = new URL(request.url);
   const dataId = searchParams.get("data.id");
 
-  // Build the canonical manifest exactly as MP specifies.
-  // Fields are included only when present; order matters.
+  // Construir manifesto canônico do Mercado Pago
   const manifestParts: string[] = [];
   if (dataId) manifestParts.push(`id:${dataId}`);
   if (xRequestId) manifestParts.push(`request-id:${xRequestId}`);
@@ -90,22 +87,17 @@ async function verifyWebhookSignature(request: NextRequest): Promise<boolean> {
     const expectedBuf = Buffer.from(expectedHex, "utf8");
     const receivedBuf = Buffer.from(v1, "utf8");
 
-    // Lengths must match before timingSafeEqual to avoid throwing.
     if (expectedBuf.length !== receivedBuf.length) {
-      console.warn("[webhook] Rejected: signature length mismatch.");
+      logger.warn("[webhook] Rejeitado: tamanho de assinatura incompatível.");
       return false;
     }
 
     return timingSafeEqual(expectedBuf, receivedBuf);
   } catch {
-    console.warn("[webhook] Rejected: signature comparison error.");
+    logger.warn("[webhook] Rejeitado: erro na comparação de assinatura.");
     return false;
   }
 }
-
-// ---------------------------------------------------------------------------
-// Business logic — unchanged from original
-// ---------------------------------------------------------------------------
 
 function parseAddress(order: {
   shippingStreet: string | null;
@@ -116,13 +108,13 @@ function parseAddress(order: {
 }) {
   const parts = [
     order.shippingStreet ? `Rua: ${order.shippingStreet}` : null,
-    order.shippingNumber ? `Numero: ${order.shippingNumber}` : null,
+    order.shippingNumber ? `Número: ${order.shippingNumber}` : null,
     order.shippingCity ? `Cidade: ${order.shippingCity}` : null,
     order.shippingState ? `UF: ${order.shippingState}` : null,
     order.shippingZip ? `CEP: ${order.shippingZip}` : null,
   ].filter(Boolean);
 
-  return parts.length > 0 ? parts.join(" | ") : "Endereco nao informado";
+  return parts.length > 0 ? parts.join(" | ") : "Endereço não informado";
 }
 
 async function notifyApprovedOrder(orderId: string) {
@@ -145,8 +137,8 @@ async function notifyApprovedOrder(orderId: string) {
       `Pedido: ${order.code}`,
       `Cliente: ${order.customerName}`,
       `E-mail: ${order.customerEmail}`,
-      `Telefone: ${order.customerPhone || "Nao informado"}`,
-      `Endereco: ${parseAddress(order)}`,
+      `Telefone: ${order.customerPhone || "Não informado"}`,
+      `Endereço: ${parseAddress(order)}`,
       "",
       "Itens:",
       itemsList,
@@ -162,27 +154,41 @@ async function notifyApprovedOrder(orderId: string) {
   });
 }
 
-async function handlePaymentApproved(orderId: string) {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId },
-    include: { items: { include: { product: true } } },
-  });
+async function handlePaymentApproved(orderId: string, paymentId: string, preferenceId?: string) {
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Obter estado do pedido de forma isolada dentro da transação para evitar concorrência
+    const order = await tx.order.findUnique({
+      where: { id: orderId },
+      include: { items: { include: { product: true } } },
+    });
 
-  if (!order) {
-    console.warn(`Order not found for orderId: ${orderId}`);
-    return;
-  }
+    if (!order) {
+      throw new Error(`Order ${orderId} não encontrada na transação.`);
+    }
 
-  if (order.paymentStatus === "APPROVED") {
-    return;
-  }
+    // 2. Idempotência: se o pedido já está pago, não fazer nada
+    if (order.paymentStatus === "APPROVED") {
+      return { alreadyApproved: true, order };
+    }
 
-  await prisma.$transaction(async (tx) => {
+    // 3. Validar se todos os itens têm estoque suficiente antes de deduzir qualquer unidade
     for (const item of order.items) {
       const product = item.product;
-      if (!product) continue;
+      if (!product) {
+        throw new Error(`Produto associado ao item ${item.id} não foi encontrado.`);
+      }
 
-      const newStock = Math.max(0, (product.stockQuantity ?? 0) - item.quantity);
+      if (product.stockQuantity < item.quantity) {
+        // Estoque insuficiente detectado!
+        return { stockInsufficient: true, product, order };
+      }
+    }
+
+    // 4. Executar a dedução e a criação do InventoryLog atomicamente para cada item
+    for (const item of order.items) {
+      const product = item.product;
+      const newStock = Math.max(0, product.stockQuantity - item.quantity);
+
       await tx.product.update({
         where: { id: product.id },
         data: { stockQuantity: newStock },
@@ -199,19 +205,48 @@ async function handlePaymentApproved(orderId: string) {
       });
     }
 
-    await tx.order.update({
+    // 5. Atualizar pedido para status PROCESSING e APPROVED
+    const updatedOrder = await tx.order.update({
       where: { id: order.id },
       data: {
         status: "PROCESSING",
         paymentStatus: "APPROVED",
+        mpPaymentId: String(paymentId),
+        providerOrderId: preferenceId || order.mpPreferenceId || order.code,
+        providerTransactionId: String(paymentId),
+        providerRawStatus: "approved",
       },
     });
+
+    return { success: true, order: updatedOrder };
   });
 
-  try {
-    await notifyApprovedOrder(order.id);
-  } catch (error) {
-    console.error("Failed to send approved order notification:", error);
+  // 6. Tratar erro de estoque fora da transação de baixa (marcando notes sem deduzir nada)
+  if (result.stockInsufficient) {
+    const originalNotes = result.order.notes || "";
+    const attentionMsg = `[ATENÇÃO: ESTOQUE INSUFICIENTE] Pagamento aprovado no Mercado Pago (ID: ${paymentId}), mas o estoque de "${result.product.name}" era insuficiente (Disponível: ${result.product.stockQuantity}, Requerido: ${result.order.items.find((i) => i.productId === result.product.id)?.quantity || 0}).`;
+
+    await prisma.order.update({
+      where: { id: result.order.id },
+      data: {
+        notes: originalNotes ? `${attentionMsg} | ${originalNotes}` : attentionMsg,
+        mpPaymentId: String(paymentId),
+        providerTransactionId: String(paymentId),
+        providerRawStatus: "approved_stock_insufficient",
+      },
+    });
+
+    logger.warn(attentionMsg);
+    return;
+  }
+
+  // 7. Disparar notificação caso a transação de aprovação seja executada pela primeira vez
+  if (result.success) {
+    try {
+      await notifyApprovedOrder(result.order.id);
+    } catch (error) {
+      logger.error("Falha ao enviar notificação de aprovação do pedido", error);
+    }
   }
 }
 
@@ -221,11 +256,12 @@ async function handlePaymentFailed(orderId: string, paymentStatus: string) {
   });
 
   if (!order) {
-    console.warn(`Order not found for orderId: ${orderId}`);
+    logger.warn(`Order não encontrada para o ID: ${orderId}`);
     return;
   }
 
-  if (order.paymentStatus === "REJECTED") {
+  // Garantir que pedidos já aprovados ou rejeitados não sofram rollback acidental por webhooks atrasados
+  if (order.paymentStatus === "APPROVED" || order.paymentStatus === "REJECTED") {
     return;
   }
 
@@ -234,18 +270,19 @@ async function handlePaymentFailed(orderId: string, paymentStatus: string) {
     data: {
       status: "CANCELLED",
       paymentStatus: "REJECTED",
+      providerRawStatus: paymentStatus,
     },
   });
 
   try {
     await sendWeb3FormNotification({
-      subject: `Pagamento nao aprovado: ${order.code}`,
+      subject: `Pagamento não aprovado: ${order.code}`,
       message: `Pedido ${order.code} do cliente ${order.customerName} foi marcado como ${paymentStatus}.`,
       customerName: order.customerName,
       customerEmail: order.customerEmail,
     });
   } catch (error) {
-    console.error("Failed to send payment rejection notification:", error);
+    logger.error("Falha ao enviar notificação de rejeição de pagamento", error);
   }
 }
 
@@ -264,54 +301,83 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    const accessToken = process.env.MERCADO_PAGO_ACCESS_TOKEN;
+    const accessToken = env.MERCADO_PAGO_ACCESS_TOKEN;
     if (!accessToken) {
-      return NextResponse.json({ error: "Mercado Pago access token is missing." }, { status: 500 });
+      return NextResponse.json(
+        { error: "Mercado Pago access token is missing." },
+        { status: 500 }
+      );
     }
 
-    const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
+    const paymentResponse = await fetch(
+      `https://api.mercadopago.com/v1/payments/${paymentId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
 
     if (!paymentResponse.ok) {
       const details = await paymentResponse.text();
-      console.error("Failed to fetch payment details:", details);
-      return NextResponse.json({ error: "Failed to fetch payment details." }, { status: 500 });
+      logger.error("Failed to fetch payment details", null, { details });
+      return NextResponse.json(
+        { error: "Failed to fetch payment details." },
+        { status: 500 }
+      );
     }
 
     const payment = await paymentResponse.json();
     const preferenceId = payment.preference_id;
     const externalReference = payment.external_reference;
 
+    // Busca flexível de pedidos para máxima resiliência técnica
+    const searchConditions: Array<{
+      mpPreferenceId?: string;
+      code?: string;
+      id?: string;
+      mpPaymentId?: string;
+    }> = [];
+    if (preferenceId) searchConditions.push({ mpPreferenceId: preferenceId });
+    if (externalReference) {
+      searchConditions.push({ code: externalReference });
+      searchConditions.push({ id: externalReference });
+    }
+    searchConditions.push({ mpPaymentId: String(paymentId) });
+
     const order = await prisma.order.findFirst({
-      where: preferenceId
-        ? { mpPreferenceId: preferenceId }
-        : externalReference
-          ? { code: externalReference }
-          : undefined,
+      where: {
+        OR: searchConditions,
+      },
     });
 
     if (!order) {
-      console.warn(`Order not found for payment ${paymentId}. preference_id=${preferenceId}`);
+      logger.warn(
+        `Order não localizada para o paymentId=${paymentId}, preferenceId=${preferenceId}, externalReference=${externalReference}`
+      );
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
+    // Persistir os metadados brutos recebidos antes do processamento principal (idempotência inicial)
     await prisma.order.update({
       where: { id: order.id },
       data: {
         mpPaymentId: String(paymentId),
         paymentProvider: "mercadopago",
-        providerOrderId: preferenceId || order.code,
+        providerOrderId: preferenceId || order.mpPreferenceId || order.code,
         providerTransactionId: String(paymentId),
         providerRawStatus: payment.status || null,
       },
     });
 
+    // Se o pedido já estava aprovado antes, retornar recebido imediatamente (idempotência absoluta)
+    if (order.paymentStatus === "APPROVED") {
+      return NextResponse.json({ received: true });
+    }
+
     switch (payment.status) {
       case "approved":
-        await handlePaymentApproved(order.id);
+        await handlePaymentApproved(order.id, String(paymentId), preferenceId);
         break;
       case "rejected":
       case "cancelled":
@@ -320,18 +386,20 @@ export async function POST(request: NextRequest) {
         await handlePaymentFailed(order.id, payment.status);
         break;
       default:
-        await prisma.order.update({
-          where: { id: order.id },
-          data: {
-            status: "PENDING",
-            paymentStatus: "PAYMENT_PENDING",
-          },
-        });
+        if (order.paymentStatus !== "APPROVED" && order.paymentStatus !== "REJECTED") {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: {
+              status: "PENDING",
+              paymentStatus: "PAYMENT_PENDING",
+            },
+          });
+        }
     }
 
     return NextResponse.json({ received: true });
   } catch (error) {
-    console.error("Webhook error:", error);
+    logger.error("Webhook error", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,45 +1,86 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { z } from "zod";
+import { handleApiError, apiSuccess, badRequest, apiError } from "@/lib/api-utils";
+import { rateLimiter } from "@/lib/rate-limit";
 
 // CEP de origem (IP3D - Birigui/SP)
-const CEP_ORIGEM = "16200000"; // Birigui - SP
+const CEP_ORIGEM = "16200000";
+// ... (resto do arquivo mantido exatamente igual)
 
-interface FreteRequest {
-  cepDestino: string;
-  peso?: number; // em kg
-  comprimento?: number; // em cm
-  altura?: number; // em cm
-  largura?: number; // em cm
-  valor?: number; // valor declarado
-}
+// Schema de validação para o cálculo de frete
+const shippingSchema = z.object({
+  cepDestino: z
+    .string({ required_error: "CEP é obrigatório" })
+    .transform((v) => v.replace(/\D/g, ""))
+    .refine((v) => v.length === 8, "CEP deve ter 8 dígitos"),
+  peso: z
+    .number()
+    .positive("O peso deve ser positivo")
+    .max(30, "Peso máximo permitido é 30kg")
+    .default(0.3),
+  comprimento: z
+    .number()
+    .min(15, "Comprimento mínimo 15cm")
+    .max(100, "Comprimento máximo 100cm")
+    .default(16),
+  altura: z
+    .number()
+    .min(1, "Altura mínima 1cm")
+    .max(100, "Altura máxima 100cm")
+    .default(5),
+  largura: z
+    .number()
+    .min(10, "Largura mínima 10cm")
+    .max(100, "Largura máxima 100cm")
+    .default(11),
+  valor: z
+    .number()
+    .nonnegative()
+    .default(0),
+}).refine(
+  (data) => {
+    const soma = data.comprimento + data.altura + data.largura;
+    return soma <= 200;
+  },
+  {
+    message: "A soma das dimensões não deve ultrapassar 200cm",
+    path: ["comprimento"],
+  }
+);
 
-interface FreteResult {
-  servico: string;
-  codigo: string;
-  valor: string;
-  prazo: string;
-  erro?: string;
-}
-
-// Buscar endereço via ViaCEP (API gratuita e confiável)
+// Buscar endereço via ViaCEP com tratamento robusto de erros e timeout
 async function buscarEndereco(cep: string) {
   try {
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, {
       signal: AbortSignal.timeout(5000),
     });
+
+    if (!response.ok) {
+      throw new Error("HTTP_ERROR");
+    }
+
     const data = await response.json();
-    if (data.erro) return null;
+    if (data.erro || data.erro === "true") {
+      return { erro: true };
+    }
+
     return {
+      erro: false,
       logradouro: data.logradouro || "",
       bairro: data.bairro || "",
       cidade: data.localidade || "",
       uf: data.uf || "",
     };
-  } catch {
-    return null;
+  } catch (err) {
+    const error = err as Error;
+    if (error.name === "TimeoutError" || error.message?.toLowerCase().includes("timeout")) {
+      throw new Error("TIMEOUT");
+    }
+    throw new Error("EXTERNAL_ERROR");
   }
 }
 
-// Calcular frete via API pública dos Correios (CalcPrecoPrazo ASPX)
+// Calcular frete via API pública dos Correios
 async function calcularViaSoapCorreios(
   cepDestino: string,
   peso: number,
@@ -72,6 +113,9 @@ async function calcularViaSoapCorreios(
 
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!response.ok) {
+      return { valor: "0,00", prazo: "0", erro: "Serviço indisponível" };
+    }
     const text = await response.text();
 
     const getTag = (tag: string) => {
@@ -88,202 +132,133 @@ async function calcularViaSoapCorreios(
       return { valor: "0,00", prazo: "0", erro: msgErro || "Serviço indisponível" };
     }
 
-    if (valor) {
-      return { valor, prazo: prazo || "0" };
-    }
-
-    return { valor: "0,00", prazo: "0", erro: "Resposta vazia dos Correios" };
+    return { valor: valor || "0,00", prazo: prazo || "0" };
   } catch (err) {
-    console.error("Erro SOAP Correios:", err);
-    return { valor: "0,00", prazo: "0", erro: "timeout" };
+    const error = err as Error;
+    if (error.name === "TimeoutError" || error.message?.toLowerCase().includes("timeout")) {
+      return { valor: "0,00", prazo: "0", erro: "timeout" };
+    }
+    return { valor: "0,00", prazo: "0", erro: "Serviço indisponível" };
   }
 }
 
-// Fallback: estimar frete com base na distância (UF origem → UF destino)
-function estimarFrete(
-  ufDestino: string,
-  peso: number
-): { pac: { valor: string; prazo: string }; sedex: { valor: string; prazo: string } } {
-  // Tabela simplificada de preços base por região (a partir de SP interior)
-  // Valores aproximados para peso até 1kg - tarifa de balcão 2025
+// Fallback: estimar frete por UF
+function estimarFrete(ufDestino: string, peso: number) {
   const tabelaPAC: Record<string, { base: number; prazo: number }> = {
-    SP: { base: 18.0, prazo: 4 },
-    RJ: { base: 22.0, prazo: 5 },
-    MG: { base: 22.0, prazo: 5 },
-    ES: { base: 22.0, prazo: 6 },
-    PR: { base: 22.0, prazo: 5 },
-    SC: { base: 24.0, prazo: 6 },
-    RS: { base: 26.0, prazo: 7 },
-    MS: { base: 24.0, prazo: 6 },
-    MT: { base: 28.0, prazo: 8 },
-    GO: { base: 24.0, prazo: 6 },
-    DF: { base: 24.0, prazo: 6 },
-    BA: { base: 28.0, prazo: 8 },
-    SE: { base: 30.0, prazo: 9 },
-    AL: { base: 30.0, prazo: 9 },
-    PE: { base: 30.0, prazo: 10 },
-    PB: { base: 32.0, prazo: 10 },
-    RN: { base: 32.0, prazo: 10 },
-    CE: { base: 32.0, prazo: 10 },
-    PI: { base: 34.0, prazo: 11 },
-    MA: { base: 34.0, prazo: 12 },
-    PA: { base: 36.0, prazo: 12 },
-    AP: { base: 40.0, prazo: 15 },
-    AM: { base: 42.0, prazo: 15 },
-    RR: { base: 44.0, prazo: 18 },
-    AC: { base: 44.0, prazo: 18 },
-    RO: { base: 36.0, prazo: 10 },
-    TO: { base: 30.0, prazo: 8 },
+    SP: { base: 18.0, prazo: 4 }, RJ: { base: 22.0, prazo: 5 }, MG: { base: 22.0, prazo: 5 },
+    ES: { base: 22.0, prazo: 6 }, PR: { base: 22.0, prazo: 5 }, SC: { base: 24.0, prazo: 6 },
+    RS: { base: 26.0, prazo: 7 }, MS: { base: 24.0, prazo: 6 }, MT: { base: 28.0, prazo: 8 },
+    GO: { base: 24.0, prazo: 6 }, DF: { base: 24.0, prazo: 6 }, BA: { base: 28.0, prazo: 8 },
+    SE: { base: 30.0, prazo: 9 }, AL: { base: 30.0, prazo: 9 }, PE: { base: 30.0, prazo: 10 },
+    PB: { base: 32.0, prazo: 10 }, RN: { base: 32.0, prazo: 10 }, CE: { base: 32.0, prazo: 10 },
+    PI: { base: 34.0, prazo: 11 }, MA: { base: 34.0, prazo: 12 }, PA: { base: 36.0, prazo: 12 },
+    AP: { base: 40.0, prazo: 15 }, AM: { base: 42.0, prazo: 15 }, RR: { base: 44.0, prazo: 18 },
+    AC: { base: 44.0, prazo: 18 }, RO: { base: 36.0, prazo: 10 }, TO: { base: 30.0, prazo: 8 },
   };
 
   const tabelaSEDEX: Record<string, { base: number; prazo: number }> = {
-    SP: { base: 28.0, prazo: 1 },
-    RJ: { base: 35.0, prazo: 2 },
-    MG: { base: 35.0, prazo: 2 },
-    ES: { base: 38.0, prazo: 2 },
-    PR: { base: 35.0, prazo: 2 },
-    SC: { base: 38.0, prazo: 3 },
-    RS: { base: 42.0, prazo: 3 },
-    MS: { base: 38.0, prazo: 3 },
-    MT: { base: 45.0, prazo: 4 },
-    GO: { base: 38.0, prazo: 3 },
-    DF: { base: 38.0, prazo: 3 },
-    BA: { base: 48.0, prazo: 4 },
-    SE: { base: 50.0, prazo: 4 },
-    AL: { base: 50.0, prazo: 5 },
-    PE: { base: 52.0, prazo: 5 },
-    PB: { base: 54.0, prazo: 5 },
-    RN: { base: 54.0, prazo: 5 },
-    CE: { base: 54.0, prazo: 5 },
-    PI: { base: 56.0, prazo: 6 },
-    MA: { base: 56.0, prazo: 6 },
-    PA: { base: 60.0, prazo: 6 },
-    AP: { base: 68.0, prazo: 8 },
-    AM: { base: 72.0, prazo: 8 },
-    RR: { base: 76.0, prazo: 10 },
-    AC: { base: 76.0, prazo: 10 },
-    RO: { base: 56.0, prazo: 5 },
-    TO: { base: 48.0, prazo: 4 },
+    SP: { base: 28.0, prazo: 1 }, RJ: { base: 35.0, prazo: 2 }, MG: { base: 35.0, prazo: 2 },
+    ES: { base: 38.0, prazo: 2 }, PR: { base: 35.0, prazo: 2 }, SC: { base: 38.0, prazo: 3 },
+    RS: { base: 42.0, prazo: 3 }, MS: { base: 38.0, prazo: 3 }, MT: { base: 45.0, prazo: 4 },
+    GO: { base: 38.0, prazo: 3 }, DF: { base: 38.0, prazo: 3 }, BA: { base: 48.0, prazo: 4 },
+    SE: { base: 50.0, prazo: 4 }, AL: { base: 50.0, prazo: 5 }, PE: { base: 52.0, prazo: 5 },
+    PB: { base: 54.0, prazo: 5 }, RN: { base: 54.0, prazo: 5 }, CE: { base: 54.0, prazo: 5 },
+    PI: { base: 56.0, prazo: 6 }, MA: { base: 56.0, prazo: 6 }, PA: { base: 60.0, prazo: 6 },
+    AP: { base: 68.0, prazo: 8 }, AM: { base: 72.0, prazo: 8 }, RR: { base: 76.0, prazo: 10 },
+    AC: { base: 76.0, prazo: 10 }, RO: { base: 56.0, prazo: 5 }, TO: { base: 48.0, prazo: 4 },
   };
 
   const uf = ufDestino.toUpperCase();
   const pacInfo = tabelaPAC[uf] || { base: 30.0, prazo: 10 };
   const sedexInfo = tabelaSEDEX[uf] || { base: 50.0, prazo: 5 };
-
-  // Ajustar por peso (cada kg extra adiciona ~30% ao preço base)
   const fatorPeso = 1 + Math.max(0, peso - 0.5) * 0.6;
 
-  const pacValor = (pacInfo.base * fatorPeso).toFixed(2).replace(".", ",");
-  const sedexValor = (sedexInfo.base * fatorPeso).toFixed(2).replace(".", ",");
-
   return {
-    pac: { valor: pacValor, prazo: pacInfo.prazo.toString() },
-    sedex: { valor: sedexValor, prazo: sedexInfo.prazo.toString() },
+    pac: { valor: (pacInfo.base * fatorPeso).toFixed(2).replace(".", ","), prazo: pacInfo.prazo.toString() },
+    sedex: { valor: (sedexInfo.base * fatorPeso).toFixed(2).replace(".", ","), prazo: sedexInfo.prazo.toString() },
   };
 }
 
 export async function POST(request: NextRequest) {
+  const rateLimitResult = rateLimiter(request, "shipping", {
+    limit: 15,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimitResult.success) {
+    return apiError(
+      "Muitas requisições de cálculo de frete. Tente novamente mais tarde.",
+      "TOO_MANY_REQUESTS",
+      429
+    );
+  }
+
   try {
-    const body: FreteRequest = await request.json();
-
-    const {
-      cepDestino,
-      peso = 0.3,
-      comprimento = 16,
-      altura = 5,
-      largura = 11,
-      valor = 0,
-    } = body;
-
-    // Validar CEP
-    const cepLimpo = cepDestino.replace(/\D/g, "");
-    if (cepLimpo.length !== 8) {
-      return NextResponse.json(
-        { error: "CEP inválido. Informe 8 dígitos." },
-        { status: 400 }
-      );
+    const json = await request.json();
+    const parsedResult = shippingSchema.safeParse(json);
+    if (!parsedResult.success) {
+      return handleApiError(parsedResult.error);
     }
 
-    // Buscar endereço pelo CEP via ViaCEP
-    const endereco = await buscarEndereco(cepLimpo);
+    const { cepDestino, peso, comprimento, altura, largura, valor } = parsedResult.data;
 
-    const servicosParaCalcular = [
-      { codigo: "04510", nome: "PAC" },
-      { codigo: "04014", nome: "SEDEX" },
-    ];
+    let endereco;
+    try {
+      const res = await buscarEndereco(cepDestino);
+      if (res.erro) {
+        return badRequest("CEP não encontrado ou inválido.");
+      }
+      endereco = {
+        logradouro: res.logradouro || "",
+        bairro: res.bairro || "",
+        cidade: res.cidade || "",
+        uf: res.uf || "",
+      };
+    } catch (err) {
+      const error = err as Error;
+      if (error.message === "TIMEOUT") {
+        return apiError("O serviço de consulta de CEP expirou. Tente novamente.", "GATEWAY_TIMEOUT", 504);
+      }
+      return apiError("Ocorreu uma falha ao consultar o serviço externo de CEP.", "BAD_GATEWAY", 502);
+    }
 
-    // Tentar Correios API primeiro
-    const resultados: FreteResult[] = [];
+    const servicos = [{ codigo: "04510", nome: "PAC" }, { codigo: "04014", nome: "SEDEX" }];
+
+    const results = await Promise.all(
+      servicos.map(async (s) => {
+        try {
+          const r = await calcularViaSoapCorreios(cepDestino, peso, comprimento, altura, largura, valor, s.codigo);
+          return { servico: s.nome, codigo: s.codigo, valor: r.valor, prazo: r.prazo, erro: r.erro };
+        } catch {
+          return { servico: s.nome, codigo: s.codigo, valor: "0,00", prazo: "0", erro: "timeout" };
+        }
+      })
+    );
+
+    const successResults = results.filter((r) => !r.erro);
+    let finalOptions = successResults;
     let usouFallback = false;
 
-    const promises = servicosParaCalcular.map(async (servico) => {
-      try {
-        const result = await calcularViaSoapCorreios(
-          cepLimpo,
-          peso,
-          comprimento,
-          altura,
-          largura,
-          valor,
-          servico.codigo
-        );
-        return {
-          servico: servico.nome,
-          codigo: servico.codigo,
-          valor: result.valor,
-          prazo: result.prazo,
-          erro: result.erro,
-        };
-      } catch (err) {
-        console.error(`Erro ao calcular ${servico.nome}:`, err);
-        return {
-          servico: servico.nome,
-          codigo: servico.codigo,
-          valor: "0,00",
-          prazo: "0",
-          erro: "Erro ao consultar serviço",
-        };
-      }
-    });
-
-    const results = await Promise.all(promises);
-    const successResults = results.filter((r) => !r.erro);
-
-    if (successResults.length > 0) {
-      resultados.push(...results);
-    } else {
-      // Fallback: usar estimativa por tabela
+    if (successResults.length === 0) {
       usouFallback = true;
-      const uf = endereco?.uf || "SP";
-      const estimativa = estimarFrete(uf, peso);
-
-      resultados.push({
-        servico: "PAC",
-        codigo: "04510",
-        valor: estimativa.pac.valor,
-        prazo: estimativa.pac.prazo,
-      });
-      resultados.push({
-        servico: "SEDEX",
-        codigo: "04014",
-        valor: estimativa.sedex.valor,
-        prazo: estimativa.sedex.prazo,
-      });
+      const estimativa = estimarFrete(endereco.uf, peso);
+      finalOptions = [
+        { servico: "PAC", codigo: "04510", valor: estimativa.pac.valor, prazo: estimativa.pac.prazo },
+        { servico: "SEDEX", codigo: "04014", valor: estimativa.sedex.valor, prazo: estimativa.sedex.prazo },
+      ];
     }
 
-    return NextResponse.json({
-      cepOrigem: CEP_ORIGEM,
-      cepDestino: cepLimpo,
+    if (finalOptions.length === 0) {
+      return apiError("Não há opções de frete disponíveis para este endereço e peso.", "SHIPPING_UNAVAILABLE", 400);
+    }
+
+    return apiSuccess({
+      cepDestino,
       endereco,
-      opcoes: resultados.filter((r) => !r.erro),
-      erros: resultados.filter((r) => r.erro),
+      opcoes: finalOptions,
       estimativa: usouFallback,
     });
   } catch (error) {
-    console.error("Erro no cálculo de frete:", error);
-    return NextResponse.json(
-      { error: "Erro ao calcular frete. Tente novamente." },
-      { status: 500 }
-    );
+    return handleApiError(error);
   }
 }

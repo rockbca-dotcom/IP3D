@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { HomeShowcase, type ProductCard } from "@/components/site/HomeShowcase";
+import type { Banner, HomeSection } from "@prisma/client";
 
 const showcaseCategorySlugs = ["componentes-bambu-lab", "componentes-creality", "componentes-universais", "impressoras-3d", "personalizados"] as const;
 
@@ -295,6 +296,8 @@ export default async function Home() {
           "componentes-universais": withSpotlight(fallbackCategoryProducts["componentes-universais"] ?? []),
         }}
         allProducts={withSpotlight(fallbackProducts)}
+        banners={[]}
+        homeSections={[]}
       />
     );
   }
@@ -328,11 +331,20 @@ export default async function Home() {
   let featuredData: ProductSelectResult[] = [];
   let promoData: ProductSelectResult[] = [];
   let allActiveProductsData: ProductSelectResult[] = [];
+  let bannersData: Banner[] = [];
+  let homeSectionsData: HomeSection[] = [];
   let categoryProductsWithSpotlight: Record<string, ProductCard[]> = fallbackCategoryProducts;
   let homeLoadFailed = false;
 
   try {
-    [categoriesData, featuredData, promoData, allActiveProductsData] = await Promise.all([
+    const [
+      fetchedCategories,
+      fetchedFeatured,
+      fetchedPromo,
+      fetchedAllActive,
+      fetchedBanners,
+      fetchedHomeSections
+    ] = await Promise.all([
       prisma.category.findMany({
         where: { active: true, parentId: null },
         include: {
@@ -362,7 +374,22 @@ export default async function Home() {
         select: productSelect,
         orderBy: [{ featured: "desc" }, { updatedAt: "desc" }],
       }),
+      prisma.banner.findMany({
+        where: { active: true },
+        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+      }),
+      prisma.homeSection.findMany({
+        where: { active: true },
+        orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+      }),
     ]);
+
+    categoriesData = fetchedCategories;
+    featuredData = fetchedFeatured;
+    promoData = fetchedPromo;
+    allActiveProductsData = fetchedAllActive;
+    bannersData = fetchedBanners;
+    homeSectionsData = fetchedHomeSections;
 
     const categoryProductEntries = await Promise.all(
       showcaseCategorySlugs.map(async (slug) => {
@@ -386,6 +413,7 @@ export default async function Home() {
     const categoryProducts = categoryProductEntries.reduce<Record<string, ProductCard[]>>((acc, [slug, products]) => {
       acc[slug] = products;
       return acc;
+      return acc;
     }, {});
 
     categoryProductsWithSpotlight = {
@@ -405,6 +433,8 @@ export default async function Home() {
         promoProducts={fallbackProducts.slice(0, 8)}
         categoryProducts={fallbackCategoryProducts}
         allProducts={fallbackProducts}
+        banners={[]}
+        homeSections={[]}
       />
     );
   }
@@ -421,6 +451,9 @@ export default async function Home() {
       promoProducts={withSpotlight(normalizeProducts(promoData))}
       categoryProducts={categoryProductsWithSpotlight}
       allProducts={withSpotlight(allProducts)}
+      banners={bannersData}
+      homeSections={homeSectionsData}
     />
   );
 }
+

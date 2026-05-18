@@ -1,6 +1,38 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth";
+import { apiSuccess, handleApiError, badRequest, conflict, notFound } from "@/lib/api-utils";
+import { z } from "zod";
+
+const categoryUpdateSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório").optional(),
+  slug: z.string()
+    .min(1, "Slug é obrigatório")
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug inválido. Use apenas letras minúsculas, números e hifens")
+    .optional(),
+  description: z.string().nullable().optional(),
+  image: z.string().nullable().optional(),
+  color: z.string().nullable().optional(),
+  icon: z.string().nullable().optional(),
+  order: z.number().int().optional(),
+  active: z.boolean().optional(),
+  parentId: z.string().nullable().optional(),
+});
+
+async function wouldCreateCycle(categoryId: string, targetParentId: string): Promise<boolean> {
+  if (categoryId === targetParentId) return true;
+  let currentId = targetParentId;
+  while (currentId) {
+    const parentCat = await prisma.category.findUnique({
+      where: { id: currentId },
+      select: { parentId: true }
+    });
+    if (!parentCat) break;
+    if (parentCat.parentId === categoryId) return true;
+    currentId = parentCat.parentId || "";
+  }
+  return false;
+}
 
 export async function GET(
   request: NextRequest,
@@ -17,13 +49,12 @@ export async function GET(
     });
 
     if (!category) {
-      return NextResponse.json({ error: "Categoria não encontrada" }, { status: 404 });
+      return notFound("Categoria não encontrada.");
     }
 
-    return NextResponse.json({ category });
+    return apiSuccess({ category });
   } catch (error) {
-    console.error("Error fetching category:", error);
-    return NextResponse.json({ error: "Erro ao buscar categoria" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -36,28 +67,63 @@ export async function PUT(
 
   try {
     const { id } = await params;
-    const data = await request.json();
+    const body = await request.json();
+    const validatedData = categoryUpdateSchema.parse(body);
 
-    const category = await prisma.category.update({
+    // 1. Categoria existe
+    const category = await prisma.category.findUnique({ where: { id } });
+    if (!category) {
+      return notFound("Categoria não encontrada.");
+    }
+
+    // 2. Slug único
+    if (validatedData.slug && validatedData.slug !== category.slug) {
+      const existing = await prisma.category.findUnique({
+        where: { slug: validatedData.slug },
+      });
+      if (existing) {
+        return conflict("Já existe uma categoria com este slug.");
+      }
+    }
+
+    // 3. Validações de Pai e Ciclos
+    if (validatedData.parentId !== undefined && validatedData.parentId !== null) {
+      const parentId = validatedData.parentId || null;
+      if (parentId) {
+        if (parentId === id) {
+          return badRequest("Uma categoria não pode ser pai dela mesma.");
+        }
+
+        const parent = await prisma.category.findUnique({ where: { id: parentId } });
+        if (!parent) {
+          return badRequest("Categoria pai não encontrada.");
+        }
+
+        if (await wouldCreateCycle(id, parentId)) {
+          return badRequest("Esta alteração criaria um ciclo na árvore de categorias.");
+        }
+      }
+    }
+
+    const updateData: Partial<z.infer<typeof categoryUpdateSchema>> = {};
+    if (validatedData.name !== undefined) updateData.name = validatedData.name;
+    if (validatedData.slug !== undefined) updateData.slug = validatedData.slug;
+    if (validatedData.description !== undefined) updateData.description = validatedData.description;
+    if (validatedData.image !== undefined) updateData.image = validatedData.image;
+    if (validatedData.color !== undefined) updateData.color = validatedData.color;
+    if (validatedData.icon !== undefined) updateData.icon = validatedData.icon;
+    if (validatedData.order !== undefined) updateData.order = validatedData.order;
+    if (validatedData.active !== undefined) updateData.active = validatedData.active;
+    if (validatedData.parentId !== undefined) updateData.parentId = validatedData.parentId || null;
+
+    const updatedCategory = await prisma.category.update({
       where: { id },
-      data: {
-        name: data.name,
-        slug: data.slug,
-        description: data.description !== undefined ? (data.description || null) : undefined,
-        image: data.image !== undefined ? (data.image || null) : undefined,
-        color: data.color !== undefined ? (data.color || null) : undefined,
-        icon: data.icon !== undefined ? (data.icon || null) : undefined,
-        order: data.order !== undefined ? parseInt(String(data.order)) : undefined,
-        active: data.active !== undefined ? data.active : undefined,
-        // Allow explicit null to unset parent; omit field if not provided
-        ...(data.parentId !== undefined && { parentId: data.parentId || null }),
-      },
+      data: updateData,
     });
 
-    return NextResponse.json({ success: true, category });
+    return apiSuccess({ success: true, category: updatedCategory });
   } catch (error) {
-    console.error("Error updating category:", error);
-    return NextResponse.json({ error: "Erro ao atualizar categoria" }, { status: 500 });
+    return handleApiError(error);
   }
 }
 
@@ -71,7 +137,12 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // Protect against deletion if category has products
+    const category = await prisma.category.findUnique({ where: { id } });
+    if (!category) {
+      return notFound("Categoria não encontrada.");
+    }
+
+    // Protect against deletion if category has products or subcategories
     const [productCatCount, directProductCount, childrenCount] = await Promise.all([
       prisma.productCategory.count({ where: { categoryId: id } }),
       prisma.product.count({ where: { categoryId: id } }),
@@ -79,24 +150,21 @@ export async function DELETE(
     ]);
 
     if (productCatCount + directProductCount > 0) {
-      return NextResponse.json(
-        { error: "Não é possível excluir uma categoria que possui produtos vinculados. Remova os produtos primeiro ou inative a categoria." },
-        { status: 409 }
+      return conflict(
+        "Não é possível excluir uma categoria que possui produtos vinculados. Remova os produtos primeiro ou inative a categoria."
       );
     }
 
     if (childrenCount > 0) {
-      return NextResponse.json(
-        { error: "Não é possível excluir uma categoria que possui subcategorias. Exclua as subcategorias primeiro." },
-        { status: 409 }
+      return conflict(
+        "Não é possível excluir uma categoria que possui subcategorias. Exclua as subcategorias primeiro."
       );
     }
 
     await prisma.category.delete({ where: { id } });
 
-    return NextResponse.json({ success: true });
+    return apiSuccess({ success: true });
   } catch (error) {
-    console.error("Error deleting category:", error);
-    return NextResponse.json({ error: "Erro ao excluir categoria" }, { status: 500 });
+    return handleApiError(error);
   }
 }

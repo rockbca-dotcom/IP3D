@@ -61,6 +61,8 @@ export interface PreparedCheckout {
 export interface ProviderCheckoutResponse {
   redirectUrl: string;
   providerOrderId?: string | null;
+  initPoint?: string;
+  sandboxInitPoint?: string;
 }
 
 export interface PaymentProvider {

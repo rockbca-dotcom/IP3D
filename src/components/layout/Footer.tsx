@@ -100,10 +100,10 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ duration: 0.5 }}
             >
-              <Link href="/" className="inline-block mb-6">
+              <Link href="/" className="inline-block mb-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded-md p-1">
                 <Image
                   src={logoUrl}
-                  alt="Logo"
+                  alt="IP3D - Tecnologia em Impressão 3D"
                   width={120}
                   height={48}
                   className="mb-2"
@@ -120,20 +120,20 @@ export function Footer() {
               <div className="space-y-3">
                 <a
                   href={`mailto:${contactEmail}`}
-                  className="flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-colors text-lg"
+                  className="flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-colors text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded p-0.5"
                 >
-                  <HiOutlineMail className="w-5 h-5" />
+                  <HiOutlineMail className="w-5 h-5" aria-hidden="true" />
                   {contactEmail}
                 </a>
                 <a
                   href={`tel:${contactPhone.replace(/\D/g, "")}`}
-                  className="flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-colors text-lg"
+                  className="flex items-center gap-3 text-gray-600 hover:text-gray-900 transition-colors text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded p-0.5"
                 >
-                  <HiOutlinePhone className="w-5 h-5" />
+                  <HiOutlinePhone className="w-5 h-5" aria-hidden="true" />
                   {contactPhone}
                 </a>
                 <div className="flex items-center gap-3 text-gray-600 text-lg">
-                  <HiOutlineLocationMarker className="w-5 h-5 shrink-0" />
+                  <HiOutlineLocationMarker className="w-5 h-5 shrink-0" aria-hidden="true" />
                   {contactCity}
                 </div>
               </div>
@@ -160,14 +160,15 @@ export function Footer() {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-600 hover:text-gray-900 transition-colors text-lg"
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded p-0.5"
+                        aria-label={`${link.label} (abre em nova guia)`}
                       >
                         {link.label}
                       </a>
                     ) : (
                       <Link
                         href={link.href}
-                        className="text-gray-600 hover:text-gray-900 transition-colors text-lg"
+                        className="text-gray-600 hover:text-gray-900 transition-colors text-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black rounded p-0.5"
                       >
                         {link.label}
                       </Link>
@@ -200,10 +201,10 @@ export function Footer() {
                     rel="noopener noreferrer"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
-                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:border-gray-900 transition-colors"
-                    aria-label={social.platform}
+                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:border-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black"
+                    aria-label={`Acessar nosso perfil do ${social.platform} (abre em nova guia)`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="w-4 h-4" aria-hidden="true" />
                   </motion.a>
                 );
               })}

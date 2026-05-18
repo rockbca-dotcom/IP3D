@@ -1,131 +1,109 @@
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { generateOrderCode } from "@/lib/utils";
-import type {
-  CheckoutItemInput,
-  CheckoutPayload,
-  CheckoutShipping,
-  PreparedCheckout,
-  PreparedOrderItem,
-} from "@/lib/payments/types";
 
-class CheckoutError extends Error {
+// Schema de validação para o checkout
+export const checkoutSchema = z.object({
+  items: z.array(z.object({
+    productId: z.string().uuid("ID de produto inválido"),
+    quantity: z.number().int().positive("A quantidade deve ser maior que zero"),
+  })).min(1, "O carrinho não pode estar vazio"),
+  customer: z.object({
+    name: z.string().min(2, "Nome muito curto").trim(),
+    email: z.string().email("E-mail inválido").trim().toLowerCase(),
+    phone: z.string().optional(),
+  }),
+  shipping: z.object({
+    cep: z.string().length(8, "CEP deve ter 8 dígitos"),
+    price: z.number().nonnegative("Preço do frete inválido"),
+    serviceCode: z.string().min(1, "Código do serviço é obrigatório"),
+    serviceName: z.string().min(1, "Nome do serviço é obrigatório"),
+    deliveryDays: z.number().optional(),
+    address: z.object({
+      street: z.string().min(1, "Rua é obrigatória").trim(),
+      number: z.string().min(1, "Número é obrigatório").trim(),
+      complement: z.string().optional(),
+      city: z.string().min(1, "Cidade é obrigatória").trim(),
+      state: z.string().length(2, "UF inválida").trim().toUpperCase(),
+    })
+  })
+});
+
+// ---------------------------------------------------------------------------
+
+export class CheckoutError extends Error {
   status: number;
+  code: string;
 
-  constructor(message: string, status = 400) {
+  constructor(message: string, status = 400, code = "CHECKOUT_ERROR") {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
+export async function prepareCheckout(payload: unknown) {
+  // 1. Validação estrutural inicial (Zod)
+  const validated = checkoutSchema.parse(payload);
+  const { items, customer, shipping } = validated;
 
-function normalizeItems(items: CheckoutItemInput[]) {
-  const grouped = new Map<string, number>();
-
+  // 2. Normalização de itens (agrupar duplicados)
+  const groupedItems = new Map<string, number>();
   for (const item of items) {
-    if (!item?.productId) continue;
-    const quantity = Number.isFinite(item.quantity) ? Math.floor(item.quantity) : 0;
-    if (quantity <= 0) continue;
-    grouped.set(item.productId, (grouped.get(item.productId) || 0) + quantity);
+    groupedItems.set(item.productId, (groupedItems.get(item.productId) || 0) + item.quantity);
   }
+  const normalizedItems = Array.from(groupedItems.entries()).map(([productId, quantity]) => ({ productId, quantity }));
 
-  return Array.from(grouped.entries()).map(([productId, quantity]) => ({ productId, quantity }));
-}
-
-function getShippingPrice(shipping: CheckoutShipping) {
-  const parsedPrice = Number(shipping.price);
-  return Number.isFinite(parsedPrice) ? parsedPrice : NaN;
-}
-
-function validateShipping(shipping: CheckoutShipping | undefined) {
-  if (!shipping) return "Frete nao informado.";
-
-  const hasAddress =
-    shipping.cep &&
-    shipping.address?.street &&
-    shipping.address?.number &&
-    shipping.address?.city &&
-    shipping.address?.state;
-
-  if (!hasAddress) return "Endereco incompleto para calcular frete.";
-  if (!shipping.serviceCode || !shipping.serviceName) return "Opcao de frete invalida.";
-
-  const shippingPrice = getShippingPrice(shipping);
-  if (!Number.isFinite(shippingPrice) || shippingPrice <= 0) return "Valor de frete invalido.";
-
-  return null;
-}
-
-export async function prepareCheckout(payload: CheckoutPayload): Promise<PreparedCheckout> {
-  const { items, customer, shipping } = payload;
-  const normalizedItems = normalizeItems(items || []);
-
-  if (!normalizedItems.length) throw new CheckoutError("Itens nao enviados.");
-  if (!customer?.name?.trim() || !customer?.email?.trim()) {
-    throw new CheckoutError("Nome e e-mail sao obrigatorios.");
-  }
-  if (!isValidEmail(customer.email)) throw new CheckoutError("E-mail invalido.");
-
-  const shippingValidationError = validateShipping(shipping);
-  if (shippingValidationError) throw new CheckoutError(shippingValidationError);
-
-  const shippingCost = getShippingPrice(shipping);
+  // 3. Validação de negócio (Estoque e Preços)
   const productIds = normalizedItems.map((item) => item.productId);
   const products = await prisma.product.findMany({
     where: { id: { in: productIds } },
   });
+  
   const productById = new Map(products.map((product) => [product.id, product]));
 
   if (products.length !== productIds.length) {
-    throw new CheckoutError("Um ou mais produtos nao foram encontrados.", 404);
+    throw new CheckoutError("Um ou mais produtos não foram encontrados.", 404, "PRODUCT_NOT_FOUND");
   }
 
-  const orderItems: PreparedOrderItem[] = normalizedItems.map((item) => {
-    const product = productById.get(item.productId);
-    if (!product) throw new CheckoutError(`Produto nao encontrado: ${item.productId}`, 404);
-
+  const orderItems = normalizedItems.map((item) => {
+    const product = productById.get(item.productId)!;
     const unitPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice;
-    if (!unitPrice) throw new CheckoutError(`Produto sem preco: ${product.name}`);
+    
+    if (!unitPrice) throw new CheckoutError(`Produto sem preço: ${product.name}`);
     if ((product.stockQuantity ?? 0) < item.quantity) {
-      throw new CheckoutError(`Estoque insuficiente para ${product.name}.`);
+      throw new CheckoutError(`Estoque insuficiente para ${product.name}.`, 409, "OUT_OF_STOCK");
     }
 
-    const lineTotal = Number(unitPrice) * item.quantity;
-
     return {
-      product: {
-        id: product.id,
-        name: product.name,
-        slug: product.slug,
-      },
+      product: { id: product.id, name: product.name, slug: product.slug },
       quantity: item.quantity,
       unitPrice: Number(unitPrice),
-      lineTotal,
+      lineTotal: Number(unitPrice) * item.quantity,
     };
   });
 
+  const { env } = await import("@/lib/env");
   const subtotal = orderItems.reduce((sum, item) => sum + item.lineTotal, 0);
-  const total = subtotal + shippingCost;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "http://localhost:3003";
+  const total = subtotal + shipping.price;
 
+  // 4. Criação do pedido (DB)
   const order = await prisma.order.create({
     data: {
       code: generateOrderCode(),
-      customerName: customer.name.trim(),
-      customerEmail: customer.email.trim(),
-      customerPhone: customer.phone?.trim() || null,
-      shippingStreet: shipping.address.street.trim(),
-      shippingNumber: shipping.address.number.trim(),
-      shippingCity: shipping.address.city.trim(),
-      shippingState: shipping.address.state.trim(),
-      shippingZip: shipping.cep.replace(/\D/g, ""),
-      notes: `Frete: ${shipping.serviceName} (${shipping.serviceCode}) - prazo estimado ${shipping.deliveryDays} dia(s).${
+      customerName: customer.name,
+      customerEmail: customer.email,
+      customerPhone: customer.phone || null,
+      shippingStreet: shipping.address.street,
+      shippingNumber: shipping.address.number,
+      shippingCity: shipping.address.city,
+      shippingState: shipping.address.state,
+      shippingZip: shipping.cep,
+      notes: `Frete: ${shipping.serviceName} (${shipping.serviceCode})${
         shipping.address.complement ? ` Complemento: ${shipping.address.complement}` : ""
       }`,
       subtotal,
-      shippingCost,
+      shippingCost: shipping.price,
       total,
       paymentStatus: "PAYMENT_PENDING",
       status: "PENDING",
@@ -143,31 +121,33 @@ export async function prepareCheckout(payload: CheckoutPayload): Promise<Prepare
   });
 
   return {
-    order: {
-      id: order.id,
-      code: order.code,
-      subtotal,
-      shippingCost,
-      total,
-    },
+    order: { id: order.id, code: order.code, subtotal, shippingCost: shipping.price, total },
     items: orderItems,
-    customer: {
-      name: customer.name.trim(),
-      email: customer.email.trim(),
-      phone: customer.phone?.trim(),
-    },
+    customer,
     shipping,
-    siteUrl,
+    siteUrl: env.NEXT_PUBLIC_SITE_URL,
   };
 }
 
 export function toCheckoutErrorResponse(error: unknown) {
   if (error instanceof CheckoutError) {
-    return { status: error.status, message: error.message };
+    return {
+      message: error.message,
+      status: error.status,
+    };
   }
-
+  
+  if (error instanceof z.ZodError) {
+    return {
+      message: error.errors[0]?.message || "Dados de checkout inválidos.",
+      status: 400,
+    };
+  }
+  
   return {
+    message: error instanceof Error ? error.message : "Erro interno no checkout.",
     status: 500,
-    message: error instanceof Error ? error.message : "Erro ao iniciar o checkout.",
   };
 }
+
+

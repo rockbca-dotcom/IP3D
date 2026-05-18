@@ -1,29 +1,35 @@
 import nodemailer from "nodemailer";
+import { env } from "@/lib/env";
 
 const WEB3FORMS_ENDPOINT = process.env.WEB3FORMS_ENDPOINT || "https://api.web3forms.com/submit";
-const WEB3FORMS_ACCESS_KEY = process.env.WEB3FORMS_ACCESS_KEY;
+const WEB3FORMS_ACCESS_KEY = env.WEB3FORMS_ACCESS_KEY;
 
-const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : undefined;
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
-const SMTP_FROM = process.env.SMTP_FROM || process.env.SMTP_USER;
-const SALES_NOTIFICATION_EMAIL =
-  process.env.SALES_NOTIFICATION_EMAIL || process.env.NOTIFICATION_EMAIL || process.env.SMTP_TO;
+const SMTP_HOST = env.SMTP_HOST;
+const SMTP_PORT = env.SMTP_PORT;
+const SMTP_USER = env.SMTP_USER;
+const SMTP_PASS = env.SMTP_PASS;
+const SMTP_FROM = env.SMTP_FROM;
+const SALES_NOTIFICATION_EMAIL = env.SALES_NOTIFICATION_EMAIL;
 
 interface NotificationPayload {
   subject: string;
   message: string;
   customerName?: string;
   customerEmail?: string;
+  to?: string;
 }
 
 function hasSmtpConfig() {
-  return Boolean(SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM && SALES_NOTIFICATION_EMAIL);
+  return Boolean(SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM);
 }
 
 async function sendSmtpNotification(payload: NotificationPayload) {
   if (!hasSmtpConfig()) {
+    return false;
+  }
+
+  const recipient = payload.to || SALES_NOTIFICATION_EMAIL;
+  if (!recipient) {
     return false;
   }
 
@@ -40,7 +46,7 @@ async function sendSmtpNotification(payload: NotificationPayload) {
 
     await transporter.sendMail({
       from: SMTP_FROM,
-      to: SALES_NOTIFICATION_EMAIL,
+      to: recipient,
       replyTo: payload.customerEmail || undefined,
       subject: payload.subject,
       text: payload.message,
@@ -58,6 +64,8 @@ async function sendWeb3FormsNotification(payload: NotificationPayload) {
     return false;
   }
 
+  const recipientEmail = payload.to || payload.customerEmail || "no-reply@ip3d.com.br";
+
   try {
     const response = await fetch(WEB3FORMS_ENDPOINT, {
       method: "POST",
@@ -69,7 +77,7 @@ async function sendWeb3FormsNotification(payload: NotificationPayload) {
         access_key: WEB3FORMS_ACCESS_KEY,
         from_name: payload.customerName || "IP3D",
         subject: payload.subject,
-        email: payload.customerEmail || "no-reply@ip3d.com.br",
+        email: recipientEmail,
         message: payload.message,
       }),
     });

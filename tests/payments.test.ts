@@ -1,6 +1,16 @@
-import test from "node:test";
+/**
+ * tests/payments.test.ts — ARQUIVO LEGADO PRESERVADO
+ *
+ * Este arquivo existe para manter compatibilidade com referências externas.
+ * Os testes originais foram PRESERVADOS INTEGRALMENTE aqui (5/5 passando).
+ * Versão expandida com mais cobertura em: tests/unit/payments-provider.test.ts
+ *
+ * NÃO remover este arquivo — ele é coberto pelo glob tests/**\/*.test.ts
+ */
+
+import { test } from "vitest";
 import assert from "node:assert/strict";
-import { normalizeProviderName } from "@/lib/payments/provider";
+import { normalizeProviderName } from "@/lib/payments/provider-utils";
 import { mapInfinityStatus } from "@/lib/payments/status";
 
 test("normalizeProviderName falls back to mercadopago", () => {

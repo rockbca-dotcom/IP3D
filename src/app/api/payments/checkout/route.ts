@@ -1,30 +1,177 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prepareCheckout, toCheckoutErrorResponse } from "@/lib/payments/checkout";
+import { NextRequest } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { env } from "@/lib/env";
+import { prepareCheckout } from "@/lib/payments/checkout";
 import { getPaymentProvider, getPaymentProviderName } from "@/lib/payments/provider";
+import { handleApiError, apiSuccess, apiError } from "@/lib/api-utils";
+import { z } from "zod";
+
+const orderIdSchema = z.object({
+  orderId: z.string().min(1, "ID do pedido é obrigatório"),
+});
 
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
+
+    // Se o payload contiver orderId, usamos o fluxo de pedido existente (Flow B)
+    if (payload && typeof payload === "object" && "orderId" in payload) {
+      // 1. Validar orderId com Zod
+      const parsed = orderIdSchema.parse(payload);
+      const { orderId } = parsed;
+
+      const providerName = getPaymentProviderName();
+
+      // 2. Verificar se o provider ativo está habilitado por env
+      if (providerName === "mercadopago" && !env.MERCADO_PAGO_ACCESS_TOKEN) {
+        return apiError("Token de acesso do Mercado Pago não configurado.", "PROVIDER_NOT_CONFIGURED", 500);
+      }
+
+      // 3. Buscar pedido no banco de dados
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: true },
+      });
+
+      if (!order) {
+        return apiError("Pedido solicitado não encontrado.", "NOT_FOUND", 404);
+      }
+
+      // 4. Validar status do pedido
+      if (order.status !== "PENDING" || order.paymentStatus !== "PAYMENT_PENDING") {
+        return apiError("Este pedido já foi pago ou cancelado.", "CONFLICT", 409);
+      }
+
+      // 5. Validar se o pedido possui itens
+      if (order.items.length === 0) {
+        return apiError("O pedido não possui itens.", "CONFLICT", 409);
+      }
+
+      // 6. Extrair detalhes do frete dos notes
+      const notesStr = order.notes || "";
+      let serviceName = "Padrão";
+      let serviceCode = "STANDARD";
+      let complement: string | null = null;
+      let neighborhood = "";
+
+      if (notesStr.startsWith("Frete: ")) {
+        const match = notesStr.match(/^Frete:\s*([^|]+)/);
+        if (match) {
+          const fullService = match[1].trim();
+          const parensMatch = fullService.match(/^([^\(]+)\s*\(([^)]+)\)/);
+          if (parensMatch) {
+            serviceName = parensMatch[1].trim();
+            serviceCode = parensMatch[2].trim();
+          } else {
+            serviceName = fullService;
+            serviceCode = fullService;
+          }
+        }
+        
+        const compMatch = notesStr.match(/Complemento:\s*([^|]+)/);
+        if (compMatch) {
+          complement = compMatch[1].trim();
+        }
+        const neighMatch = notesStr.match(/Bairro:\s*([^|]+)/);
+        if (neighMatch) {
+          neighborhood = neighMatch[1].trim();
+        }
+      }
+
+      // 7. Mapear para PreparedCheckout
+      const prepared = {
+        order: {
+          id: order.id,
+          code: order.code,
+          subtotal: Number(order.subtotal),
+          shippingCost: Number(order.shippingCost || 0),
+          total: Number(order.total),
+        },
+        items: order.items.map((item) => ({
+          product: {
+            id: item.productId,
+            name: item.name,
+            slug: item.sku || "",
+          },
+          quantity: item.quantity,
+          unitPrice: Number(item.unitPrice),
+          lineTotal: Number(item.total),
+        })),
+        customer: {
+          name: order.customerName,
+          email: order.customerEmail,
+          phone: order.customerPhone || undefined,
+        },
+        shipping: {
+          cep: order.shippingZip || "",
+          serviceCode,
+          serviceName,
+          deliveryDays: 0,
+          price: Number(order.shippingCost || 0),
+          address: {
+            street: order.shippingStreet || "",
+            number: order.shippingNumber || "",
+            neighborhood,
+            city: order.shippingCity || "",
+            state: order.shippingState || "",
+            complement,
+          },
+        },
+        siteUrl: env.NEXT_PUBLIC_SITE_URL,
+      };
+
+      // 8. Chamar o provedor de pagamentos selecionado
+      const provider = getPaymentProvider();
+      const checkout = await provider.createCheckout(prepared);
+
+      const isProd = env.NODE_ENV === "production";
+      const checkoutUrl = isProd 
+        ? (checkout.initPoint || checkout.sandboxInitPoint || checkout.redirectUrl)
+        : (checkout.sandboxInitPoint || checkout.initPoint || checkout.redirectUrl);
+
+      return apiSuccess({
+        provider: providerName,
+        redirectUrl: checkoutUrl,
+        orderCode: order.code,
+        subtotal: prepared.order.subtotal,
+        shippingCost: prepared.order.shippingCost,
+        total: prepared.order.total,
+        providerOrderId: checkout.providerOrderId ?? null,
+        orderId: order.id,
+        initPoint: checkout.initPoint || "",
+        sandboxInitPoint: checkout.sandboxInitPoint || "",
+      });
+    }
+
+    // Se NÃO contiver orderId, usamos o fluxo legado (criação dinâmica do pedido)
+    // Para manter retrocompatibilidade absoluta e garantir que nenhum teste legado quebre.
     const prepared = await prepareCheckout(payload);
+    
     const providerName = getPaymentProviderName();
     const provider = getPaymentProvider();
     const checkout = await provider.createCheckout(prepared);
 
     if (!checkout.redirectUrl) {
-      return NextResponse.json({ error: "Nao foi possivel gerar o link de pagamento." }, { status: 500 });
+      return apiError("Não foi possível gerar o link de pagamento.", "PROVIDER_ERROR", 500);
     }
 
-    return NextResponse.json({
+    const isProd = env.NODE_ENV === "production";
+    const checkoutUrl = isProd 
+      ? (checkout.initPoint || checkout.sandboxInitPoint || checkout.redirectUrl)
+      : (checkout.sandboxInitPoint || checkout.initPoint || checkout.redirectUrl);
+
+    return apiSuccess({
       provider: providerName,
-      redirectUrl: checkout.redirectUrl,
+      redirectUrl: checkoutUrl,
       orderCode: prepared.order.code,
       subtotal: prepared.order.subtotal,
       shippingCost: prepared.order.shippingCost,
       total: prepared.order.total,
       providerOrderId: checkout.providerOrderId ?? null,
+      initPoint: checkout.initPoint || checkout.redirectUrl || "",
+      sandboxInitPoint: checkout.sandboxInitPoint || "",
     });
   } catch (error) {
-    const checkoutError = toCheckoutErrorResponse(error);
-    return NextResponse.json({ error: checkoutError.message }, { status: checkoutError.status });
+    return handleApiError(error);
   }
 }
