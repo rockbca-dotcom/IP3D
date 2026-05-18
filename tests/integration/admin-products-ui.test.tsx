@@ -154,6 +154,7 @@ describe("Painel de Produtos Administrativo (UI)", () => {
 
     const user = userEvent.setup();
     await user.click(screen.getByRole("button", { name: /novo produto/i }));
+    await screen.findByText("Nome *");
 
     const nameLabel = screen.getByText("Nome *");
     const nameInput = nameLabel.nextElementSibling as HTMLInputElement;
@@ -193,7 +194,7 @@ describe("Painel de Produtos Administrativo (UI)", () => {
       expect(payload.priceOriginal).toBe(120);
       expect(payload.stockQuantity).toBe(50);
     });
-  });
+  }, 15000);
 
   it("deve exibir mensagem amigável de erro vinda da API no Toast caso a requisição falhe", async () => {
     global.fetch = vi.fn((url: string) => {

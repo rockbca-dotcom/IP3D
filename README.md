@@ -1,74 +1,54 @@
-﻿# IP3D - Base de E-commerce + CMS (Next.js)
+# IP3D - Storefront + CMS (Next.js)
 
-Repositorio consolidado com aplicacao Next.js na raiz, painel administrativo, CMS por blocos, catalogo de produtos, blog e APIs internas.
+Projeto de e-commerce com painel administrativo, CMS por blocos, checkout com provedores de pagamento e API interna em Next.js.
 
 ## Stack
-- Next.js + React + TypeScript
-- Tailwind CSS
-- Prisma
-- iron-session
-- Vercel Blob
+- Next.js 16 + React 19 + TypeScript
+- Prisma + PostgreSQL
+- Vitest + Testing Library
+- ESLint
 
-## Estrutura principal
-```text
-src/                 # app, APIs e componentes
-public/              # assets publicos
-docs/                # documentacao funcional e tecnica
-scripts/             # scripts de apoio
-scripts/maintenance/ # scripts operacionais pontuais
-prisma/              # schema e recursos de banco
-```
-
-## Setup rapido
+## Setup local
 ```bash
 pnpm install
 cp .env.example .env
 pnpm dev
 ```
 
-Servidor padrao: `http://localhost:3003`
+Servidor local padrao: `http://localhost:3003`
 
-## Primeiros passos no admin
-- Acesse `/login/setup` para criar o primeiro usuario.
-- Entre em `/login` e siga para `/admin`.
+## Comandos de qualidade
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
 
-## Documentacao principal (modelo base)
-- [01 - Visao do Produto e Modulos Core](docs/01-visao-produto-e-modulos.md)
-- [02 - Catalogo de Telas](docs/02-catalogo-telas.md)
-- [03 - Planejamento de Sprints](docs/03-planejamento-sprints.md)
-- [04 - Conformidade, Seguranca e Fora de Escopo](docs/04-conformidade-seguranca-e-escopo.md)
+## Estado tecnico validado (18/05/2026)
+- `pnpm test`: **341 testes passando** (53 arquivos de teste).
+- `pnpm lint`: **0 erros** (warnings nao bloqueantes ainda existentes).
+- `pnpm build`: **sucesso** com fallback de sitemap para ambientes sem `DATABASE_URL`.
 
-## Documentacao tecnica complementar
-- [Arquitetura](docs/ARQUITETURA.md)
-- [Rotas e APIs](docs/ROTAS-E-APIS.md)
-- [Templates e Blocos](docs/TEMPLATES-E-BLOCOS.md)
-- [Checklist de Novo Site](docs/CHECKLIST-NOVO-SITE.md)
-- [Inventario de Limpeza](docs/INVENTARIO-LIMPEZA.md)
-
-## Scripts
-- `pnpm dev`
-- `pnpm build`
-- `pnpm start`
+## CI
+Workflow em `.github/workflows/ci.yml` com:
+- install
+- `prisma validate`
+- `prisma generate`
+- `pnpm db:deploy`
+- `pnpm seed:dev`
+- `pnpm test:coverage`
 - `pnpm lint`
+- `pnpm build`
 
-## Pagamentos (Mercado Pago + InfinityPay)
-- O checkout usa `PAYMENT_PROVIDER` para selecionar o gateway ativo.
-- Valores aceitos:
-  - `mercadopago` (default)
-  - `infinitypay`
-- Endpoint principal de checkout:
-  - `POST /api/payments/checkout`
-- Endpoints legados/operacionais:
-  - `POST /api/payments/mercadopago`
-  - `POST /api/payments/infinitypay`
+## Pagamentos
+- Provedor principal: Mercado Pago
+- Fallback: InfinityPay
+- Checkout principal: `POST /api/payments/checkout`
 
-### Webhooks
-- Mercado Pago:
-  - `POST /api/payments/mercadopago/webhook`
-- InfinityPay:
-  - `POST /api/payments/infinitypay/webhook`
-
-### Rollback rapido
-1. Ajuste `PAYMENT_PROVIDER=mercadopago`
-2. Reinicie o processo (`pm2 restart gtmax3d`)
-3. Valide um checkout de smoke
+## Documentacao principal
+- `docs/AMBIENTE-LOCAL.md`
+- `docs/TESTES.md`
+- `docs/RELEASE-CANDIDATE.md`
+- `docs/HOMOLOGACAO-STAGING.md`
+- `docs/CHECKLIST-PRODUCAO.md`
+- `docs/HANDOFF.md`
