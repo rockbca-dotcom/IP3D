@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3003";
+  const canUseDatabase = Boolean(process.env.DATABASE_URL);
 
   // Páginas públicas fundamentais do storefront
   const staticPages: MetadataRoute.Sitemap = [
@@ -13,6 +14,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/contato`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${baseUrl}/personalizados`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
   ];
+
+  if (!canUseDatabase) {
+    console.warn("Sitemap: DATABASE_URL ausente, retornando apenas páginas estáticas.");
+    return staticPages;
+  }
 
   let productPages: MetadataRoute.Sitemap = [];
   try {
@@ -26,8 +32,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     }));
-  } catch (e) {
-    console.error("Erro ao buscar produtos para sitemap:", e);
+  } catch (error) {
+    console.error("Erro ao buscar produtos para sitemap:", error);
   }
 
   let categoryPages: MetadataRoute.Sitemap = [];
@@ -42,8 +48,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly" as const,
       priority: 0.8,
     }));
-  } catch (e) {
-    console.error("Erro ao buscar categorias para sitemap:", e);
+  } catch (error) {
+    console.error("Erro ao buscar categorias para sitemap:", error);
   }
 
   let cmsPages: MetadataRoute.Sitemap = [];
@@ -58,8 +64,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.6,
     }));
-  } catch (e) {
-    console.error("Erro ao buscar paginas CMS para sitemap:", e);
+  } catch (error) {
+    console.error("Erro ao buscar paginas CMS para sitemap:", error);
   }
 
   return [...staticPages, ...productPages, ...categoryPages, ...cmsPages];
