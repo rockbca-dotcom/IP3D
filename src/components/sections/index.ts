@@ -3,3 +3,5 @@ export { FeaturedProducts } from "./FeaturedProducts";
 export { WhyChooseUs } from "./WhyChooseUs";
 export { CatalogCTA } from "./CatalogCTA";
 export { MaintenancePreview } from "./MaintenancePreview";
+
+export { PageHero } from "./PageHero";
