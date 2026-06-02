@@ -68,4 +68,17 @@ describe("validateEnv", () => {
     const config = validateEnv();
     expect(config.DATABASE_URL).toBe("");
   });
+
+  it("singleton env tolera imports globais com envs ausentes em produção", async () => {
+    process.env.NODE_ENV = "production";
+    delete process.env.DATABASE_URL;
+    delete process.env.MERCADO_PAGO_ACCESS_TOKEN;
+
+    vi.resetModules();
+    const mod = await import("@/lib/env");
+
+    expect(mod.env.NODE_ENV).toBe("production");
+    expect(mod.env.DATABASE_URL).toBe("");
+    expect(mod.env.MERCADO_PAGO_ACCESS_TOKEN).toBeUndefined();
+  });
 });

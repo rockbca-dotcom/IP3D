@@ -47,15 +47,17 @@ interface EnvConfig {
  * Valida e extrai as variáveis de ambiente.
  * Lança erro em caso de inconsistência crítica.
  */
-export function validateEnv(): EnvConfig {
+function buildEnvConfig(options?: { strict?: boolean }): EnvConfig {
+  const strict = options?.strict ?? true;
   const nodeEnv = (process.env.NODE_ENV || "development") as EnvConfig["NODE_ENV"];
   const isProd = nodeEnv === "production";
   const isTest = nodeEnv === "test";
   const isBuild = process.env.NEXT_PHASE === "phase-production-build";
+  const allowMissing = !strict || isTest || isBuild;
 
   // Helpers de erro
   const missing = (key: string) => {
-    if (isTest || isBuild) return ""; // Não trava testes unitários ou build
+    if (allowMissing) return ""; // Não trava testes, build ou imports globais tolerantes
     throw new Error(`❌ Variável de ambiente obrigatória ausente: ${key}`);
   };
 
@@ -65,10 +67,10 @@ export function validateEnv(): EnvConfig {
   const NEXT_PUBLIC_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
   // Validação SESSION_SECRET (Segurança)
-  if (!isTest && !isBuild && SESSION_SECRET.length < 32) {
+  if (strict && !isTest && !isBuild && SESSION_SECRET.length < 32) {
     throw new Error("❌ SESSION_SECRET deve ter pelo menos 32 caracteres para garantir a segurança da sessão.");
   }
-  if (isProd && (
+  if (strict && isProd && (
     SESSION_SECRET === "super-secret-placeholder" || 
     SESSION_SECRET === "CHANGE_ME_IN_PRODUCTION" ||
     SESSION_SECRET === "CHANGE_ME_IN_PRODUCTION_MUST_BE_32_CHARS"
@@ -88,7 +90,7 @@ export function validateEnv(): EnvConfig {
   const INFINITYPAY_WEBHOOK_SECRET = process.env.INFINITYPAY_WEBHOOK_SECRET;
 
   // Validação condicional por Provider
-  if (!isTest && !isBuild) {
+  if (strict && !isTest && !isBuild) {
     if (PAYMENT_PROVIDER === "mercadopago") {
       if (!MERCADO_PAGO_ACCESS_TOKEN) missing("MERCADO_PAGO_ACCESS_TOKEN");
     } else if (PAYMENT_PROVIDER === "infinitypay") {
@@ -126,5 +128,11 @@ export function validateEnv(): EnvConfig {
   };
 }
 
-// Singleton tipado para uso no servidor
-export const env = validateEnv();
+export function validateEnv(): EnvConfig {
+  return buildEnvConfig({ strict: true });
+}
+
+// Singleton tipado para uso no servidor.
+// Deve ser tolerante para não derrubar imports globais, páginas públicas,
+// middleware ou deploys inteiros por causa de envs opcionais/feature-specific.
+export const env = buildEnvConfig({ strict: false });
