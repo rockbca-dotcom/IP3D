@@ -28,14 +28,22 @@ export const defaultSession: SessionData = {
 // anyone who reads the source to forge valid admin session cookies.
 // ---------------------------------------------------------------------------
 
-import { env } from "@/lib/env";
+// IMPORTANT: this module is imported by src/middleware.ts, which runs in the
+// Edge runtime on every request. Do NOT import the global env validator here:
+// it requires unrelated server-only variables (DATABASE_URL, payment creds, etc.)
+// and can crash the middleware at module-evaluation time, turning a missing env
+// into a site-wide 500 (MIDDLEWARE_INVOCATION_FAILED).
+//
+// Keep this file limited to the session vars required by auth itself.
+const sessionSecret = process.env.SESSION_SECRET ?? "";
+const isProduction = process.env.NODE_ENV === "production";
 
 export const sessionOptions: SessionOptions = {
-  password: env.SESSION_SECRET,
+  password: sessionSecret,
   cookieName: "ip3d-admin-session",
   cookieOptions: {
     // secure: true only in production (HTTPS required)
-    secure: env.NODE_ENV === "production",
+    secure: isProduction,
     // httpOnly: prevent client-side JS access
     httpOnly: true,
     // sameSite: "lax" protects against CSRF while allowing some cross-site nav
