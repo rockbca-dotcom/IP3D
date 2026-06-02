@@ -989,7 +989,7 @@ function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
     <section className="pt-32 pb-20 text-white relative overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src={(content.image as string) || "/images/pesonalizados-hero.jpg"}
+          src={(content.image as string) || "/images/hero/1.jpg"}
           alt={(content.title as string) || "Contato IP3D"}
           fill
           priority

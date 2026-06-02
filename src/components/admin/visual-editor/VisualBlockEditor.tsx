@@ -1255,7 +1255,7 @@ function ContactHeroEditor({ content, onChange }: { content: Record<string, unkn
         label="Imagem de fundo"
         value={(content.image as string) || ""}
         onChange={(v) => onChange({ ...content, image: v })}
-        placeholder="/images/pesonalizados-hero.jpg"
+        placeholder="/images/hero/1.jpg"
       />
       <InputField
         label="Overlay escuro (0-100)"

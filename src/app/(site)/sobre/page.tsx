@@ -148,7 +148,7 @@ export default function SobrePage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20 lg:pb-32 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
+      <section className="pt-32 pb-20 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image

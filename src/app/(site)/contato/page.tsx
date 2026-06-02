@@ -185,7 +185,7 @@ function ContatoContent() {
       <section className="pt-32 pb-20 text-white relative overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/pesonalizados-hero.jpg"
+            src="/images/hero/1.jpg"
             alt="Contato IP3D"
             fill
             priority
