@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { HiArrowRight, HiPlay, HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { addToCart } from "@/lib/cart";
-import { WhyChooseUs, MaintenancePreview, CatalogCTA } from "@/components/sections";
 
 
 function isExternalUrl(value?: string | null) {
@@ -1330,25 +1329,6 @@ export function HomeShowcase({
             })}
         </div>
       </section>
-
-      {/* Dynamic CMS Home Sections */}
-      {homeSections && homeSections.length > 0 && (
-        <div className="space-y-0">
-          {homeSections.map((section) => {
-            if (!section.active) return null;
-            if (section.sectionId === "why-choose-us") {
-              return <WhyChooseUs key={section.id} initialData={section} />;
-            }
-            if (section.sectionId === "maintenance-preview") {
-              return <MaintenancePreview key={section.id} initialData={section} />;
-            }
-            if (section.sectionId === "catalog-cta") {
-              return <CatalogCTA key={section.id} initialData={section} />;
-            }
-            return null;
-          })}
-        </div>
-      )}
 
       <section className="w-full bg-white py-10">
 
