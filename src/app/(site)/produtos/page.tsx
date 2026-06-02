@@ -8,6 +8,7 @@ import { motion, useInView } from "framer-motion";
 import { HiArrowRight, HiOutlineViewGrid, HiOutlineViewList, HiOutlineSearch, HiX } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/site/ProductCard";
+import { PageHero } from "@/components/sections";
 
 function stripHtml(html: string): string {
   if (!html) return "";
@@ -146,7 +147,7 @@ function ProductsContent() {
 
   return (
     <>
-      <section className="pt-32 pb-16 bg-white">
+      <section className="pb-16 bg-white">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -437,8 +438,19 @@ function ProductsContent() {
 
 export default function ProductsPage() {
   return (
+    <>
+      <PageHero
+        label="Produtos para Impressão 3D"
+        title="Peças, componentes e acessórios"
+        titleHighlight="para sua impressora 3D"
+        description="Encontre hotends, bicos, termistores, mesas PEI, componentes Bambu Lab, Creality e soluções para manter sua impressora operando com precisão."
+        buttons={[
+          { text: "Ver produtos", href: "#produtos" },
+          { text: "Falar com especialista", href: "https://wa.me/018996921583", variant: "outline" },
+        ]}
+      />
     <Suspense fallback={
-      <div className="pt-32 pb-16 bg-white min-h-screen">
+      <div className=" pb-16 bg-white min-h-screen">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-32 mb-4"></div>
@@ -449,5 +461,6 @@ export default function ProductsPage() {
     }>
       <ProductsContent />
     </Suspense>
+    </>
   );
 }
