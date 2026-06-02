@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -181,21 +182,34 @@ function ContatoContent() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-16 bg-white">
-        <div className="container mx-auto px-6 lg:px-12">
+      <section className="pt-32 pb-20 text-white relative overflow-hidden">
+        <div className="absolute inset-0">
+          <Image
+            src="/images/pesonalizados-hero.jpg"
+            alt="Contato IP3D"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+          <div className="absolute inset-0 bg-black/60" />
+        </div>
+
+        <div className="container mx-auto px-6 lg:px-12 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="max-w-3xl"
           >
-            <span className="text-sm uppercase tracking-[0.2em] text-gray-500 mb-4 block">
+            <span className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-blue-400 mb-4">
+              <HiOutlinePhone className="w-5 h-5" />
               Contato
             </span>
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black mb-6">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               Fale Conosco
             </h1>
-            <p className="text-gray-600 text-lg leading-relaxed">
+            <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
               Estamos prontos para ajudar você com peças, componentes e 
               serviços de impressão 3D. Entre em contato para tirar dúvidas, 
               solicitar orçamento ou encomendar uma impressão personalizada.

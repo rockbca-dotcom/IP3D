@@ -1251,6 +1251,21 @@ function ContactHeroEditor({ content, onChange }: { content: Record<string, unkn
         onChange={(v) => onChange({ ...content, description: v })}
         rows={3}
       />
+      <InputField
+        label="Imagem de fundo"
+        value={(content.image as string) || ""}
+        onChange={(v) => onChange({ ...content, image: v })}
+        placeholder="/images/pesonalizados-hero.jpg"
+      />
+      <InputField
+        label="Overlay escuro (0-100)"
+        value={String(content.overlay ?? 60)}
+        onChange={(v) => {
+          const parsed = Number(v);
+          onChange({ ...content, overlay: Number.isFinite(parsed) ? parsed : 60 });
+        }}
+        placeholder="60"
+      />
     </div>
   );
 }

@@ -983,9 +983,24 @@ function CatalogCTABlock({ content }: { content: Record<string, unknown> }) {
 
 // Contact Hero Block
 function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
+  const overlay = typeof content.overlay === "number" ? content.overlay : 60;
+
   return (
-    <section className="pt-32 pb-16 bg-white">
-      <div className="container mx-auto px-6 lg:px-12">
+    <section className="pt-32 pb-20 text-white relative overflow-hidden">
+      <div className="absolute inset-0">
+        <Image
+          src={(content.image as string) || "/images/pesonalizados-hero.jpg"}
+          alt={(content.title as string) || "Contato IP3D"}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+          quality={90}
+        />
+        <div className="absolute inset-0 bg-black" style={{ opacity: overlay / 100 }} />
+      </div>
+
+      <div className="container mx-auto px-6 lg:px-12 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -993,15 +1008,16 @@ function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
           className="max-w-3xl"
         >
           {(content.badge as string) && (
-            <span className="text-sm uppercase tracking-[0.2em] text-gray-500 mb-4 block">
+            <span className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-blue-400 mb-4">
+              <HiOutlinePhone className="w-5 h-5" />
               {content.badge as string}
             </span>
           )}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold text-black mb-6">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold mb-6 leading-tight">
             {(content.title as string) || "Fale Conosco"}
           </h1>
           {(content.description as string) && (
-            <p className="text-gray-600 text-lg leading-relaxed">
+            <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
               {content.description as string}
             </p>
           )}

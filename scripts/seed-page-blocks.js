@@ -130,6 +130,8 @@ const PAGE_BLOCKS = {
         badge: "Fale Conosco",
         title: "Entre em Contato",
         description: "Estamos prontos para ajudar você com peças, orçamentos e dúvidas sobre impressão 3D.",
+        image: "/images/pesonalizados-hero.jpg",
+        overlay: 60,
       },
       order: 0,
       active: true,
