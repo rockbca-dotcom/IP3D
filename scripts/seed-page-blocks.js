@@ -168,7 +168,7 @@ const PAGE_BLOCKS = {
         badge: "Sobre Nós",
         title: "Especialistas em impressão 3D",
         description: "Peças, componentes e impressão 3D com suporte técnico para projetos sob medida.",
-        image: "/images/background_somos.jpeg",
+        image: "/images/background_somos.png",
         overlay: 60,
       },
       order: 0,

@@ -305,7 +305,7 @@ async function main() {
   await prisma.layoutConfig.upsert({
     where: { type_variant: { type: "page-sobre", variant: "main" } },
     update: { content: {
-      heroImage: "/images/background_somos.jpeg",
+      heroImage: "/images/background_somos.png",
       heroTagline: "Sobre Nós",
       heroTitle: "Especialistas em",
       heroHighlight: "impressão 3D",
@@ -323,7 +323,7 @@ async function main() {
       ],
     } },
     create: { type: "page-sobre", variant: "main", content: {
-      heroImage: "/images/background_somos.jpeg",
+      heroImage: "/images/background_somos.png",
       heroTagline: "Sobre Nós",
       heroTitle: "Especialistas em",
       heroHighlight: "impressão 3D",

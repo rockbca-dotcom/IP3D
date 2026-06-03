@@ -15,6 +15,14 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, "").trim();
 }
 
+function resolveAboutHeroImage(image?: string): string {
+  if (!image || image === "/images/background_somos.jpeg") {
+    return "/images/background_somos.png";
+  }
+
+  return image;
+}
+
 interface Block {
   id: string;
   type: string;
@@ -1618,8 +1626,8 @@ function AboutHeroBlock({ content }: { content: Record<string, unknown> }) {
           </motion.div>
           <motion.div initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }} className="relative">
             <div className="aspect-[4/5] bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden">
-              {(content.image as string) && (
-                <Image src={content.image as string} alt="Showroom" fill className="object-cover" />
+              {resolveAboutHeroImage(content.image as string | undefined) && (
+                <Image src={resolveAboutHeroImage(content.image as string | undefined)} alt="Showroom" fill className="object-cover object-[center_right]" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">

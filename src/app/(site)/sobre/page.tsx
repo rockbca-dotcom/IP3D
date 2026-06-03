@@ -47,6 +47,16 @@ interface SobreConfig {
   services?: Array<{ title: string; description: string }>;
 }
 
+const DEFAULT_ABOUT_HERO_IMAGE = "/images/background_somos.png";
+
+function resolveAboutHeroImage(image?: string) {
+  if (!image || image === "/images/background_somos.jpeg") {
+    return DEFAULT_ABOUT_HERO_IMAGE;
+  }
+
+  return image;
+}
+
 const defaultValues = [
   {
     icon: HiOutlineShieldCheck,
@@ -153,12 +163,12 @@ export default function SobrePage() {
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
-            src={config.heroImage || "/images/background_somos.jpeg"}
+            src={resolveAboutHeroImage(config.heroImage)}
             alt="Sobre a IP3D"
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className="object-cover object-[center_right]"
             quality={90}
           />
           <div className="absolute inset-0 bg-black/60" />
