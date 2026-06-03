@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
     });
 
     // Montar link (Regra 4)
-    const resetUrl = `${env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${token}`;
+    const siteOrigin = env.NEXT_PUBLIC_SITE_URL?.trim() || request.nextUrl.origin;
+    const resetUrl = `${siteOrigin.replace(/\/$/, "")}/reset-password?token=${token}`;
 
     // Enviar e-mail (falha no envio também retorna resposta neutra conforme Regra 3)
     await sendWeb3FormNotification({

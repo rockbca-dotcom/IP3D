@@ -23,7 +23,7 @@ vi.mock("@/lib/notifications", () => ({
 describe("Auth Password Recovery (TASK-14)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+    process.env.NEXT_PUBLIC_SITE_URL = "";
   });
 
   describe("POST /api/auth/forgot-password (Enumeração e Geração)", () => {
@@ -60,7 +60,7 @@ describe("Auth Password Recovery (TASK-14)", () => {
       expect(prisma.user.update).not.toHaveBeenCalled();
     });
 
-    it("deve gerar token e enviar e-mail para usuário válido", async () => {
+    it("deve gerar token e enviar e-mail para usuário válido usando a origem da requisição quando NEXT_PUBLIC_SITE_URL estiver vazio", async () => {
       (prisma.user.findUnique as any).mockResolvedValue({ id: "user-123", email: "valido@test.com", active: true });
       (prisma.user.update as any).mockResolvedValue({ id: "user-123" });
 
@@ -84,7 +84,7 @@ describe("Auth Password Recovery (TASK-14)", () => {
       
       const notificationArg = (sendWeb3FormNotification as any).mock.calls[0][0];
       expect(notificationArg.to).toBe("valido@test.com");
-      expect(notificationArg.message).toContain("token=");
+      expect(notificationArg.message).toMatch(/http:\/\/localhost(?::\d+)?\/reset-password\?token=/);
     });
 
     it("deve retornar 400 para e-mail inválido", async () => {
