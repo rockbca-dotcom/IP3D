@@ -5,7 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { sessionOptions, SessionData } from "@/lib/session";
 import { cookies } from "next/headers";
-import { handleApiError, apiSuccess, unauthorized } from "@/lib/api-utils";
+import { handleApiError, apiSuccess, unauthorized, apiError } from "@/lib/api-utils";
 
 // Schema de validação para o login
 const loginSchema = z.object({
@@ -104,6 +104,4 @@ export async function POST(request: NextRequest) {
     return handleApiError(error);
   }
 }
-
-import { apiError } from "@/lib/api-utils";
 

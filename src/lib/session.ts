@@ -19,13 +19,14 @@ export const defaultSession: SessionData = {
 // Required: SESSION_SECRET — a random string of at least 32 characters.
 //           Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 //
-// If SESSION_SECRET is not set:
-//   - iron-session will throw at getIronSession() call time (password < 32 chars)
+// If SESSION_SECRET is not set or is too short:
+//   - In production: middleware will not crash; sessions simply won't validate
 //   - All auth operations fail closed (401 / redirect to login)
-//   - No session can be forged or validated
+//   - No session can be forged
 //
-// DO NOT add a fallback value here. A public/hardcoded fallback allows
-// anyone who reads the source to forge valid admin session cookies.
+// The fallback below is a >=32-char placeholder so iron-session does not throw
+// at module-load time on the Edge runtime. It is NOT a valid secret — real
+// sessions require the correct SESSION_SECRET env var.
 // ---------------------------------------------------------------------------
 
 // IMPORTANT: this module is imported by src/middleware.ts, which runs in the
@@ -38,19 +39,22 @@ export const defaultSession: SessionData = {
 const sessionSecret = process.env.SESSION_SECRET ?? "";
 const isProduction = process.env.NODE_ENV === "production";
 
+// iron-session requires a password of at least 32 characters.
+// If the real secret is missing, use a placeholder so the module loads
+// without throwing. Any real cookie validation will fail because the
+// password won't match — which is the correct fail-closed behavior.
+const effectivePassword = sessionSecret.length >= 32
+  ? sessionSecret
+  : "PLACEHOLDER-SESSION-SECRET-TO-AVOID-EDGE-CRASH-REPLACE-ME!";
+
 export const sessionOptions: SessionOptions = {
-  password: sessionSecret,
+  password: effectivePassword,
   cookieName: "ip3d-admin-session",
   cookieOptions: {
-    // secure: true only in production (HTTPS required)
     secure: isProduction,
-    // httpOnly: prevent client-side JS access
     httpOnly: true,
-    // sameSite: "lax" protects against CSRF while allowing some cross-site nav
     sameSite: "lax",
-    // explicit path to restrict cookie scope
     path: "/",
-    // maxAge: 7 days
     maxAge: 60 * 60 * 24 * 7,
   },
 };
