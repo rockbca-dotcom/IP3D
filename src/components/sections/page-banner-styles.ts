@@ -1,9 +1,16 @@
 export const STANDARD_PAGE_BANNER_HEADER_OFFSET = "10.5rem";
 
+export const STANDARD_PAGE_BANNER_MIN_HEIGHT = `min-h-[calc(100svh-${STANDARD_PAGE_BANNER_HEADER_OFFSET})]`;
+
 export const STANDARD_PAGE_BANNER_CLASS = [
   "relative overflow-hidden flex items-center",
   "py-16 lg:py-20",
-  `min-h-[calc(100svh-${STANDARD_PAGE_BANNER_HEADER_OFFSET})]`,
+  STANDARD_PAGE_BANNER_MIN_HEIGHT,
+].join(" ");
+
+export const STANDARD_HOME_BANNER_CLASS = [
+  "relative overflow-hidden w-full bg-black",
+  STANDARD_PAGE_BANNER_MIN_HEIGHT,
 ].join(" ");
 
 export function limitWords(text: string, maxWords: number): string {

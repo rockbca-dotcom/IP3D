@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { HiArrowRight, HiPlay, HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { addToCart } from "@/lib/cart";
+import { STANDARD_HOME_BANNER_CLASS } from "@/components/sections/page-banner-styles";
 
 
 function isExternalUrl(value?: string | null) {
@@ -583,8 +584,8 @@ export function HomeShowcase({
     return (
     <div className="space-y-10 pb-16">
       <section className="bg-[#f4f7fd]">
-        <div className="relative w-full overflow-hidden bg-black shadow-[0_24px_60px_-42px_rgba(11,100,211,0.55)]">
-          <div className="relative h-[288px] sm:h-[324px] lg:h-[360px]">
+        <div className={`${STANDARD_HOME_BANNER_CLASS} shadow-[0_24px_60px_-42px_rgba(11,100,211,0.55)]`}>
+          <div className="relative h-full min-h-[calc(100svh-10.5rem)]">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentSlide}

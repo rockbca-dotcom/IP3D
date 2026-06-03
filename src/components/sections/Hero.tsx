@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { HiArrowRight, HiPlay } from "react-icons/hi";
 import Link from "next/link";
 import Image from "next/image";
+import { STANDARD_HOME_BANNER_CLASS } from "./page-banner-styles";
 
 interface Banner {
   id: string;
@@ -123,7 +124,7 @@ export function Hero() {
   if (!currentBanner) return null;
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-black">
+    <section className={STANDARD_HOME_BANNER_CLASS}>
       {/* Background Slides */}
       <AnimatePresence mode="wait">
         <motion.div

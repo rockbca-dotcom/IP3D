@@ -8,7 +8,7 @@ import { HiArrowRight, HiPlay, HiChevronLeft, HiChevronRight, HiOutlineShieldChe
 import { HiOutlineWrenchScrewdriver, HiOutlineClock, HiOutlineCheckCircle } from "react-icons/hi2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { STANDARD_PAGE_BANNER_CLASS, limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
+import { STANDARD_HOME_BANNER_CLASS, STANDARD_PAGE_BANNER_CLASS, limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
 
 function stripHtml(html: string): string {
   if (!html) return "";
@@ -576,7 +576,7 @@ function HeroSliderBlock({ content }: { content: Record<string, unknown> }) {
   if (!currentBanner) return null;
 
   return (
-    <section className="relative h-screen w-full overflow-hidden bg-black">
+    <section className={STANDARD_HOME_BANNER_CLASS}>
       <AnimatePresence mode="wait">
         <motion.div
           key={currentSlide}
