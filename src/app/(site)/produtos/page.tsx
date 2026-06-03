@@ -9,6 +9,7 @@ import { HiArrowRight, HiOutlineViewGrid, HiOutlineViewList, HiOutlineSearch, Hi
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/site/ProductCard";
 import { PageHero } from "@/components/sections";
+import { limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
 
 function stripHtml(html: string): string {
   if (!html) return "";
@@ -156,13 +157,13 @@ function ProductsContent() {
             className="max-w-3xl"
           >
             <span className="text-sm uppercase tracking-[0.2em] text-gray-500 mb-4 block">
-              {(heroBlock.badge as string) || "Catálogo"}
+              {limitWords((heroBlock.badge as string) || "Peças e Componentes 3D", 4)}
             </span>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-black mb-6">
-              {(heroBlock.title as string) || "Nossos Produtos"}
+              {limitWords(normalizeHeroCopy((heroBlock.title as string) || "Componentes para impressoras 3D"), 4)}
             </h1>
             <p className="text-gray-600 text-lg leading-relaxed">
-              {(heroBlock.description as string) || "Peças e componentes de alta qualidade para impressoras 3D. Acesso exclusivo e confiável às melhores marcas do mercado."}
+              {limitWords(normalizeHeroCopy((heroBlock.description as string) || "Hotends, bicos, mesas PEI e componentes confiáveis para sua impressora 3D."), 12)}
             </p>
           </motion.div>
         </div>
@@ -440,10 +441,10 @@ export default function ProductsPage() {
   return (
     <>
       <PageHero
-        label="Produtos para Impressão 3D"
-        title="Peças, componentes e acessórios"
-        titleHighlight="para sua impressora 3D"
-        description="Encontre hotends, bicos, termistores, mesas PEI, componentes Bambu Lab, Creality e soluções para manter sua impressora operando com precisão."
+        label="Peças e Componentes 3D"
+        title="Componentes para"
+        titleHighlight="impressoras 3D"
+        description="Hotends, bicos, mesas PEI e componentes confiáveis para sua impressora 3D."
         buttons={[
           { text: "Ver produtos", href: "#produtos" },
           { text: "Falar com especialista", href: "https://wa.me/018996921583", variant: "outline" },

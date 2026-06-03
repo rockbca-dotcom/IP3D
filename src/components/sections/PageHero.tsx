@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { HiArrowRight } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
+import { STANDARD_PAGE_BANNER_CLASS, limitWords, normalizeHeroCopy } from "./page-banner-styles";
 
 export interface PageHeroButton {
   text: string;
@@ -29,8 +30,13 @@ export function PageHero({
   buttons = [],
   backgroundImage = "/images/banners/banner-hero1.png",
 }: PageHeroProps) {
+  const safeLabel = label ? limitWords(normalizeHeroCopy(label), 4) : undefined;
+  const safeTitle = limitWords(normalizeHeroCopy(title), 3);
+  const safeTitleHighlight = titleHighlight ? limitWords(normalizeHeroCopy(titleHighlight), 3) : undefined;
+  const safeDescription = description ? limitWords(normalizeHeroCopy(description), 16) : undefined;
+
   return (
-    <section className="pt-32 pb-20 text-white relative overflow-hidden">
+    <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
       {/* Background */}
       <div className="absolute inset-0">
         <Image
@@ -58,7 +64,7 @@ export function PageHero({
             >
               <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-400">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                {label}
+                {safeLabel}
               </span>
             </motion.div>
           )}
@@ -69,13 +75,13 @@ export function PageHero({
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6"
           >
-            {titleHighlight ? (
+            {safeTitleHighlight ? (
               <>
-                {title}{" "}
-                <span className="text-cyan-400">{titleHighlight}</span>
+                {safeTitle}{" "}
+                <span className="text-cyan-400">{safeTitleHighlight}</span>
               </>
             ) : (
-              title
+              safeTitle
             )}
           </motion.h1>
 
@@ -86,7 +92,7 @@ export function PageHero({
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-base sm:text-lg text-gray-300 mb-8 leading-relaxed"
             >
-              {description}
+              {safeDescription}
             </motion.p>
           )}
 

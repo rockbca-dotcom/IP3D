@@ -16,6 +16,7 @@ import {
 } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import { STANDARD_PAGE_BANNER_CLASS, limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
 
 interface PageBlock {
   id: string;
@@ -302,7 +303,7 @@ export default function PersonalizadosPage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="pt-32 pb-20 text-white relative overflow-hidden">
+      <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -326,15 +327,15 @@ export default function PersonalizadosPage() {
           >
             <span className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-blue-400 mb-4">
               <HiOutlineCube className="w-5 h-5" />
-              {pageConfig.heroTagline || "Impressão 3D Sob Demanda"}
+              {limitWords(pageConfig.heroTagline || "Impressão 3D Sob Demanda", 4)}
             </span>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              {pageConfig.heroTitle || "Transformamos suas"}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400"> {pageConfig.heroHighlight || "ideias"} </span>
+              {limitWords(pageConfig.heroTitle || "Transformamos suas", 2)}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400"> {limitWords(pageConfig.heroHighlight || "ideias", 2)} </span>
               {!pageConfig.heroTitle && "em realidade"}
             </h1>
             <p className="text-gray-300 text-lg leading-relaxed mb-8 max-w-2xl">
-              {pageConfig.heroDescription || "Serviço de impressão 3D personalizada para projetos únicos. De protótipos a peças finais, criamos exatamente o que você precisa com qualidade profissional e materiais de alta performance."}
+              {limitWords(normalizeHeroCopy(pageConfig.heroDescription || "Impressão 3D sob demanda para protótipos e peças finais com qualidade profissional."), 12)}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button

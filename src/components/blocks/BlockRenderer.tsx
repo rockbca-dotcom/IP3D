@@ -8,6 +8,7 @@ import { HiArrowRight, HiPlay, HiChevronLeft, HiChevronRight, HiOutlineShieldChe
 import { HiOutlineWrenchScrewdriver, HiOutlineClock, HiOutlineCheckCircle } from "react-icons/hi2";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { STANDARD_PAGE_BANNER_CLASS, limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
 
 function stripHtml(html: string): string {
   if (!html) return "";
@@ -986,10 +987,10 @@ function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
   const overlay = typeof content.overlay === "number" ? content.overlay : 60;
 
   return (
-    <section className="pt-32 pb-20 text-white relative overflow-hidden">
+    <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
       <div className="absolute inset-0">
         <Image
-          src={(content.image as string) || "/images/hero/1.jpg"}
+          src={(content.image as string) || "/images/banners/banner-hero3.png"}
           alt={(content.title as string) || "Contato IP3D"}
           fill
           priority
@@ -1014,11 +1015,15 @@ function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
             </span>
           )}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold mb-6 leading-tight">
-            {(content.title as string) || "Fale Conosco"}
+            {limitWords((content.title as string) || "Fale com a IP3D", 5)}
           </h1>
-          {(content.description as string) && (
+          {(content.description as string) ? (
             <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
-              {content.description as string}
+              {limitWords(content.description as string, 16)}
+            </p>
+          ) : (
+            <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
+              {limitWords("Tire dúvidas, peça orçamento e fale com nossa equipe sobre peças, componentes e impressão personalizada.", 16)}
             </p>
           )}
         </motion.div>
@@ -1329,10 +1334,10 @@ function ProductsHeroBlock({ content }: { content: Record<string, unknown> }) {
             <span className="text-sm uppercase tracking-[0.2em] text-gray-500 mb-4 block">{content.badge as string}</span>
           )}
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold text-black mb-6">
-            {(content.title as string) || "Nossos Produtos"}
+            {limitWords(normalizeHeroCopy((content.title as string) || "Componentes para impressoras 3D"), 4)}
           </h1>
           {(content.description as string) && (
-            <p className="text-gray-600 text-lg leading-relaxed">{content.description as string}</p>
+            <p className="text-gray-600 text-lg leading-relaxed max-w-2xl">{limitWords(normalizeHeroCopy(content.description as string), 12)}</p>
           )}
         </motion.div>
       </div>
@@ -1577,17 +1582,20 @@ function BrandsCTABlock({ content }: { content: Record<string, unknown> }) {
 
 // About Hero Block
 function AboutHeroBlock({ content }: { content: Record<string, unknown> }) {
-  const titleParts = ((content.title as string) || "A arte de|transformar|salões").split("|");
+  const titleParts = normalizeHeroCopy((content.title as string) || "Especialistas em|impressão 3D")
+    .split("|")
+    .slice(0, 2)
+    .map((part) => limitWords(part, 2));
   return (
-    <section className="pt-32 pb-20 lg:pb-32 bg-white">
+    <section className={`${STANDARD_PAGE_BANNER_CLASS} bg-white`}>
       <div className="container mx-auto px-6 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div initial={{ opacity: 0, x: -30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6 }}>
-            <span className="text-sm uppercase tracking-[0.2em] text-gray-500 mb-4 block">{(content.badge as string) || "Sobre Nós"}</span>
+            <span className="text-sm uppercase tracking-[0.2em] text-gray-500 mb-4 block">{limitWords((content.badge as string) || "Conheça a IP3D", 4)}</span>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold text-black mb-6 leading-tight">
               {titleParts.map((part, i) => <span key={i}>{part}{i < titleParts.length - 1 && <br />}</span>)}
             </h1>
-            <p className="text-gray-600 text-lg leading-relaxed mb-8">{(content.description as string) || "Somos referência no mercado com produtos e serviços de qualidade."}</p>
+            <p className="text-gray-600 text-lg leading-relaxed mb-8 max-w-2xl">{limitWords(normalizeHeroCopy((content.description as string) || "Peças, componentes e impressão 3D com suporte técnico para projetos sob medida."), 12)}</p>
             <div className="flex flex-col sm:flex-row gap-4">
               {(content.buttonText as string) && (
                 <Button size="lg" className="bg-black text-white hover:bg-gray-800 transition-all duration-300 group" asChild>

@@ -17,6 +17,7 @@ import {
 } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import { STANDARD_PAGE_BANNER_CLASS, limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
 
 interface PageBlock {
   id: string;
@@ -148,7 +149,7 @@ export default function SobrePage() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20 bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white relative overflow-hidden">
+      <section className={`${STANDARD_PAGE_BANNER_CLASS} bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white`}>
         {/* Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -172,14 +173,14 @@ export default function SobrePage() {
             >
               <span className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-blue-400 mb-4">
                 <HiOutlineCube className="w-5 h-5" />
-                {config.heroTagline || "Sobre Nós"}
+                {limitWords(config.heroTagline || "Conheça a IP3D", 4)}
               </span>
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-                {config.heroTitle || "Sua parceira em"}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400"> {config.heroHighlight || "impressão 3D"}</span>
+                {limitWords(normalizeHeroCopy(config.heroTitle || "Especialistas em"), 2)}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400"> {limitWords(normalizeHeroCopy(config.heroHighlight || "impressão 3D"), 2)}</span>
               </h1>
-              <p className="text-gray-300 text-lg leading-relaxed mb-8">
-                {config.heroDescription || "A IP3D é especializada em peças, componentes e serviços de impressão 3D. Oferecemos produtos de alta qualidade para impressoras Bambu Lab, Creality e outras marcas, além de serviços de impressão personalizada para projetos únicos."}
+              <p className="text-gray-300 text-lg leading-relaxed mb-8 max-w-2xl">
+                {limitWords(normalizeHeroCopy(config.heroDescription || "Peças, componentes e impressão 3D com suporte técnico para projetos sob medida."), 12)}
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
