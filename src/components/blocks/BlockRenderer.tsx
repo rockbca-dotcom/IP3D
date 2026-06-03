@@ -995,11 +995,13 @@ function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
   const overlay = typeof content.overlay === "number" ? content.overlay : 60;
   const heroImage = typeof content.image === "string" ? content.image : "";
   const normalizedHeroImage = [
+    "",
+    "/images/banners/contact-hero.svg",
     "/images/banners/banner-hero3.png",
     "/images/site/Shirobody_showroom.jpg",
   ].includes(heroImage)
-    ? "/images/banners/contact-hero.svg"
-    : heroImage || "/images/banners/contact-hero.svg";
+    ? "/images/contact-hero-bg.png"
+    : heroImage;
 
   return (
     <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
@@ -1010,7 +1012,7 @@ function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
           fill
           priority
           sizes="100vw"
-          className="object-cover"
+          className="object-cover object-[center_center]"
           quality={90}
         />
         <div className="absolute inset-0 bg-black" style={{ opacity: overlay / 100 }} />

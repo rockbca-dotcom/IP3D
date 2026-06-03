@@ -58,6 +58,16 @@ const catalogSchema = z.object({
 
 type CatalogFormData = z.infer<typeof catalogSchema>;
 
+const DEFAULT_CONTACT_HERO_IMAGE = "/images/contact-hero-bg.png";
+
+function resolveContactHeroImage(image?: string) {
+  if (!image || ["/images/banners/contact-hero.svg", "/images/banners/banner-hero3.png", "/images/site/Shirobody_showroom.jpg"].includes(image)) {
+    return DEFAULT_CONTACT_HERO_IMAGE;
+  }
+
+  return image;
+}
+
 const contactOptions = [
   {
     icon: HiOutlineDownload,
@@ -186,12 +196,13 @@ function ContatoContent() {
       <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
         <div className="absolute inset-0">
           <Image
-            src="/images/banners/contact-hero.svg"
+            src={resolveContactHeroImage()}
             alt="Contato IP3D"
             fill
             priority
             sizes="100vw"
-            className="object-cover"
+            className="object-cover object-[center_center]"
+            quality={90}
           />
           <div className="absolute inset-0 bg-black/60" />
         </div>
