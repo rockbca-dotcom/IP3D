@@ -1,4 +1,10 @@
-export const STANDARD_PAGE_BANNER_CLASS = "pt-32 pb-20 min-h-[560px] flex items-center relative overflow-hidden";
+export const STANDARD_PAGE_BANNER_HEADER_OFFSET = "10.5rem";
+
+export const STANDARD_PAGE_BANNER_CLASS = [
+  "relative overflow-hidden flex items-center",
+  "py-16 lg:py-20",
+  `min-h-[calc(100svh-${STANDARD_PAGE_BANNER_HEADER_OFFSET})]`,
+].join(" ");
 
 export function limitWords(text: string, maxWords: number): string {
   const words = text.trim().split(/\s+/).filter(Boolean);

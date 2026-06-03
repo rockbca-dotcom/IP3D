@@ -1237,13 +1237,13 @@ function ContactHeroEditor({ content, onChange }: { content: Record<string, unkn
         label="Badge"
         value={(content.badge as string) || ""}
         onChange={(v) => onChange({ ...content, badge: v })}
-        placeholder="Ex: Contato"
+        placeholder="Contato IP3D"
       />
       <InputField
         label="Título"
         value={(content.title as string) || ""}
         onChange={(v) => onChange({ ...content, title: v })}
-        placeholder="Fale Conosco"
+        placeholder="Fale com a IP3D"
       />
       <TextareaField
         label="Descrição"
@@ -1255,7 +1255,7 @@ function ContactHeroEditor({ content, onChange }: { content: Record<string, unkn
         label="Imagem de fundo"
         value={(content.image as string) || ""}
         onChange={(v) => onChange({ ...content, image: v })}
-        placeholder="/images/hero/1.jpg"
+        placeholder="/images/banners/contact-hero.svg"
       />
       <InputField
         label="Overlay escuro (0-100)"
@@ -1632,8 +1632,8 @@ function MaintenanceFAQEditor({ content, onChange }: { content: Record<string, u
 function ProductsHeroEditor({ content, onChange }: { content: Record<string, unknown>; onChange: (c: Record<string, unknown>) => void }) {
   return (
     <div className="space-y-3">
-      <InputField label="Badge" value={(content.badge as string) || ""} onChange={(v) => onChange({ ...content, badge: v })} placeholder="Catálogo" />
-      <InputField label="Título" value={(content.title as string) || ""} onChange={(v) => onChange({ ...content, title: v })} placeholder="Nossos Produtos" />
+      <InputField label="Badge" value={(content.badge as string) || ""} onChange={(v) => onChange({ ...content, badge: v })} placeholder="Peças e Componentes 3D" />
+      <InputField label="Título" value={(content.title as string) || ""} onChange={(v) => onChange({ ...content, title: v })} placeholder="Componentes para impressoras 3D" />
       <TextareaField label="Descrição" value={(content.description as string) || ""} onChange={(v) => onChange({ ...content, description: v })} rows={3} />
     </div>
   );
@@ -1768,8 +1768,8 @@ function ProductsCTAEditor({ content, onChange }: { content: Record<string, unkn
 function AboutHeroEditor({ content, onChange }: { content: Record<string, unknown>; onChange: (c: Record<string, unknown>) => void }) {
   return (
     <div className="space-y-3">
-      <InputField label="Badge" value={(content.badge as string) || ""} onChange={(v) => onChange({ ...content, badge: v })} placeholder="Sobre Nós" />
-      <TextareaField label="Título (use | para quebra)" value={(content.title as string) || ""} onChange={(v) => onChange({ ...content, title: v })} rows={2} placeholder="A arte de|transformar|salões" />
+      <InputField label="Badge" value={(content.badge as string) || ""} onChange={(v) => onChange({ ...content, badge: v })} placeholder="Conheça a IP3D" />
+      <TextareaField label="Título (use | para quebra)" value={(content.title as string) || ""} onChange={(v) => onChange({ ...content, title: v })} rows={2} placeholder="Especialistas em|impressão 3D" />
       <TextareaField label="Descrição" value={(content.description as string) || ""} onChange={(v) => onChange({ ...content, description: v })} rows={3} />
       <InputField label="Texto Botão Principal" value={(content.buttonText as string) || ""} onChange={(v) => onChange({ ...content, buttonText: v })} />
       <InputField label="Link Principal" value={(content.buttonLink as string) || ""} onChange={(v) => onChange({ ...content, buttonLink: v })} />

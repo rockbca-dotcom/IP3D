@@ -262,7 +262,7 @@ async function main() {
       heroTagline: "Impressão 3D Sob Demanda",
       heroTitle: "Transformamos suas",
       heroHighlight: "ideias",
-      heroDescription: "Serviço de impressão 3D personalizada para projetos únicos. De protótipos a peças finais, criamos exatamente o que você precisa com qualidade profissional e materiais de alta performance.",
+      heroDescription: "Impressão 3D sob demanda para protótipos e peças finais com qualidade profissional.",
       ctaTitle: "Tem um projeto em mente?",
       ctaDescription: "Entre em contato conosco e transforme sua ideia em realidade. Orçamento sem compromisso!",
       features: [
@@ -283,7 +283,7 @@ async function main() {
       heroTagline: "Impressão 3D Sob Demanda",
       heroTitle: "Transformamos suas",
       heroHighlight: "ideias",
-      heroDescription: "Serviço de impressão 3D personalizada para projetos únicos. De protótipos a peças finais, criamos exatamente o que você precisa com qualidade profissional e materiais de alta performance.",
+      heroDescription: "Impressão 3D sob demanda para protótipos e peças finais com qualidade profissional.",
       ctaTitle: "Tem um projeto em mente?",
       ctaDescription: "Entre em contato conosco e transforme sua ideia em realidade. Orçamento sem compromisso!",
       features: [
@@ -307,9 +307,9 @@ async function main() {
     update: { content: {
       heroImage: "/images/background_somos.jpeg",
       heroTagline: "Sobre Nós",
-      heroTitle: "Sua parceira em",
+      heroTitle: "Especialistas em",
       heroHighlight: "impressão 3D",
-      heroDescription: "A IP3D é especializada em peças, componentes e serviços de impressão 3D. Oferecemos produtos de alta qualidade para impressoras Bambu Lab, Creality e outras marcas, além de serviços de impressão personalizada para projetos únicos.",
+      heroDescription: "Peças, componentes e impressão 3D com suporte técnico para projetos sob medida.",
       missionTitle: "Nossa Missão",
       missionQuote: "Democratizar o acesso à impressão 3D de qualidade, oferecendo peças, componentes e serviços que impulsionam a criatividade e a inovação.",
       missionAuthor: "Equipe IP3D",
@@ -325,9 +325,9 @@ async function main() {
     create: { type: "page-sobre", variant: "main", content: {
       heroImage: "/images/background_somos.jpeg",
       heroTagline: "Sobre Nós",
-      heroTitle: "Sua parceira em",
+      heroTitle: "Especialistas em",
       heroHighlight: "impressão 3D",
-      heroDescription: "A IP3D é especializada em peças, componentes e serviços de impressão 3D. Oferecemos produtos de alta qualidade para impressoras Bambu Lab, Creality e outras marcas, além de serviços de impressão personalizada para projetos únicos.",
+      heroDescription: "Peças, componentes e impressão 3D com suporte técnico para projetos sob medida.",
       missionTitle: "Nossa Missão",
       missionQuote: "Democratizar o acesso à impressão 3D de qualidade, oferecendo peças, componentes e serviços que impulsionam a criatividade e a inovação.",
       missionAuthor: "Equipe IP3D",

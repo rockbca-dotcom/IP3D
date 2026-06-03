@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
+import { STANDARD_PAGE_BANNER_CLASS, limitWords } from "@/components/sections/page-banner-styles";
 
 interface PageBlock {
   id: string;
@@ -182,10 +183,10 @@ function ContatoContent() {
   return (
     <>
       {/* Hero */}
-      <section className="pt-32 pb-20 text-white relative overflow-hidden">
+      <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
         <div className="absolute inset-0">
           <Image
-            src="/images/hero/1.jpg"
+            src="/images/banners/contact-hero.svg"
             alt="Contato IP3D"
             fill
             priority
@@ -204,15 +205,13 @@ function ContatoContent() {
           >
             <span className="inline-flex items-center gap-2 text-sm uppercase tracking-[0.2em] text-blue-400 mb-4">
               <HiOutlinePhone className="w-5 h-5" />
-              Contato
+              {limitWords("Contato IP3D", 4)}
             </span>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              Fale Conosco
+              {limitWords("Fale com a IP3D", 5)}
             </h1>
             <p className="text-gray-300 text-lg leading-relaxed max-w-2xl">
-              Estamos prontos para ajudar você com peças, componentes e 
-              serviços de impressão 3D. Entre em contato para tirar dúvidas, 
-              solicitar orçamento ou encomendar uma impressão personalizada.
+              {limitWords("Tire dúvidas, peça orçamento e fale com nossa equipe sobre peças, componentes e impressão personalizada.", 16)}
             </p>
           </motion.div>
         </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import { HiArrowRight, HiOutlineCollection } from "react-icons/hi";
+import { STANDARD_PAGE_BANNER_CLASS } from "@/components/sections/page-banner-styles";
 
 interface Category {
   id: string;
@@ -54,7 +55,7 @@ export default function CategoriasPage() {
   return (
     <>
       {/* Hero */}
-      <section ref={heroRef} className="pt-32 pb-16 bg-white">
+      <section ref={heroRef} className={`${STANDARD_PAGE_BANNER_CLASS} bg-white`}>
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 30 }}

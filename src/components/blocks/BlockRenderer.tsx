@@ -985,12 +985,19 @@ function CatalogCTABlock({ content }: { content: Record<string, unknown> }) {
 // Contact Hero Block
 function ContactHeroBlock({ content }: { content: Record<string, unknown> }) {
   const overlay = typeof content.overlay === "number" ? content.overlay : 60;
+  const heroImage = typeof content.image === "string" ? content.image : "";
+  const normalizedHeroImage = [
+    "/images/banners/banner-hero3.png",
+    "/images/site/Shirobody_showroom.jpg",
+  ].includes(heroImage)
+    ? "/images/banners/contact-hero.svg"
+    : heroImage || "/images/banners/contact-hero.svg";
 
   return (
     <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
       <div className="absolute inset-0">
         <Image
-          src={(content.image as string) || "/images/banners/banner-hero3.png"}
+          src={normalizedHeroImage}
           alt={(content.title as string) || "Contato IP3D"}
           fill
           priority
