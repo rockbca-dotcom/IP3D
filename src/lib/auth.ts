@@ -2,16 +2,16 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { sessionOptions, SessionData, defaultSession } from "./session";
-import { prisma } from "./prisma";
+import { supabaseAdmin } from "./supabase";
 import { UserRole } from "@prisma/client";
 
 export async function getSession(): Promise<SessionData> {
   const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
-  
+
   if (!session.isLoggedIn) {
     return defaultSession;
   }
-  
+
   return session;
 }
 
@@ -22,6 +22,7 @@ export async function isAuthenticated(): Promise<boolean> {
 
 /**
  * Valida se o usuário tem uma das roles permitidas e está ativo no banco.
+ * Uses Supabase PostgREST (HTTP) to verify against the database.
  */
 export async function hasRole(allowedRoles: UserRole[]): Promise<boolean> {
   const session = await getSession();
@@ -30,18 +31,18 @@ export async function hasRole(allowedRoles: UserRole[]): Promise<boolean> {
   const isRoleAllowed = allowedRoles.includes(session.role as UserRole);
   if (!isRoleAllowed) return false;
 
-  // Authoritative check: verify the user still exists and is active in DB.
+  // Authoritative check: verify the user still exists and is active via Supabase
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { active: true, role: true },
-    });
-    
-    if (!user || !user.active) return false;
-    
-    // Opcional: Validar se a role no banco ainda é a mesma da sessão 
-    // (prevenindo privilégios elevados se a role mudou mas o cookie não expirou)
-    return allowedRoles.includes(user.role);
+    const { data: user, error } = await supabaseAdmin
+      .from("User")
+      .select("active, role")
+      .eq("id", session.userId)
+      .single();
+
+    if (error || !user || !user.active) return false;
+
+    // Validate role hasn't changed since session was created
+    return allowedRoles.includes(user.role as UserRole);
   } catch (error) {
     console.error("[AUTH] Erro ao validar permissões no banco:", error);
     return false;
@@ -60,9 +61,6 @@ export async function isEditor(): Promise<boolean> {
   return hasRole(["EDITOR", "ADMIN", "SUPER_ADMIN"]);
 }
 
-/**
- * Exige que o usuário seja EDITOR, ADMIN ou SUPER_ADMIN.
- */
 export async function requireEditor(): Promise<NextResponse | null> {
   const session = await getSession();
   if (!session.isLoggedIn) {
@@ -81,9 +79,6 @@ export async function requireEditor(): Promise<NextResponse | null> {
   return null;
 }
 
-/**
- * Exige que o usuário seja ADMIN ou SUPER_ADMIN.
- */
 export async function requireAdmin(): Promise<NextResponse | null> {
   const session = await getSession();
   if (!session.isLoggedIn) {
@@ -102,9 +97,6 @@ export async function requireAdmin(): Promise<NextResponse | null> {
   return null;
 }
 
-/**
- * Exige que o usuário seja SUPER_ADMIN.
- */
 export async function requireSuperAdmin(): Promise<NextResponse | null> {
   const session = await getSession();
   if (!session.isLoggedIn) {
@@ -123,9 +115,6 @@ export async function requireSuperAdmin(): Promise<NextResponse | null> {
   return null;
 }
 
-/**
- * Exige qualquer uma das roles especificadas.
- */
 export async function requireAnyRole(roles: UserRole[]): Promise<NextResponse | null> {
   const session = await getSession();
   if (!session.isLoggedIn) {

@@ -2,10 +2,10 @@ import { NextRequest } from "next/server";
 import { getIronSession } from "iron-session";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
 import { sessionOptions, SessionData } from "@/lib/session";
 import { cookies } from "next/headers";
 import { handleApiError, apiSuccess, unauthorized, apiError } from "@/lib/api-utils";
+import { supabaseAdmin } from "@/lib/supabase";
 
 // Schema de validação para o login
 const loginSchema = z.object({
@@ -14,7 +14,7 @@ const loginSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// In-process rate limiter for login attempts... (mantido conforme original)
+// In-process rate limiter for login attempts
 // ---------------------------------------------------------------------------
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
 const RATE_LIMIT_MAX_ATTEMPTS = 5;
@@ -61,11 +61,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    // Fetch user via Supabase PostgREST (HTTP) — works in Vercel serverless
+    const { data: user, error: dbError } = await supabaseAdmin
+      .from("User")
+      .select("id, email, name, role, password, active")
+      .eq("email", email)
+      .single();
 
-    if (!user || !user.password || user.active === false) {
+    if (dbError || !user || !user.password || user.active === false) {
       recordFailedAttempt(ip);
       return unauthorized("Credenciais inválidas");
     }
@@ -104,4 +107,3 @@ export async function POST(request: NextRequest) {
     return handleApiError(error);
   }
 }
-
