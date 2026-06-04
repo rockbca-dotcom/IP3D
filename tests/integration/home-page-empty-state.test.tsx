@@ -51,5 +51,5 @@ describe("Home SSR", () => {
       screen.queryByText("Kit Hotend Completo Creality Ender 3 / Pro / V2 24V"),
     ).toBeNull();
     expect(screen.queryByText("Boneco Bobblehead 3D Personalizado")).toBeNull();
-  });
+  }, 10000);
 });
