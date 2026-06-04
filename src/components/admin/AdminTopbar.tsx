@@ -20,6 +20,7 @@ import {
 const menuItems = [
   { title: "Visão Geral", href: "/admin" },
   { title: "Produtos", href: "/admin/produtos" },
+  { title: "Personalizados", href: "/admin/personalizados" },
   { title: "Relatórios", href: "/admin/relatorios" },
   { title: "Configurações", href: "/admin/configuracoes", superAdminOnly: true },
 ] as const;

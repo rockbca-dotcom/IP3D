@@ -31,6 +31,7 @@ const menuItems = [
       { title: "Paginas", href: "/admin/paginas", icon: HiOutlineTemplate },
       { title: "Banners", href: "/admin/banners", icon: HiOutlinePhotograph },
       { title: "Produtos", href: "/admin/produtos", icon: HiOutlineCube },
+      { title: "Personalizados", href: "/admin/personalizados", icon: HiOutlineCube },
       { title: "Categorias", href: "/admin/categorias", icon: HiOutlineTag },
       { title: "Estoque",  href: "/admin/estoque",  icon: HiOutlineArchive },
       { title: "Cabecalho", href: "/admin/cabecalho", icon: HiOutlineMenuAlt2 },
