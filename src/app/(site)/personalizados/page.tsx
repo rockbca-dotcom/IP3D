@@ -1,22 +1,26 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, useInView } from "framer-motion";
 import {
   HiArrowRight,
+  HiOutlineChat,
+  HiOutlineClock,
+  HiOutlineColorSwatch,
   HiOutlineCube,
   HiOutlineLightningBolt,
-  HiOutlineColorSwatch,
-  HiOutlineClock,
-  HiOutlineChat,
   HiOutlinePhotograph,
   HiX,
 } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import { BlockRenderer } from "@/components/blocks/BlockRenderer";
-import { STANDARD_PAGE_BANNER_CLASS, limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
+import {
+  STANDARD_PAGE_BANNER_CLASS,
+  limitWords,
+  normalizeHeroCopy,
+} from "@/components/sections/page-banner-styles";
 
 interface PageBlock {
   id: string;
@@ -46,138 +50,6 @@ interface PageConfig {
   features?: Array<{ title: string; description: string }>;
   processSteps?: Array<{ step: string; title: string; description: string }>;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Galeria de produtos personalizados reais
-// Fonte: Produtos site(personalizados) (1).csv
-//
-// Categorias (do CSV): Headsets | Drones | Starlink |
-//                      Colecionáveis Interativos & Fidgets | Outros
-//
-// • slug       → rota do produto no catálogo: /produtos/[slug]
-// • image      → placeholder ativo; substituir via Admin → Produtos quando
-//               imagens reais estiverem disponíveis
-// • category   → deve ser idêntica ao subCategorySlug do seed para consistência
-// ─────────────────────────────────────────────────────────────────────────────
-const fallbackPortfolioItems: PortfolioProduct[] = [
-  {
-    id: 1,
-    title: "Logitech G29 Extensor Paddle Shifter",
-    category: "Outros",
-    description:
-      "Extensor de paddle shifter impresso em 3D para o volante Logitech G29. Melhora o alcance e a ergonomia para simuladores de corrida sem modificação permanente no volante.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "logitech-g29-extensor-paddle",
-  },
-  {
-    id: 2,
-    title: "Fixador de Haste Astro A50 Gen4 (2 peças)",
-    category: "Headsets",
-    description:
-      "Kit com 2 peças fixadoras de haste para o headset Astro A50 Gen4. Resolve a quebra da haste original sem precisar comprar um novo headset.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "fixador-haste-astro-a50-gen4",
-  },
-  {
-    id: 3,
-    title: "Starlink Suporte de Antena com Trava 1,5\"",
-    category: "Starlink",
-    description:
-      "Luva/suporte para fixação da antena Starlink em poste ou mastro de 1,5 polegada, com sistema de trava de segurança integrado e material resistente a UV.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "starlink-suporte-antena",
-  },
-  {
-    id: 4,
-    title: "Kit Dobradiças Audio-Technica ATH-M40x (2x)",
-    category: "Headsets",
-    description:
-      "Par de dobradiças (hinges) de reposição para o fone Audio-Technica ATH-M40x. Encaixe idêntico ao original — evita a troca do headphone completo.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "kit-dobradicas-audio-technica-m40x",
-  },
-  {
-    id: 5,
-    title: "Suporte Base de Carregamento Xiaomi Vacuum",
-    category: "Outros",
-    description:
-      "Suporte impresso em 3D para fixar a base de carregamento do robô aspirador Xiaomi Vacuum na parede ou superfície, mantendo o ambiente organizado.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "suporte-base-xiaomi-vacum",
-  },
-  {
-    id: 6,
-    title: "Proteção Drone DJI Neo — Hélice, Câmera e Controle",
-    category: "Drones",
-    description:
-      "Kit de proteção completo para o drone DJI Neo: protetor de hélice, câmera e controle remoto. Material resistente a impactos, cor preta.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "protecao-drone-dji-neo",
-  },
-  {
-    id: 7,
-    title: "Astro A50 Headband Fix — Adaptador Steelseries",
-    category: "Headsets",
-    description:
-      "Adaptador que permite usar a headband da Steelseries no headset Astro A50, substituindo o arco original quebrado por uma solução econômica e resistente.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "astro-a50-headband-fix-steelseries",
-  },
-  {
-    id: 8,
-    title: "Boneco Miniatura Personalizado Bobblehead 3D",
-    category: "Colecionáveis Interativos & Fidgets",
-    description:
-      "Boneco miniatura personalizado com as características físicas do cliente, no estilo Bobblehead (cabeça articulada). Ideal para presentes únicos e colecionáveis. Produção sob encomenda.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "boneco-miniatura-bobblehead-3d",
-  },
-  {
-    id: 9,
-    title: "Suporte de Parede — Adaptador Ethernet Starlink",
-    category: "Starlink",
-    description:
-      "Suporte impresso em 3D para fixar o adaptador Ethernet Starlink na parede, mantendo o cabo organizado e o adaptador protegido.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "suporte-ethernet-starlink",
-  },
-  {
-    id: 10,
-    title: "Suporte de Lanterna Superior DJI Neo — Voo Noturno",
-    category: "Drones",
-    description:
-      "Suporte para lanterna fixado no topo do drone DJI Neo, viabilizando voos noturnos com iluminação auxiliar. Resistente às vibrações de voo, cor branca.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "suporte-lanterna-dji-neo",
-  },
-  {
-    id: 11,
-    title: "Suporte de Parede Xiaomi AX3600/AX6000",
-    category: "Outros",
-    description:
-      "Kit de suporte de parede para roteadores Xiaomi AX3600 e AX6000. Economiza espaço, melhora a ventilação e organiza o ambiente.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "suporte-parede-xiaomi-ax3600",
-  },
-  {
-    id: 12,
-    title: "Suporte de Radiador Externo Water Cooler PC",
-    category: "Outros",
-    description:
-      "Suporte em PETG reforçado para fixação de radiador externo de water cooler em gabinetes de PC. Alta resistência estrutural, cor preta.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "suporte-radiador-water-cooler-pc",
-  },
-  {
-    id: 13,
-    title: "Peça Reposição ATH-M40x — Yoke/Haste Par",
-    category: "Headsets",
-    description:
-      "Par de yokes (hastes de articulação) de reposição para o Audio-Technica ATH-M40x. Encaixe idêntico ao original — resolve a quebra sem troca do headphone completo.",
-    image: "/images/products/components-placeholder.svg",
-    slug: "peca-reposicao-audio-technica-m40x-yoke",
-  },
-];
 
 const defaultFeatures = [
   {
@@ -225,9 +97,15 @@ const defaultProcessSteps = [
   },
 ];
 
+function normalizeWhatsappPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (!digits) return "";
+  return digits.length >= 12 ? digits : `55${digits}`;
+}
+
 export default function PersonalizadosPage() {
   const [blocks, setBlocks] = useState<PageBlock[]>([]);
-  const [portfolioItems, setPortfolioItems] = useState<PortfolioProduct[]>(fallbackPortfolioItems);
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioProduct[]>([]);
   const [selectedItem, setSelectedItem] = useState<PortfolioProduct | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [whatsappPhone, setWhatsappPhone] = useState("");
@@ -238,60 +116,69 @@ export default function PersonalizadosPage() {
   const portfolioInView = useInView(portfolioRef, { once: true, margin: "-50px" });
   const processInView = useInView(processRef, { once: true, margin: "-50px" });
 
-  const categories = [...new Set(portfolioItems.map(item => item.category))];
+  const categories = [...new Set(portfolioItems.map((item) => item.category))];
 
   const filteredItems = selectedCategory
-    ? portfolioItems.filter(item => item.category === selectedCategory)
+    ? portfolioItems.filter((item) => item.category === selectedCategory)
     : portfolioItems;
 
-  const features = (pageConfig.features || defaultFeatures.map(f => ({ title: f.title, description: f.description }))).map((f, i) => ({
-    icon: defaultFeatures[i]?.icon || HiOutlineCube,
-    ...f,
+  const features = (
+    pageConfig.features || defaultFeatures.map((feature) => ({
+      title: feature.title,
+      description: feature.description,
+    }))
+  ).map((feature, index) => ({
+    icon: defaultFeatures[index]?.icon || HiOutlineCube,
+    ...feature,
   }));
 
   const processSteps = pageConfig.processSteps || defaultProcessSteps;
 
   useEffect(() => {
-    // Load WhatsApp phone from header config
     fetch("/api/layout?type=header")
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => {
         const phone: string = data.config?.content?.contactPhone ?? "";
-        const digits = phone.replace(/\D/g, "");
-        if (digits) setWhatsappPhone(digits.length >= 12 ? digits : `55${digits}`);
+        setWhatsappPhone(normalizeWhatsappPhone(phone));
       })
       .catch(() => {});
 
-    // Load page config from layout
     fetch("/api/layout?type=page-personalizados")
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => {
-        if (data.config?.content) setPageConfig(data.config.content as PageConfig);
-      })
-      .catch(() => {});
-
-    // Load products from the "personalizados" category via API
-    fetch("/api/products?category=personalizados&limit=50")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.products && data.products.length > 0) {
-          const mapped: PortfolioProduct[] = data.products.map((p: Record<string, unknown>) => ({
-            id: p.id,
-            title: p.name,
-            category: (p.category as Record<string, string>)?.name || "Personalizados",
-            description: p.shortDescription || "",
-            image: p.image || "/images/products/components-placeholder.svg",
-            slug: p.slug,
-          }));
-          setPortfolioItems(mapped);
+        if (data.config?.content) {
+          setPageConfig(data.config.content as PageConfig);
         }
       })
       .catch(() => {});
+
+    fetch("/api/products?category=personalizados&limit=50")
+      .then((response) => response.json())
+      .then((data) => {
+        if (!data.products || data.products.length === 0) {
+          setPortfolioItems([]);
+          return;
+        }
+
+        const mapped: PortfolioProduct[] = data.products.map((product: Record<string, unknown>) => ({
+          id: product.id as string,
+          title: (product.name as string) || "Projeto personalizado",
+          category: (product.category as Record<string, string> | undefined)?.name || "Personalizados",
+          description: (product.shortDescription as string) || "",
+          image: (product.image as string) || "/images/products/components-placeholder.svg",
+          slug: (product.slug as string) || "",
+        }));
+
+        setPortfolioItems(mapped);
+      })
+      .catch(() => {
+        setPortfolioItems([]);
+      });
   }, []);
 
   useEffect(() => {
     fetch("/api/pages/personalizados")
-      .then((r) => r.json())
+      .then((response) => response.json())
       .then((data) => setBlocks(data.page?.blocks || []))
       .catch(() => {});
   }, []);
@@ -302,9 +189,7 @@ export default function PersonalizadosPage() {
 
   return (
     <>
-      {/* Hero Section */}
       <section className={`${STANDARD_PAGE_BANNER_CLASS} text-white`}>
-        {/* Background Image */}
         <div className="absolute inset-0">
           <Image
             src={pageConfig.heroImage || "/images/pesonalizados-hero.jpg"}
@@ -317,7 +202,7 @@ export default function PersonalizadosPage() {
           />
           <div className="absolute inset-0 bg-black/60" />
         </div>
-        
+
         <div className="container mx-auto px-6 lg:px-12 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -331,11 +216,20 @@ export default function PersonalizadosPage() {
             </span>
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
               {limitWords(pageConfig.heroTitle || "Transformamos suas", 2)}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400"> {limitWords(pageConfig.heroHighlight || "ideias", 2)} </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
+                {" "}
+                {limitWords(pageConfig.heroHighlight || "ideias", 2)}{" "}
+              </span>
               {!pageConfig.heroTitle && "em realidade"}
             </h1>
             <p className="text-gray-300 text-lg leading-relaxed mb-8 max-w-2xl">
-              {limitWords(normalizeHeroCopy(pageConfig.heroDescription || "Impressão 3D sob demanda para protótipos e peças finais com qualidade profissional."), 12)}
+              {limitWords(
+                normalizeHeroCopy(
+                  pageConfig.heroDescription ||
+                    "Impressão 3D sob demanda para protótipos e peças finais com qualidade profissional.",
+                ),
+                12,
+              )}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button
@@ -367,7 +261,6 @@ export default function PersonalizadosPage() {
           </motion.div>
         </div>
 
-        {/* Decorative 3D elements */}
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 0.2, scale: 1 }}
@@ -376,7 +269,6 @@ export default function PersonalizadosPage() {
         />
       </section>
 
-      {/* Features */}
       <section className="py-16 bg-white border-b border-gray-100">
         <div className="container mx-auto px-6 lg:px-12">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -401,7 +293,6 @@ export default function PersonalizadosPage() {
         </div>
       </section>
 
-      {/* Portfolio Gallery */}
       <section id="portfolio" ref={portfolioRef} className="py-24 bg-gray-50">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
@@ -421,116 +312,140 @@ export default function PersonalizadosPage() {
             </p>
           </motion.div>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap justify-center gap-3 mb-12">
-            <button
-              onClick={() => setSelectedCategory(null)}
-              className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
-                selectedCategory === null
-                  ? "bg-black text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
-              }`}
-            >
-              Todos
-            </button>
-            {categories.map((category) => (
+          {categories.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-3 mb-12">
               <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
+                onClick={() => setSelectedCategory(null)}
                 className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
-                  selectedCategory === category
+                  selectedCategory === null
                     ? "bg-black text-white"
                     : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
                 }`}
               >
-                {category}
+                Todos
               </button>
-            ))}
-          </div>
-
-          {/* Gallery Grid — padrão visual idêntico aos cards de catálogo da home:
-               rounded-xl / border-[#d5e3fa] / shadow-sm / hover:-translate-y-1
-               imagem h-[220px] bg-[#f4f8ff] / categoria azul / título / descrição
-               / "Sob consulta" / botões "Ver Produto" + "Solicitar Orçamento".
-               Clique no card (fora dos botões) → abre modal com detalhe. */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredItems.map((item, index) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={portfolioInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative flex min-h-[500px] flex-col items-center overflow-hidden rounded-2xl bg-white text-center shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer"
-                onClick={() => setSelectedItem(item)}
-              >
-                <span className="absolute left-3 top-3 z-10 rounded-full bg-[#0B64D3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                  {item.category}
-                </span>
-
-                <Link
-                  href={`/produtos/${item.slug}`}
-                  className="relative block h-[250px] w-full bg-white"
-                  onClick={(e) => e.stopPropagation()}
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-4 py-2 text-sm font-medium transition-all duration-300 ${
+                    selectedCategory === category
+                      ? "bg-black text-white"
+                      : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+                  }`}
                 >
-                  <Image
-                    src={item.image}
-                    alt={item.title}
-                    fill
-                    className="object-contain p-6 transition-all duration-500 group-hover:scale-105"
-                    sizes="(max-width: 768px) 80vw, 320px"
-                  />
-                </Link>
+                  {category}
+                </button>
+              ))}
+            </div>
+          )}
 
-                <div className="flex flex-1 flex-col items-center justify-start p-5 text-center">
+          {filteredItems.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={portfolioInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5 }}
+              className="mx-auto max-w-3xl rounded-3xl border border-dashed border-[#c5d7f5] bg-white px-8 py-12 text-center shadow-sm"
+            >
+              <h3 className="text-2xl font-semibold text-[#0f274c]">
+                Ainda não há projetos personalizados publicados.
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-[#4e678f]">
+                Esta vitrine exibe apenas produtos reais cadastrados na categoria personalizados.
+                Novos projetos aparecerão aqui assim que forem publicados no catálogo.
+              </p>
+              <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <Button size="lg" className="bg-[#0B64D3] text-white hover:bg-[#0A4A9D]" asChild>
+                  <Link href="/produtos">Ver catálogo completo</Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-[#c5d7f5] text-[#0B64D3] hover:bg-[#edf4ff]"
+                  asChild
+                >
+                  <Link href="/contato">Solicitar orçamento</Link>
+                </Button>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredItems.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={portfolioInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="group relative flex min-h-[500px] flex-col items-center overflow-hidden rounded-2xl bg-white text-center shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl cursor-pointer"
+                  onClick={() => setSelectedItem(item)}
+                >
+                  <span className="absolute left-3 top-3 z-10 rounded-full bg-[#0B64D3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                    {item.category}
+                  </span>
+
                   <Link
                     href={`/produtos/${item.slug}`}
-                    className="line-clamp-2 mx-auto min-h-[3.2rem] max-w-[85%] text-[15px] font-semibold text-[#0f274c]"
-                    onClick={(e) => e.stopPropagation()}
+                    className="relative block h-[250px] w-full bg-white"
+                    onClick={(event) => event.stopPropagation()}
                   >
-                    {item.title}
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-contain p-6 transition-all duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 80vw, 320px"
+                    />
                   </Link>
 
-                  <p className="mt-2 line-clamp-2 text-xs text-[#4e678f] max-w-[90%]">
-                    {item.description}
-                  </p>
-
-                  <div className="mt-4 rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-4 py-4 shadow-sm w-full">
-                    <div className="text-xs font-medium text-[#6f85a8]">
-                      Projeto personalizado
-                    </div>
-                    <div className="mt-1 text-[1.5rem] font-extrabold leading-none text-[#128C7E]">
-                      Sob consulta
-                    </div>
-                  </div>
-
-                  <div className="mt-auto flex w-full flex-col gap-2 pt-4">
+                  <div className="flex flex-1 flex-col items-center justify-start p-5 text-center">
                     <Link
                       href={`/produtos/${item.slug}`}
-                      className="flex h-10 items-center justify-center rounded-full bg-[#0B64D3] text-sm font-semibold text-white transition-colors hover:bg-[#0A4A9D]"
-                      onClick={(e) => e.stopPropagation()}
+                      className="line-clamp-2 mx-auto min-h-[3.2rem] max-w-[85%] text-[15px] font-semibold text-[#0f274c]"
+                      onClick={(event) => event.stopPropagation()}
                     >
-                      Ver Produto
+                      {item.title}
                     </Link>
-                    <a
-                      href={`https://wa.me/${whatsappPhone}?text=Olá! Vi o produto "${item.title}" no site e gostaria de solicitar um orçamento.`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex h-9 items-center justify-center rounded-full border border-[#c5d7f5] text-sm font-semibold text-[#0B64D3] transition-colors hover:border-[#0B64D3]"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Solicitar Orçamento
-                    </a>
+
+                    <p className="mt-2 line-clamp-2 text-xs text-[#4e678f] max-w-[90%]">
+                      {item.description}
+                    </p>
+
+                    <div className="mt-4 rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-4 py-4 shadow-sm w-full">
+                      <div className="text-xs font-medium text-[#6f85a8]">
+                        Projeto personalizado
+                      </div>
+                      <div className="mt-1 text-[1.5rem] font-extrabold leading-none text-[#128C7E]">
+                        Sob consulta
+                      </div>
+                    </div>
+
+                    <div className="mt-auto flex w-full flex-col gap-2 pt-4">
+                      <Link
+                        href={`/produtos/${item.slug}`}
+                        className="flex h-10 items-center justify-center rounded-full bg-[#0B64D3] text-sm font-semibold text-white transition-colors hover:bg-[#0A4A9D]"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Ver Produto
+                      </Link>
+                      <a
+                        href={`https://wa.me/${whatsappPhone}?text=Olá! Vi o produto "${item.title}" no site e gostaria de solicitar um orçamento.`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-9 items-center justify-center rounded-full border border-[#c5d7f5] text-sm font-semibold text-[#0B64D3] transition-colors hover:border-[#0B64D3]"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        Solicitar Orçamento
+                      </a>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Process */}
       <section ref={processRef} className="py-24 bg-white relative overflow-hidden">
-
         <div className="container mx-auto px-6 lg:px-12 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -547,7 +462,6 @@ export default function PersonalizadosPage() {
           </motion.div>
 
           <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-0">
-            {/* Connector line behind cards */}
             <div className="hidden lg:block absolute top-[3.5rem] left-[12.5%] right-[12.5%] h-[2px] bg-gradient-to-r from-[#0B64D3]/10 via-[#0B64D3]/30 via-50% to-[#0B64D3]/10 z-0" />
 
             {processSteps.map((step, index) => (
@@ -564,9 +478,7 @@ export default function PersonalizadosPage() {
                     {step.step}
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-[#0f274c] mb-2">
-                  {step.title}
-                </h3>
+                <h3 className="text-lg font-bold text-[#0f274c] mb-2">{step.title}</h3>
                 <p className="text-sm text-[#4e678f] leading-relaxed max-w-[220px]">
                   {step.description}
                 </p>
@@ -576,14 +488,17 @@ export default function PersonalizadosPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-24 bg-gradient-to-br from-blue-600 to-blue-800 text-white relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }} />
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                'url("data:image/svg+xml,%3Csvg width=\'60\' height=\'60\' viewBox=\'0 0 60 60\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'none\' fill-rule=\'evenodd\'%3E%3Cg fill=\'%23ffffff\' fill-opacity=\'0.4\'%3E%3Cpath d=\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
+            }}
+          />
         </div>
-        
+
         <div className="container mx-auto px-6 lg:px-12 text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -595,7 +510,8 @@ export default function PersonalizadosPage() {
               {pageConfig.ctaTitle || "Tem um projeto em mente?"}
             </h2>
             <p className="text-blue-100 max-w-2xl mx-auto mb-8 text-lg">
-              {pageConfig.ctaDescription || "Entre em contato conosco e transforme sua ideia em realidade. Orçamento sem compromisso!"}
+              {pageConfig.ctaDescription ||
+                "Entre em contato conosco e transforme sua ideia em realidade. Orçamento sem compromisso!"}
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
@@ -619,16 +535,13 @@ export default function PersonalizadosPage() {
                 className="border-white/30 text-white bg-transparent hover:bg-white/10 transition-all duration-300"
                 asChild
               >
-                <Link href="/contato">
-                  Enviar E-mail
-                </Link>
+                <Link href="/contato">Enviar E-mail</Link>
               </Button>
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Modal for portfolio item */}
       {selectedItem && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -642,7 +555,7 @@ export default function PersonalizadosPage() {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             className="bg-white max-w-2xl w-full max-h-[90vh] overflow-auto"
-            onClick={(e) => e.stopPropagation()}
+            onClick={(event) => event.stopPropagation()}
           >
             <div className="relative aspect-video bg-gray-100">
               <div
@@ -664,12 +577,8 @@ export default function PersonalizadosPage() {
               <span className="text-xs uppercase tracking-wider text-blue-500 mb-2 block">
                 {selectedItem.category}
               </span>
-              <h3 className="text-2xl font-semibold text-black mb-4">
-                {selectedItem.title}
-              </h3>
-              <p className="text-gray-600 mb-6">
-                {selectedItem.description}
-              </p>
+              <h3 className="text-2xl font-semibold text-black mb-4">{selectedItem.title}</h3>
+              <p className="text-gray-600 mb-6">{selectedItem.description}</p>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   className="bg-black text-white hover:bg-gray-800 transition-all duration-300"
