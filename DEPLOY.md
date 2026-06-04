@@ -133,6 +133,8 @@ nano .env
 ```env
 SESSION_SECRET=change_this_with_at_least_32_chars
 DATABASE_URL="postgresql://user:password@localhost:5432/site_base"
+NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=cole_a_service_role_key_aqui
 
 MERCADO_PAGO_ACCESS_TOKEN=
 MERCADO_PAGO_WEBHOOK_SECRET=
@@ -164,6 +166,7 @@ NEXT_PUBLIC_SITE_URL=https://seudominio.com
 - `SESSION_SECRET` é obrigatório em produção e deve ter no mínimo 32 caracteres
 - `DATABASE_URL` precisa apontar para o banco real do ambiente
 - `NEXT_PUBLIC_SITE_URL` deve ser o domínio público final
+- `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` são obrigatórios para o login admin, validação da sessão e `/api/health`
 - `MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE` só deve ficar `true` quando a validação estiver configurada corretamente
 - `PAYMENT_PROVIDER` controla o gateway ativo sem novo deploy
 - `INFINITYPAY_WEBHOOK_SECRET` deve estar preenchido em produção para validação de assinatura
@@ -407,6 +410,7 @@ nginx -t
 - [ ] Página de produto individual funcionando
 - [ ] Login admin funcionando
 - [ ] Banco conectado corretamente
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` conferidos no ambiente
 - [ ] Checkout Mercado Pago redirecionando
 - [ ] Checkout InfinityPay redirecionando (se ativo)
 - [ ] Webhook recebendo pagamentos

@@ -1,13 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { GET as healthGet } from "@/app/api/health/route";
-import { prisma } from "@/lib/prisma";
 import { maskData } from "@/lib/logger";
 import { handleApiError } from "@/lib/api-utils";
+const { supabaseLimit, supabaseSelect, supabaseFrom } = vi.hoisted(() => ({
+  supabaseLimit: vi.fn(),
+  supabaseSelect: vi.fn(() => ({ limit: supabaseLimit })),
+  supabaseFrom: vi.fn(() => ({ select: supabaseSelect })),
+}));
 
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    $queryRaw: vi.fn(),
-  },
+vi.mock("@/lib/supabase", () => ({
+  getSupabaseConfigError: vi.fn(() => null),
+  getSupabaseAdmin: vi.fn(() => ({
+    from: supabaseFrom,
+  })),
 }));
 
 describe("Módulo de Observabilidade, Logger e Health Check", () => {
@@ -17,7 +22,7 @@ describe("Módulo de Observabilidade, Logger e Health Check", () => {
 
   describe("API Health Check", () => {
     it("deve retornar 200 OK com status UP se a conexão com banco de dados estiver ativa", async () => {
-      (prisma.$queryRaw as any).mockResolvedValue([{ 1: 1 }]);
+      supabaseLimit.mockResolvedValue({ data: [{ key: "site-settings-main" }], error: null });
       
       const res = await healthGet();
       const data = await res.json();
@@ -29,7 +34,7 @@ describe("Módulo de Observabilidade, Logger e Health Check", () => {
     });
 
     it("deve retornar 500 DOWN se a conexão com o banco falhar", async () => {
-      (prisma.$queryRaw as any).mockRejectedValue(new Error("Database offline!"));
+      supabaseLimit.mockResolvedValue({ data: null, error: { message: "Database offline!" } });
       
       const res = await healthGet();
       const data = await res.json();
@@ -41,7 +46,7 @@ describe("Módulo de Observabilidade, Logger e Health Check", () => {
     });
 
     it("não deve expor credenciais de banco ou outras secrets na resposta de health check", async () => {
-      (prisma.$queryRaw as any).mockResolvedValue([{ 1: 1 }]);
+      supabaseLimit.mockResolvedValue({ data: [{ key: "site-settings-main" }], error: null });
       
       const res = await healthGet();
       const data = await res.json();

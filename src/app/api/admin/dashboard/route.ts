@@ -11,6 +11,8 @@ const querySchema = z.object({
   endDate: z.string().optional(),
 });
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/admin/dashboard
  * Retorna os indicadores e KPIs em tempo real para o Dashboard Administrativo.

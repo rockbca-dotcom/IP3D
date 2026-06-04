@@ -22,9 +22,9 @@ export default async function AdminDashboardLayout({
   return (
     <ThemeProvider>
       <div className="min-h-screen bg-white dark:bg-zinc-950 transition-colors">
-        <AdminSidebar />
+        <AdminSidebar role={session.role} />
         <div className="lg:pl-72">
-          <AdminTopbar user={{ name: session.name, email: session.email }} />
+          <AdminTopbar user={{ name: session.name, email: session.email }} role={session.role} />
           <main className="p-8">{children}</main>
         </div>
       </div>

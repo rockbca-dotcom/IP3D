@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getIronSession } from "iron-session";
 import { sessionOptions, SessionData, defaultSession } from "@/lib/session";
 import { cookies } from "next/headers";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin, getSupabaseConfigError } from "@/lib/supabase";
 
 export async function GET() {
   try {
@@ -11,6 +11,12 @@ export async function GET() {
     if (!session.isLoggedIn || !session.userId) {
       return NextResponse.json(defaultSession);
     }
+
+    if (getSupabaseConfigError()) {
+      return NextResponse.json(defaultSession);
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Verify user still exists and is active via Supabase PostgREST
     const { data: user, error } = await supabaseAdmin

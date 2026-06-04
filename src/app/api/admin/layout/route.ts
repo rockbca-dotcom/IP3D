@@ -4,6 +4,8 @@ import { requireEditor } from "@/lib/auth";
 import { apiSuccess, badRequest, handleApiError } from "@/lib/api-utils";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const layoutConfigSchema = z.object({
   type: z.string().min(1, "type é obrigatório"),
   variant: z.string().min(1, "variant é obrigatória"),

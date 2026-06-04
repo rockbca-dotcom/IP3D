@@ -54,8 +54,28 @@ const menuItems = [
   },
 ];
 
-export function AdminSidebar() {
+interface AdminSidebarProps {
+  role?: string;
+}
+
+function filterMenuByRole(role?: string) {
+  if (role === "SUPER_ADMIN") return menuItems;
+
+  return menuItems
+    .map((section) => {
+      if (section.section !== "Sistema") return section;
+
+      return {
+        ...section,
+        items: section.items.filter((item) => item.href !== "/admin/usuarios" && item.href !== "/admin/scripts" && item.href !== "/admin/configuracoes"),
+      };
+    })
+    .filter((section) => section.items.length > 0);
+}
+
+export function AdminSidebar({ role }: AdminSidebarProps) {
   const pathname = usePathname();
+  const visibleMenuItems = filterMenuByRole(role);
 
   return (
     <aside className="fixed left-0 top-0 z-40 hidden h-screen w-72 border-none bg-black text-white outline-none lg:block">
@@ -68,7 +88,7 @@ export function AdminSidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto border-0 px-4 py-6 outline-none [&::-webkit-scrollbar]:w-0 [scrollbar-width:none]">
-          {menuItems.map((section) => (
+          {visibleMenuItems.map((section) => (
             <div key={section.section} className="mb-6">
               <h3 className="mb-3 px-4 text-[10px] font-medium uppercase tracking-[0.2em] text-white/40">{section.section}</h3>
               <ul className="space-y-1">

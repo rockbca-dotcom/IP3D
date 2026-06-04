@@ -5,6 +5,8 @@ import { apiSuccess, handleApiError } from "@/lib/api-utils";
 import { z } from "zod";
 import { OrderStatus, PaymentStatus, Prisma } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),

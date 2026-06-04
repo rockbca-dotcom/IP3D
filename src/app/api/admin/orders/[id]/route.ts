@@ -5,6 +5,8 @@ import { apiSuccess, apiError, handleApiError, notFound, forbidden } from "@/lib
 import { z } from "zod";
 import { OrderStatus, PaymentStatus } from "@prisma/client";
 
+export const dynamic = "force-dynamic";
+
 const patchSchema = z.object({
   status: z.nativeEnum(OrderStatus).optional(),
   paymentStatus: z.nativeEnum(PaymentStatus).optional(),

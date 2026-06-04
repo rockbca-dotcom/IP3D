@@ -1,4 +1,4 @@
-import { supabaseAdmin } from "./supabase";
+import { getSupabaseAdmin, getSupabaseConfigError } from "./supabase";
 import bcrypt from "bcryptjs";
 import { UserRole } from "@prisma/client";
 
@@ -17,6 +17,9 @@ export interface AuthUser {
  */
 export async function findUserByEmail(email: string): Promise<AuthUser | null> {
   try {
+    if (getSupabaseConfigError()) return null;
+
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from("User")
       .select("id, email, name, role, password, active")
@@ -35,6 +38,9 @@ export async function findUserByEmail(email: string): Promise<AuthUser | null> {
  */
 export async function findUserById(id: string): Promise<AuthUser | null> {
   try {
+    if (getSupabaseConfigError()) return null;
+
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from("User")
       .select("id, email, name, role, password, active")
@@ -73,6 +79,11 @@ export async function verifySession(userId: string): Promise<{
   role?: UserRole;
 }> {
   try {
+    if (getSupabaseConfigError()) {
+      return { valid: false };
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
     const { data, error } = await supabaseAdmin
       .from("User")
       .select("active, role")

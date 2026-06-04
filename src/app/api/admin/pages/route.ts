@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireEditor } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 const SYSTEM_PAGES: Array<{ name: string; slug: string }> = [
   { name: "Home", slug: "home" },
   { name: "Contato", slug: "contato" },

@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/auth";
 import { apiSuccess, handleApiError, badRequest, conflict } from "@/lib/api-utils";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const categoryCreateSchema = z.object({
   name: z.string({ required_error: "Nome é obrigatório" }).min(1, "Nome é obrigatório"),
   slug: z.string({ required_error: "Slug é obrigatório" })

@@ -169,8 +169,15 @@ Recebimento de notificações de pagamento do InfinityPay (Desativado).
 
 ### `POST /api/auth/login`
 - **Payload**: `{ "email": "...", "password": "..." }`
-- **Sucesso**: `{ "success": true, "user": { ... } }` + Cookie `admin-session`.
+- **Sucesso**: `{ "success": true, "user": { ... } }` + Cookie `ip3d-admin-session`.
 - **Proteção**: Rate limit por IP (5 tentativas / 15 min).
+- **Dependências operacionais**: `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` configurados no servidor.
+
+### `GET /api/auth/session`
+- **Auth**: Lê o cookie de sessão e valida o usuário no banco.
+- **Sucesso**: `{ "isLoggedIn": true, "userId": "...", "email": "...", "name": "...", "role": "ADMIN|SUPER_ADMIN|EDITOR" }`
+- **Sem sessão válida**: `{ "isLoggedIn": false }`
+- **Observação**: o payload retorna `role` na raiz da resposta.
 
 ### `POST /api/auth/forgot-password`
 - **Acesso**: Público.

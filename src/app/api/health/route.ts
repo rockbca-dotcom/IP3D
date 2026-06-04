@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin, getSupabaseConfigError } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +8,22 @@ export async function GET() {
   const timestamp = new Date().toISOString();
 
   try {
+    const supabaseConfigError = getSupabaseConfigError();
+
+    if (supabaseConfigError) {
+      logger.error("Health check falhou", new Error(supabaseConfigError));
+      return NextResponse.json(
+        {
+          status: "DOWN",
+          timestamp,
+          services: { database: "DOWN" },
+        },
+        { status: 500 }
+      );
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+
     // Use Supabase PostgREST (HTTP) — works in Vercel serverless
     const { error } = await supabaseAdmin
       .from("Setting")

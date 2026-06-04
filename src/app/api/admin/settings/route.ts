@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/auth";
 import { handleApiError, apiSuccess } from "@/lib/api-utils";
 
+export const dynamic = "force-dynamic";
+
 const SETTINGS_KEY = "site-settings-main";
 
 export async function GET() {

@@ -8,13 +8,11 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "@/app/api/auth/login/route";
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-    },
-  },
+const { supabaseSingle, supabaseEq, supabaseSelect, supabaseFrom } = vi.hoisted(() => ({
+  supabaseSingle: vi.fn(),
+  supabaseEq: vi.fn(() => ({ single: supabaseSingle })),
+  supabaseSelect: vi.fn(() => ({ eq: supabaseEq })),
+  supabaseFrom: vi.fn(() => ({ select: supabaseSelect })),
 }));
 
 vi.mock("bcryptjs", () => ({
@@ -33,7 +31,12 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn(() => ({})),
 }));
 
-import { prisma } from "@/lib/prisma";
+vi.mock("@/lib/supabase", () => ({
+  getSupabaseConfigError: vi.fn(() => null),
+  getSupabaseAdmin: vi.fn(() => ({
+    from: supabaseFrom,
+  })),
+}));
 
 describe("POST /api/auth/login", () => {
   beforeEach(() => {
@@ -54,7 +57,7 @@ describe("POST /api/auth/login", () => {
   });
 
   it("deve retornar 401 para credenciais invalidas", async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    supabaseSingle.mockResolvedValue({ data: null, error: { message: "not found" } });
 
     const req = new NextRequest("http://localhost/api/auth/login", {
       method: "POST",
@@ -77,7 +80,7 @@ describe("POST /api/auth/login", () => {
       active: true,
     };
     
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    supabaseSingle.mockResolvedValue({ data: mockUser, error: null });
     vi.mocked(bcrypt.compare).mockResolvedValue(true as any);
 
     const req = new NextRequest("http://localhost/api/auth/login", {
@@ -101,7 +104,7 @@ describe("POST /api/auth/login", () => {
       active: true,
     };
     
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(mockUser as any);
+    supabaseSingle.mockResolvedValue({ data: mockUser, error: null });
     vi.mocked(bcrypt.compare).mockResolvedValue(true as any);
 
     const req = new NextRequest("http://localhost/api/auth/login", {

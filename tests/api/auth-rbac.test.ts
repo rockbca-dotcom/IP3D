@@ -1,14 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { hasRole, requireSuperAdmin, requireEditor, requireAdmin } from "@/lib/auth";
 import { getIronSession } from "iron-session";
-import { prisma } from "@/lib/prisma";
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-    },
-  },
+const { supabaseSingle, supabaseEq, supabaseSelect, supabaseFrom } = vi.hoisted(() => ({
+  supabaseSingle: vi.fn(),
+  supabaseEq: vi.fn(() => ({ single: supabaseSingle })),
+  supabaseSelect: vi.fn(() => ({ eq: supabaseEq })),
+  supabaseFrom: vi.fn(() => ({ select: supabaseSelect })),
 }));
 
 vi.mock("iron-session", async () => {
@@ -21,6 +18,13 @@ vi.mock("iron-session", async () => {
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@/lib/supabase", () => ({
+  getSupabaseConfigError: vi.fn(() => null),
+  getSupabaseAdmin: vi.fn(() => ({
+    from: supabaseFrom,
+  })),
 }));
 
 describe("RBAC - Matriz de Autorização", () => {
@@ -37,10 +41,13 @@ describe("RBAC - Matriz de Autorização", () => {
   };
 
   const mockDbUser = (role: any, active = true) => {
-    (prisma.user.findUnique as any).mockResolvedValue({
-      id: "user-123",
-      role,
-      active,
+    supabaseSingle.mockResolvedValue({
+      data: {
+        id: "user-123",
+        role,
+        active,
+      },
+      error: null,
     });
   };
 

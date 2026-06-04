@@ -13,6 +13,8 @@ A validação dessas variáveis é feita centralizadamente em `src/lib/env.ts`.
 | `DATABASE_URL` | URL de conexão com o PostgreSQL. | Obrigatória no servidor. |
 | `SESSION_SECRET` | Segredo para criptografia de cookies (iron-session). | Mínimo 32 caracteres. Bloqueia placeholders em produção. |
 | `NEXT_PUBLIC_SITE_URL` | URL base do site (ex: `https://ip3d.com.br`). | Usada para redirecionamentos, webhooks, links de recuperação de senha, tags canonical, robots.txt e sitemap.xml. |
+| `NEXT_PUBLIC_SUPABASE_URL` | URL do projeto Supabase. | Obrigatória para login admin, sessão e `/api/health` em runtime serverless. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Chave service role do Supabase. | Obrigatória no servidor. Nunca expor no client. |
 
 ---
 

@@ -4,6 +4,12 @@ import { POST as checkoutPost } from "@/app/api/payments/checkout/route";
 import { POST as shippingPost } from "@/app/api/shipping/route";
 import { prisma } from "@/lib/prisma";
 import { NextRequest } from "next/server";
+const { supabaseSingle, supabaseEq, supabaseSelect, supabaseFrom } = vi.hoisted(() => ({
+  supabaseSingle: vi.fn(),
+  supabaseEq: vi.fn(() => ({ single: supabaseSingle })),
+  supabaseSelect: vi.fn(() => ({ eq: supabaseEq })),
+  supabaseFrom: vi.fn(() => ({ select: supabaseSelect })),
+}));
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -20,6 +26,13 @@ vi.mock("iron-session", async () => {
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@/lib/supabase", () => ({
+  getSupabaseConfigError: vi.fn(() => null),
+  getSupabaseAdmin: vi.fn(() => ({
+    from: supabaseFrom,
+  })),
 }));
 
 describe("API Standardized Errors", () => {
@@ -87,7 +100,7 @@ describe("API Standardized Errors", () => {
 
   describe("Internal Server Errors (500)", () => {
     it("não deve vazar stack trace em erros inesperados", async () => {
-      (prisma.user.findUnique as any).mockRejectedValue(new Error("Database crash!"));
+      supabaseSingle.mockRejectedValue(new Error("Database crash!"));
 
       const req = new NextRequest("http://localhost/api/auth/login", {
         method: "POST",

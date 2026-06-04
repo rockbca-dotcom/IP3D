@@ -1,10 +1,14 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 
 // Esta rota gera tokens para upload direto do cliente para o Vercel Blob
 // Isso bypassa o limite de 4.5MB das serverless functions
 
 export async function POST(request: NextRequest) {
+  const deny = await requireAdmin();
+  if (deny) return deny;
+
   const body = (await request.json()) as HandleUploadBody;
 
   try {

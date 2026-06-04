@@ -64,7 +64,12 @@ export function handleApiError(error: unknown) {
   }
 
   // Erros do Prisma
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+  if (
+    typeof Prisma === "object" &&
+    Prisma !== null &&
+    typeof Prisma.PrismaClientKnownRequestError === "function" &&
+    error instanceof Prisma.PrismaClientKnownRequestError
+  ) {
     switch (error.code) {
       case "P2002": // Unique constraint failed
         const fields = (error.meta?.target as string[])?.join(", ") || "campo";

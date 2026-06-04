@@ -3,27 +3,48 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
-if (!supabaseUrl) {
-  throw new Error("NEXT_PUBLIC_SUPABASE_URL is not set");
+export function getSupabaseConfigError(): string | null {
+  if (!supabaseUrl) {
+    return "NEXT_PUBLIC_SUPABASE_URL is not set";
+  }
+  if (!supabaseServiceKey) {
+    return "SUPABASE_SERVICE_ROLE_KEY is not set";
+  }
+
+  return null;
 }
-if (!supabaseServiceKey) {
-  throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set");
+
+export function isSupabaseConfigured(): boolean {
+  return getSupabaseConfigError() === null;
 }
+
+let supabaseAdminInstance: ReturnType<typeof createClient> | null = null;
 
 /**
  * Supabase client for server-side operations.
  * Uses the service_role key — NEVER expose this to the client.
  * This client bypasses RLS and has full database access.
  */
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
-  db: {
-    schema: "public",
-  },
-});
+export function getSupabaseAdmin() {
+  const configError = getSupabaseConfigError();
+  if (configError) {
+    throw new Error(configError);
+  }
+
+  if (!supabaseAdminInstance) {
+    supabaseAdminInstance = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+      db: {
+        schema: "public",
+      },
+    });
+  }
+
+  return supabaseAdminInstance;
+}
 
 /**
  * Query a table via Supabase PostgREST (HTTP) — works in Vercel serverless

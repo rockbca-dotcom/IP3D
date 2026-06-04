@@ -21,8 +21,8 @@ const menuItems = [
   { title: "Visão Geral", href: "/admin" },
   { title: "Produtos", href: "/admin/produtos" },
   { title: "Relatórios", href: "/admin/relatorios" },
-  { title: "Configurações", href: "/admin/configuracoes" },
-];
+  { title: "Configurações", href: "/admin/configuracoes", superAdminOnly: true },
+] as const;
 
 interface AdminTopbarProps {
   user: {
@@ -30,6 +30,7 @@ interface AdminTopbarProps {
     email?: string | null;
     image?: string | null;
   };
+  role?: string;
 }
 
 // Micro-componente: Notificações
@@ -228,9 +229,10 @@ function ProfileDropdown({ user, onLogout }: { user: AdminTopbarProps["user"]; o
   );
 }
 
-export function AdminTopbar({ user }: AdminTopbarProps) {
+export function AdminTopbar({ user, role }: AdminTopbarProps) {
   const router = useRouter();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const visibleMenuItems = menuItems.filter((item) => !item.superAdminOnly || role === "SUPER_ADMIN");
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -293,7 +295,7 @@ export function AdminTopbar({ user }: AdminTopbarProps) {
             </div>
             <nav className="p-6">
               <ul className="space-y-1">
-                {menuItems.map((item) => (
+                {visibleMenuItems.map((item) => (
                   <li key={item.href}>
                     <Link
                       href={item.href}

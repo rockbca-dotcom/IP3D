@@ -47,6 +47,8 @@ Antes de efetuar qualquer publicação, garanta que as variáveis de ambiente a 
 | **`SESSION_SECRET`** | String aleatória de no mínimo 32 caracteres gerada com criptografia | **Crítica** |
 | **`DATABASE_URL`** | String de conexão segura com o PostgreSQL de produção (SSL ativado) | **Crítica** |
 | **`NEXT_PUBLIC_SITE_URL`** | URL final de produção (ex: `https://seudominio.com`) | **Crítica** |
+| **`NEXT_PUBLIC_SUPABASE_URL`** | URL do projeto Supabase usada pelo auth/health | **Crítica** |
+| **`SUPABASE_SERVICE_ROLE_KEY`** | Service role key usada pelo servidor para validar sessão admin | **Crítica** |
 | **`MERCADO_PAGO_ACCESS_TOKEN`** | Token oficial de produção (Mercado Pago > Credenciais) | **Crítica** |
 | **`MERCADO_PAGO_WEBHOOK_SECRET`** | Chave secreta de validação de Webhooks do Mercado Pago | **Alta** |
 | **`MERCADO_PAGO_VALIDATE_WEBHOOK_SIGNATURE`**| `true` em produção (para bloquear ataques de falsificação) | **Alta** |
@@ -103,6 +105,7 @@ Imediatamente após a conclusão do deploy, execute as seguintes checagens manua
 - [ ] **Produtos:** Acesse `/produtos` e clique em uma PDP para validar o carregamento dinâmico.
 - [ ] **Fluxo de Carrinho:** Adicione um produto ao carrinho e calcule o frete para assegurar conectividade com APIs.
 - [ ] **Painel Administrativo:** Acesse `/login` e valide a autenticação MFA/Sessão do administrador.
+- [ ] **Auth Bridge:** Confirmar que `NEXT_PUBLIC_SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` estão presentes no ambiente publicado.
 
 ---
 

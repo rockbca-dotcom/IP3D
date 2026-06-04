@@ -2,7 +2,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { sessionOptions, SessionData, defaultSession } from "./session";
-import { supabaseAdmin } from "./supabase";
+import { getSupabaseAdmin, getSupabaseConfigError } from "./supabase";
 import { UserRole } from "@prisma/client";
 
 export async function getSession(): Promise<SessionData> {
@@ -33,6 +33,9 @@ export async function hasRole(allowedRoles: UserRole[]): Promise<boolean> {
 
   // Authoritative check: verify the user still exists and is active via Supabase
   try {
+    if (getSupabaseConfigError()) return false;
+
+    const supabaseAdmin = getSupabaseAdmin();
     const { data: user, error } = await supabaseAdmin
       .from("User")
       .select("active, role")

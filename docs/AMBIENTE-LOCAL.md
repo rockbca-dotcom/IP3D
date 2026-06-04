@@ -65,6 +65,17 @@ copy .env.example .env
   ```
   > Em produção: `https://seudominio.com.br`
 
+- [ ] **`NEXT_PUBLIC_SUPABASE_URL`** — URL do projeto Supabase usada pelo auth/health
+  ```
+  NEXT_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
+  ```
+
+- [ ] **`SUPABASE_SERVICE_ROLE_KEY`** — service role key do Supabase
+  ```
+  SUPABASE_SERVICE_ROLE_KEY=eyJ...
+  ```
+  > Sem essas duas variáveis, o login admin, a validação de sessão e o `/api/health` falham.
+
 ---
 
 ### Variáveis de upload (obrigatória para imagens de produtos)
@@ -181,6 +192,7 @@ http://localhost:3003/login
 ```
 
 > O admin inicial tem role `ADMIN`. Para `SUPER_ADMIN`, editar diretamente no banco ou pelo Prisma Studio.
+> Antes de testar login, confirme também que a tabela `User` existe no banco configurado e contém `password`, `role` e `active`.
 
 ---
 

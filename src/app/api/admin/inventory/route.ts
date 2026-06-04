@@ -5,6 +5,8 @@ import { requireAdmin } from "@/lib/auth";
 import { apiSuccess, handleApiError, badRequest, notFound } from "@/lib/api-utils";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // /api/admin/inventory
 //

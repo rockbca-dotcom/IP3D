@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin, getSession } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 async function countActiveSuperAdmins(): Promise<number> {
   return prisma.user.count({
     where: { role: "SUPER_ADMIN", active: true },

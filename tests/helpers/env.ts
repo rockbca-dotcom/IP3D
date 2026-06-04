@@ -23,6 +23,10 @@ process.env.NEXT_PUBLIC_SITE_URL ??= "http://localhost:3003";
 // Se um teste precisar de banco real, use a variável de ambiente do CI.
 process.env.DATABASE_URL ??= "postgresql://test:test@localhost:5432/ip3d_test";
 
+// Supabase HTTP bridge — usado por auth/health em runtime serverless.
+process.env.NEXT_PUBLIC_SUPABASE_URL ??= "https://test-project.supabase.co";
+process.env.SUPABASE_SERVICE_ROLE_KEY ??= "test-service-role-key";
+
 // Gateway de pagamento padrão para testes
 process.env.PAYMENT_PROVIDER ??= "mercadopago";
 

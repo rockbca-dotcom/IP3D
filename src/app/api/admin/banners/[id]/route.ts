@@ -4,6 +4,8 @@ import { requireEditor } from "@/lib/auth";
 import { apiSuccess, handleApiError } from "@/lib/api-utils";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const bannerSchema = z.object({
   badge: z.string().nullable().optional(),
   subtitle: z.string().nullable().optional(),

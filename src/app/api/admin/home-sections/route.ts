@@ -4,6 +4,8 @@ import { requireEditor } from "@/lib/auth";
 import { apiSuccess, handleApiError } from "@/lib/api-utils";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const homeSectionSchema = z.object({
   sectionId: z.string().min(1, "sectionId é obrigatório"),
   title: z.string().nullable().optional(),

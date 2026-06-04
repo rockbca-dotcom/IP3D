@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/auth";
 import { handleApiError, apiSuccess } from "@/lib/api-utils";
 
+export const dynamic = "force-dynamic";
+
 // Schema de validação para scripts
 const scriptSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),

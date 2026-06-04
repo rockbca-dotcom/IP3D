@@ -5,7 +5,7 @@ import { z } from "zod";
 import { sessionOptions, SessionData } from "@/lib/session";
 import { cookies } from "next/headers";
 import { handleApiError, apiSuccess, unauthorized, apiError } from "@/lib/api-utils";
-import { supabaseAdmin } from "@/lib/supabase";
+import { getSupabaseAdmin, getSupabaseConfigError } from "@/lib/supabase";
 
 // Schema de validação para o login
 const loginSchema = z.object({
@@ -60,6 +60,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = loginSchema.parse(body);
+    const supabaseConfigError = getSupabaseConfigError();
+
+    if (supabaseConfigError) {
+      return apiError(
+        "Integração com Supabase não configurada.",
+        "SUPABASE_NOT_CONFIGURED",
+        503,
+      );
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
 
     // Fetch user via Supabase PostgREST (HTTP) — works in Vercel serverless
     const { data: user, error: dbError } = await supabaseAdmin

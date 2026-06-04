@@ -22,7 +22,7 @@ export default function LoginPage() {
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((data) => {
-        if (data.user && (data.user.role === "ADMIN" || data.user.role === "SUPER_ADMIN")) {
+        if (data.role === "ADMIN" || data.role === "SUPER_ADMIN") {
           router.replace("/admin");
         } else {
           setCheckingSession(false);
@@ -55,7 +55,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Erro ao fazer login");
+        setError(data.error?.message || data.error || "Erro ao fazer login");
         return;
       }
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Erro ao recuperar senha");
+        setError(data.error?.message || data.error || "Erro ao recuperar senha");
         return;
       }
 

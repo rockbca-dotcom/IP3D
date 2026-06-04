@@ -3,16 +3,13 @@ import { POST as loginPost } from "@/app/api/auth/login/route";
 import { POST as logoutPost } from "@/app/api/auth/logout/route";
 import { GET as meGet } from "@/app/api/auth/me/route";
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getIronSession } from "iron-session";
-
-vi.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-    },
-  },
+const { supabaseSingle, supabaseEq, supabaseSelect, supabaseFrom } = vi.hoisted(() => ({
+  supabaseSingle: vi.fn(),
+  supabaseEq: vi.fn(() => ({ single: supabaseSingle })),
+  supabaseSelect: vi.fn(() => ({ eq: supabaseEq })),
+  supabaseFrom: vi.fn(() => ({ select: supabaseSelect })),
 }));
 
 vi.mock("iron-session", async () => {
@@ -31,6 +28,13 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock("@/lib/supabase", () => ({
+  getSupabaseConfigError: vi.fn(() => null),
+  getSupabaseAdmin: vi.fn(() => ({
+    from: supabaseFrom,
+  })),
+}));
+
 describe("Autenticação e Sessão", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,13 +43,16 @@ describe("Autenticação e Sessão", () => {
   describe("Login API", () => {
     it("deve autenticar administrador ativo com credenciais válidas", async () => {
       const hashedPassword = await bcrypt.hash("Password123", 12);
-      (prisma.user.findUnique as any).mockResolvedValue({
+      supabaseSingle.mockResolvedValue({
+        data: {
         id: "user-1",
         email: "admin@test.com",
         password: hashedPassword,
         active: true,
         role: "ADMIN",
         name: "Admin",
+        },
+        error: null,
       });
 
       const req = new NextRequest("http://localhost/api/auth/login", {
@@ -64,12 +71,15 @@ describe("Autenticação e Sessão", () => {
 
     it("deve recusar usuário inativo mesmo com senha correta", async () => {
       const hashedPassword = await bcrypt.hash("Password123", 12);
-      (prisma.user.findUnique as any).mockResolvedValue({
+      supabaseSingle.mockResolvedValue({
+        data: {
         id: "user-1",
         email: "inactive@test.com",
         password: hashedPassword,
         active: false,
         role: "ADMIN",
+        },
+        error: null,
       });
 
       const req = new NextRequest("http://localhost/api/auth/login", {
@@ -85,12 +95,15 @@ describe("Autenticação e Sessão", () => {
 
     it("deve recusar role não administrativa", async () => {
       const hashedPassword = await bcrypt.hash("Password123", 12);
-      (prisma.user.findUnique as any).mockResolvedValue({
+      supabaseSingle.mockResolvedValue({
+        data: {
         id: "user-1",
         email: "user@test.com",
         password: hashedPassword,
         active: true,
         role: "CUSTOMER",
+        },
+        error: null,
       });
 
       const req = new NextRequest("http://localhost/api/auth/login", {
@@ -153,10 +166,13 @@ describe("Autenticação e Sessão", () => {
         role: "ADMIN",
       });
 
-      // Mock: Banco de dados diz que o usuário está INATIVO
-      (prisma.user.findUnique as any).mockResolvedValue({
-        id: "user-123",
-        active: false,
+      supabaseSingle.mockResolvedValue({
+        data: {
+          id: "user-123",
+          role: "ADMIN",
+          active: false,
+        },
+        error: null,
       });
 
       const result = await isAdmin();
