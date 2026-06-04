@@ -245,6 +245,39 @@ describe("CMS & Layout API Suite", () => {
         expect(res.status).toBe(200);
         expect(data.success).toBe(true);
       });
+
+      it("deve persistir arrays ricos em content para a home", async () => {
+        const payload = {
+          sectionId: "why-choose-us",
+          title: "Novo título",
+          active: true,
+          content: {
+            features: [
+              { icon: "shield", title: "Garantia", description: "Descrição" },
+            ],
+            stats: [{ value: "10+", label: "Projetos" }],
+          },
+        };
+        vi.mocked(prisma.homeSection.upsert).mockResolvedValue({ id: "s2", ...payload } as any);
+
+        const res = await saveAdminHomeSection(
+          makeRequest("http://localhost/api/admin/home-sections", "POST", payload)
+        );
+        const data = await res.json();
+
+        expect(res.status).toBe(200);
+        expect(data.success).toBe(true);
+        expect(vi.mocked(prisma.homeSection.upsert)).toHaveBeenCalledWith(
+          expect.objectContaining({
+            update: expect.objectContaining({
+              content: payload.content,
+            }),
+            create: expect.objectContaining({
+              content: payload.content,
+            }),
+          })
+        );
+      });
     });
 
     describe("Layout Config Admin — /api/admin/layout", () => {

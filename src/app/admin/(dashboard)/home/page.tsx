@@ -1,8 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { HiOutlinePencil, HiOutlineCheck, HiOutlineX, HiOutlineHome } from "react-icons/hi";
+import {
+  HiOutlineCheck,
+  HiOutlineHome,
+  HiOutlinePencil,
+  HiOutlinePlus,
+  HiOutlineX,
+} from "react-icons/hi";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
 interface HomeSection {
@@ -19,10 +25,16 @@ interface HomeSection {
 
 const sectionLabels: Record<string, string> = {
   "why-choose-us": "Por que nos escolher",
-  "partnership": "Parceria",
+  partnership: "Parceria",
   "maintenance-preview": "Manutenção",
   "catalog-cta": "CTA Catálogo",
 };
+
+type EditableItem = Record<string, string>;
+
+function normalizeArray(value: unknown): EditableItem[] {
+  return Array.isArray(value) ? (value as EditableItem[]) : [];
+}
 
 export default function HomeAdminPage() {
   const [sections, setSections] = useState<HomeSection[]>([]);
@@ -32,13 +44,13 @@ export default function HomeAdminPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchSections();
+    void fetchSections();
   }, []);
 
   async function fetchSections() {
     try {
-      const res = await fetch("/api/admin/home-sections");
-      const data = await res.json();
+      const response = await fetch("/api/admin/home-sections");
+      const data = await response.json();
       setSections(data.sections || []);
     } catch (error) {
       console.error("Error fetching sections:", error);
@@ -47,51 +59,77 @@ export default function HomeAdminPage() {
     }
   }
 
-  const startEditing = (section: HomeSection) => {
+  function startEditing(section: HomeSection) {
     setEditingSection(section.sectionId);
     setEditData({ ...section });
-  };
+  }
 
-  const cancelEditing = () => {
+  function cancelEditing() {
     setEditingSection(null);
     setEditData(null);
-  };
+  }
 
-  const saveSection = async () => {
+  async function saveSection() {
     if (!editData) return;
-    
+
     setSaving(true);
     try {
-      const res = await fetch("/api/admin/home-sections", {
+      const response = await fetch("/api/admin/home-sections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editData),
       });
-      
-      if (res.ok) {
+
+      if (response.ok) {
         await fetchSections();
-        setEditingSection(null);
-        setEditData(null);
+        cancelEditing();
       }
     } catch (error) {
       console.error("Error saving section:", error);
     } finally {
       setSaving(false);
     }
-  };
+  }
 
-  const updateEditData = (field: string, value: unknown) => {
+  function updateEditData(field: keyof HomeSection, value: unknown) {
     if (!editData) return;
-    setEditData({ ...editData, [field]: value });
-  };
+    setEditData({ ...editData, [field]: value } as HomeSection);
+  }
 
-  const updateContentField = (field: string, value: unknown) => {
+  function updateContentField(field: string, value: unknown) {
     if (!editData) return;
     setEditData({
       ...editData,
       content: { ...(editData.content || {}), [field]: value },
     });
-  };
+  }
+
+  function updateContentArrayItem(
+    field: string,
+    index: number,
+    key: string,
+    value: string,
+  ) {
+    if (!editData) return;
+    const items = normalizeArray((editData.content || {})[field]);
+    items[index] = { ...(items[index] || {}), [key]: value };
+    updateContentField(field, items);
+  }
+
+  function addContentArrayItem(field: string, item: EditableItem) {
+    if (!editData) return;
+    const items = normalizeArray((editData.content || {})[field]);
+    updateContentField(field, [...items, item]);
+  }
+
+  function removeContentArrayItem(field: string, index: number) {
+    if (!editData) return;
+    const items = normalizeArray((editData.content || {})[field]);
+    updateContentField(
+      field,
+      items.filter((_, currentIndex) => currentIndex !== index),
+    );
+  }
 
   if (loading) {
     return (
@@ -103,7 +141,6 @@ export default function HomeAdminPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-black dark:text-white flex items-center gap-3">
@@ -116,7 +153,6 @@ export default function HomeAdminPage() {
         </div>
       </div>
 
-      {/* Sections List */}
       <div className="space-y-6">
         {sections.map((section, index) => (
           <motion.div
@@ -133,11 +169,11 @@ export default function HomeAdminPage() {
                 </h2>
                 <p className="text-sm text-gray-500">ID: {section.sectionId}</p>
               </div>
-              
+
               {editingSection === section.sectionId ? (
                 <div className="flex gap-2">
                   <button
-                    onClick={saveSection}
+                    onClick={() => void saveSection()}
                     disabled={saving}
                     className="p-2 bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
                   >
@@ -166,130 +202,340 @@ export default function HomeAdminPage() {
 
             {editingSection === section.sectionId && editData ? (
               <div className="space-y-4">
-                {/* Campos básicos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Título
-                    </label>
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-gray-700 dark:text-gray-300">Título</span>
                     <input
                       type="text"
                       value={editData.title || ""}
-                      onChange={(e) => updateEditData("title", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                      onChange={(event) => updateEditData("title", event.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Subtítulo
-                    </label>
+                  </label>
+                  <label className="space-y-1 text-sm">
+                    <span className="block text-gray-700 dark:text-gray-300">Subtítulo</span>
                     <input
                       type="text"
                       value={editData.subtitle || ""}
-                      onChange={(e) => updateEditData("subtitle", e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                      onChange={(event) => updateEditData("subtitle", event.target.value)}
+                      className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
                     />
-                  </div>
+                  </label>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Descrição
-                  </label>
+                <label className="space-y-1 text-sm">
+                  <span className="block text-gray-700 dark:text-gray-300">Descrição</span>
                   <textarea
                     value={editData.description || ""}
-                    onChange={(e) => updateEditData("description", e.target.value)}
+                    onChange={(event) => updateEditData("description", event.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white resize-none"
+                    className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white resize-none"
                   />
-                </div>
+                </label>
 
-                {/* Imagem (para seções que têm) */}
                 {editData.image !== undefined && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Imagem
+                  <ImageUpload
+                    value={editData.image || ""}
+                    onChange={(value) => updateEditData("image", value)}
+                    folder="home"
+                  />
+                )}
+
+                {section.sectionId === "catalog-cta" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-gray-700 dark:text-gray-300">Telefone (exibição)</span>
+                      <input
+                        type="text"
+                        value={String(editData.content?.phone || "")}
+                        onChange={(event) => updateContentField("phone", event.target.value)}
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                      />
                     </label>
-                    <ImageUpload
-                      value={editData.image || ""}
-                      onChange={(v) => updateEditData("image", v)}
-                      folder="home"
-                    />
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-gray-700 dark:text-gray-300">Telefone (link)</span>
+                      <input
+                        type="text"
+                        value={String(editData.content?.phoneRaw || "")}
+                        onChange={(event) => updateContentField("phoneRaw", event.target.value)}
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                      />
+                    </label>
+                    <label className="space-y-1 text-sm md:col-span-2">
+                      <span className="block text-gray-700 dark:text-gray-300">Mensagem WhatsApp</span>
+                      <input
+                        type="text"
+                        value={String(editData.content?.whatsappMessage || "")}
+                        onChange={(event) =>
+                          updateContentField("whatsappMessage", event.target.value)
+                        }
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                      />
+                    </label>
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-gray-700 dark:text-gray-300">Texto do botão catálogo</span>
+                      <input
+                        type="text"
+                        value={String(editData.content?.buttonText || "")}
+                        onChange={(event) => updateContentField("buttonText", event.target.value)}
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                      />
+                    </label>
+                    <label className="space-y-1 text-sm">
+                      <span className="block text-gray-700 dark:text-gray-300">Texto do botão consultor</span>
+                      <input
+                        type="text"
+                        value={String(editData.content?.consultorButtonText || "")}
+                        onChange={(event) =>
+                          updateContentField("consultorButtonText", event.target.value)
+                        }
+                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                      />
+                    </label>
                   </div>
                 )}
 
-                {/* Campos específicos por seção */}
-                {section.sectionId === "catalog-cta" && editData.content && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Telefone (exibição)
+                {section.sectionId === "maintenance-preview" && (
+                  <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <label className="space-y-1 text-sm">
+                        <span className="block text-gray-700 dark:text-gray-300">Texto do botão</span>
+                        <input
+                          type="text"
+                          value={String(editData.content?.buttonText || "")}
+                          onChange={(event) => updateContentField("buttonText", event.target.value)}
+                          className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                        />
                       </label>
-                      <input
-                        type="text"
-                        value={(editData.content as Record<string, string>).phone || ""}
-                        onChange={(e) => updateContentField("phone", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                      />
+                      <label className="space-y-1 text-sm">
+                        <span className="block text-gray-700 dark:text-gray-300">Link do botão</span>
+                        <input
+                          type="text"
+                          value={String(editData.content?.buttonLink || "")}
+                          onChange={(event) => updateContentField("buttonLink", event.target.value)}
+                          className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                        />
+                      </label>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Telefone (link)
-                      </label>
-                      <input
-                        type="text"
-                        value={(editData.content as Record<string, string>).phoneRaw || ""}
-                        onChange={(e) => updateContentField("phoneRaw", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                      />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Mensagem WhatsApp
-                      </label>
-                      <input
-                        type="text"
-                        value={(editData.content as Record<string, string>).whatsappMessage || ""}
-                        onChange={(e) => updateContentField("whatsappMessage", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                      />
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Serviços
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addContentArrayItem("services", {
+                              icon: "wrench",
+                              title: "",
+                              description: "",
+                            })
+                          }
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          Adicionar serviço
+                        </button>
+                      </div>
+                      {normalizeArray(editData.content?.services).map((service, index) => (
+                        <div
+                          key={`service-${index}`}
+                          className="rounded-lg border border-gray-200 dark:border-zinc-700 p-4 space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Serviço {index + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeContentArrayItem("services", index)}
+                              className="text-xs text-red-500 hover:text-red-700"
+                            >
+                              Remover
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input
+                              type="text"
+                              value={service.icon || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem("services", index, "icon", event.target.value)
+                              }
+                              placeholder="Ícone"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                            <input
+                              type="text"
+                              value={service.title || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem("services", index, "title", event.target.value)
+                              }
+                              placeholder="Título"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                            <input
+                              type="text"
+                              value={service.description || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem(
+                                  "services",
+                                  index,
+                                  "description",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="Descrição"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {section.sectionId === "maintenance-preview" && editData.content && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Texto do Botão
-                      </label>
-                      <input
-                        type="text"
-                        value={(editData.content as Record<string, string>).buttonText || ""}
-                        onChange={(e) => updateContentField("buttonText", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                      />
+                {section.sectionId === "why-choose-us" && (
+                  <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Features
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            addContentArrayItem("features", {
+                              icon: "shield",
+                              title: "",
+                              description: "",
+                            })
+                          }
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          Adicionar feature
+                        </button>
+                      </div>
+                      {normalizeArray(editData.content?.features).map((feature, index) => (
+                        <div
+                          key={`feature-${index}`}
+                          className="rounded-lg border border-gray-200 dark:border-zinc-700 p-4 space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Feature {index + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeContentArrayItem("features", index)}
+                              className="text-xs text-red-500 hover:text-red-700"
+                            >
+                              Remover
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input
+                              type="text"
+                              value={feature.icon || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem("features", index, "icon", event.target.value)
+                              }
+                              placeholder="Ícone"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                            <input
+                              type="text"
+                              value={feature.title || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem("features", index, "title", event.target.value)
+                              }
+                              placeholder="Título"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                            <input
+                              type="text"
+                              value={feature.description || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem(
+                                  "features",
+                                  index,
+                                  "description",
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="Descrição"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Link do Botão
-                      </label>
-                      <input
-                        type="text"
-                        value={(editData.content as Record<string, string>).buttonLink || ""}
-                        onChange={(e) => updateContentField("buttonLink", e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-                      />
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Estatísticas
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => addContentArrayItem("stats", { value: "", label: "" })}
+                          className="text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          Adicionar estatística
+                        </button>
+                      </div>
+                      {normalizeArray(editData.content?.stats).map((stat, index) => (
+                        <div
+                          key={`stat-${index}`}
+                          className="rounded-lg border border-gray-200 dark:border-zinc-700 p-4 space-y-3"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-500">Estatística {index + 1}</span>
+                            <button
+                              type="button"
+                              onClick={() => removeContentArrayItem("stats", index)}
+                              className="text-xs text-red-500 hover:text-red-700"
+                            >
+                              Remover
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input
+                              type="text"
+                              value={stat.value || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem("stats", index, "value", event.target.value)
+                              }
+                              placeholder="Valor"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                            <input
+                              type="text"
+                              value={stat.label || ""}
+                              onChange={(event) =>
+                                updateContentArrayItem("stats", index, "label", event.target.value)
+                              }
+                              placeholder="Legenda"
+                              className="px-4 py-2 border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-black dark:text-white"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
               </div>
             ) : (
               <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                {section.title && <p><strong>Título:</strong> {section.title}</p>}
-                {section.subtitle && <p><strong>Subtítulo:</strong> {section.subtitle}</p>}
+                {section.title && (
+                  <p>
+                    <strong>Título:</strong> {section.title}
+                  </p>
+                )}
+                {section.subtitle && (
+                  <p>
+                    <strong>Subtítulo:</strong> {section.subtitle}
+                  </p>
+                )}
                 {section.description && (
-                  <p><strong>Descrição:</strong> {section.description.substring(0, 100)}...</p>
+                  <p>
+                    <strong>Descrição:</strong> {section.description.substring(0, 100)}...
+                  </p>
                 )}
               </div>
             )}
@@ -297,7 +543,6 @@ export default function HomeAdminPage() {
         ))}
       </div>
 
-      {/* Info */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 text-sm text-blue-800 dark:text-blue-200">
         <strong>Dica:</strong> Os banners da Home são editados em{" "}
         <a href="/admin/banners" className="underline font-medium">
@@ -307,7 +552,7 @@ export default function HomeAdminPage() {
         <a href="/admin/produtos" className="underline font-medium">
           Produtos
         </a>{" "}
-        (marque como &quot;Destaque&quot;).
+        e a vitrine de personalizados usa produtos reais da categoria correspondente.
       </div>
     </div>
   );

@@ -9,6 +9,7 @@ import { HiArrowRight, HiPlay, HiOutlineChevronLeft, HiOutlineChevronRight } fro
 import { Button } from "@/components/ui/button";
 import { addToCart } from "@/lib/cart";
 import { STANDARD_HOME_BANNER_CLASS } from "@/components/sections/page-banner-styles";
+import { CatalogCTA, MaintenancePreview, WhyChooseUs } from "@/components/sections";
 
 
 function isExternalUrl(value?: string | null) {
@@ -474,6 +475,33 @@ export function HomeShowcase({
 
   const categoriesToRender = displayCategories.length > 0 ? displayCategories : defaultCategories;
   const compactSectionSlugs = new Set(["componentes-bambu-lab", "componentes-creality", "componentes-universais", "impressoras-3d", "impressoras-3d-equipamentos", "personalizados"]);
+  const activeHomeSections = useMemo(
+    () =>
+      (homeSections || [])
+        .filter((section) => section.active)
+        .sort((a, b) => a.order - b.order),
+    [homeSections],
+  );
+
+  const renderDynamicHomeSection = (section: ApiHomeSection) => {
+    const initialData = {
+      title: section.title,
+      subtitle: section.subtitle,
+      description: section.description,
+      content: section.content,
+    };
+
+    switch (section.sectionId) {
+      case "why-choose-us":
+        return <WhyChooseUs initialData={initialData} />;
+      case "maintenance-preview":
+        return <MaintenancePreview initialData={initialData} />;
+      case "catalog-cta":
+        return <CatalogCTA initialData={initialData} />;
+      default:
+        return null;
+    }
+  };
 
   const promoBannerSection = (
     <section className="w-full">
@@ -715,6 +743,13 @@ export function HomeShowcase({
             </div>
           </div>
         </section>
+
+      {activeHomeSections.map((section) => {
+        const renderedSection = renderDynamicHomeSection(section);
+        if (!renderedSection) return null;
+
+        return <div key={section.id}>{renderedSection}</div>;
+      })}
 
       {featuredProducts.length > 0 && (
         <section className="bg-white py-10">
