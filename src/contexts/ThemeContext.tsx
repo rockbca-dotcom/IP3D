@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 
 // ---------------------------------------------------------------------------
 // Dark mode DESATIVADO temporariamente — locked to "light".
@@ -27,9 +27,19 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Theme locked to "light". No localStorage read/write. No classList mutation.
-  // ThemeProvider renders children immediately — without the mounted-guard
-  // that previously caused the entire admin to render blank on first load.
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+    document.documentElement.style.colorScheme = "light";
+
+    try {
+      localStorage.setItem("admin-theme", "light");
+    } catch {
+      // Storage can be unavailable in strict privacy modes; the DOM lock above is enough.
+    }
+  }, []);
+
+  // Theme locked to "light". ThemeProvider renders children immediately,
+  // without the mounted-guard that previously caused a blank first load.
   return (
     <ThemeContext.Provider value={{ theme: "light", toggleTheme: () => {} }}>
       {children}

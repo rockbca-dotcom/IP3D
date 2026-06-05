@@ -41,7 +41,6 @@ next-env.d.ts
 
 # Prisma
 /prisma/sqlite.db
-/prisma/migrations/
 
 # Project Specific
 *.zip
@@ -65,3 +64,8 @@ hostinger-deploy.zip
 /backups/
 *.sql
 *.dump
+
+# Prisma migrations are production schema history and must be versioned.
+!/prisma/migrations/
+!/prisma/migrations/**/
+!/prisma/migrations/**/*.sql

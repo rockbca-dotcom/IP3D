@@ -3,19 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiArrowRight, HiPlay, HiOutlineChevronLeft, HiOutlineChevronRight } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
-import { addToCart } from "@/lib/cart";
 import { STANDARD_HOME_BANNER_CLASS } from "@/components/sections/page-banner-styles";
 import { CatalogCTA, MaintenancePreview, WhyChooseUs } from "@/components/sections";
-
-
-function isExternalUrl(value?: string | null) {
-  if (!value) return false;
-  return /^https?:\/\//i.test(value);
-}
+import ProductCardView from "@/components/site/ProductCard";
 
 export interface CategoryCard {
   id: string;
@@ -47,7 +40,6 @@ export interface ProductCard {
 }
 
 const MAX_PRODUCTS_PER_SECTION = 8;
-const defaultProductImage = "/images/products/components-placeholder.svg";
 
 const DEFAULT_SLIDES = [
   {
@@ -106,7 +98,7 @@ const DEFAULT_SLIDES = [
 type HeroSlide = (typeof DEFAULT_SLIDES)[number];
 type ApiBanner = {
   id: string;
-  image: string;
+  image?: string | null;
   title: string;
   badge?: string;
   subtitle?: string;
@@ -243,18 +235,6 @@ export interface HomeShowcaseProps {
   homeSections?: ApiHomeSection[];
 }
 
-function formatCurrency(value?: number | null) {
-  if (!value || value <= 0) return "Sob consulta";
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function getInstallments(value?: number | null) {
-  if (!value || value <= 0) return null;
-  const times = value >= 300 ? 12 : value >= 150 ? 6 : 3;
-  const perMonth = value / times;
-  return `${times}x de ${formatCurrency(perMonth)}`;
-}
-
 export function HomeShowcase({
   categories,
   featuredProducts,
@@ -264,6 +244,7 @@ export function HomeShowcase({
   banners,
   homeSections,
 }: HomeShowcaseProps) {
+  void promoProducts;
   const currentSlide = 0;
 
   const initialSlides = useMemo(() => {
@@ -291,7 +272,6 @@ export function HomeShowcase({
     setPrevBanners(banners);
     setHeroSlides(initialSlides);
   }
-  const [cartMessage, setCartMessage] = useState<string | null>(null);
   const [activeHotspotId, setActiveHotspotId] = useState<string | null>(null);
   const sectionCarouselRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -474,6 +454,7 @@ export function HomeShowcase({
   });
 
   const categoriesToRender = displayCategories.length > 0 ? displayCategories : defaultCategories;
+  void categoriesToRender;
   const compactSectionSlugs = new Set(["componentes-bambu-lab", "componentes-creality", "componentes-universais", "impressoras-3d", "impressoras-3d-equipamentos", "personalizados"]);
   const activeHomeSections = useMemo(
     () =>
@@ -580,28 +561,7 @@ export function HomeShowcase({
       </div>
     </section>
   );
-
-  const handleAddToCart = (product: ProductCard) => {
-    const basePrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
-    try {
-      addToCart({
-        productId: product.id,
-        name: product.name,
-        slug: product.slug,
-        image: product.image,
-        price: basePrice,
-        quantity: 1,
-        maxQuantity: product.stockQuantity ?? null,
-      });
-
-      setCartMessage(`${product.name} adicionado ao carrinho.`);
-      setTimeout(() => setCartMessage(null), 3000);
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "Erro ao adicionar ao carrinho.";
-      setCartMessage(msg);
-      setTimeout(() => setCartMessage(null), 3000);
-    }
-  };
+  void promoBannerSection;
 
   const scrollSection = (slug: string, direction: "left" | "right") => {
     const target = sectionCarouselRefs.current[slug];
@@ -777,113 +737,14 @@ export function HomeShowcase({
               }}
               className="mx-auto grid max-w-[1720px] grid-cols-1 gap-6 pb-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8"
             >
-              {featuredProductsToRender.map((product) => {
-                const mainPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
-                const oldPrice =
-                  product.pricePromo && product.priceOriginal && product.pricePromo < product.priceOriginal
-                    ? product.priceOriginal
-                    : null;
-                const pixPrice = mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : product.pixPrice ?? null;
-                const installments = getInstallments(mainPrice);
-                const hoverImage = product.hoverImage || product.gallery?.find((image) => image && image !== product.image) || null;
-                const productImage = product.image || defaultProductImage;
-
-                return (
-                <div
-                    key={product.id}
-                    className="group relative flex min-h-[500px] flex-col items-center overflow-hidden rounded-2xl bg-white text-center shadow-lg transition-all hover:-translate-y-1 hover:shadow-xl"
-                  >
-                    <button
-                      type="button"
-                      aria-label={`Favoritar ${product.name}`}
-                      className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#d9e6fb] bg-white/95 text-[#0B64D3] shadow-sm transition-colors hover:bg-[#edf4ff]"
-                    >
-                      <Heart className="h-4 w-4" />
-                    </button>
-
-                      <Link href={`/produtos/${product.slug}`} className="relative block h-[250px] w-full bg-white">
-                      <Image
-                        src={productImage}
-                        alt={product.name}
-                        fill
-                        className={`object-contain p-6 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                        sizes="(max-width: 768px) 80vw, 320px"
-                        loading="lazy"
-                      />
-                      {hoverImage && (
-                        <Image
-                          src={hoverImage}
-                          alt={`${product.name} - imagem secundária`}
-                          fill
-                          className="object-contain p-6 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                          sizes="(max-width: 768px) 80vw, 320px"
-                          loading="lazy"
-                        />
-                      )}
-                      <span className="absolute left-3 top-3 rounded-full bg-[#0B64D3] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
-                        Mais vendido
-                      </span>
-                    </Link>
-
-                      <div className="flex flex-1 flex-col items-center justify-start p-5 text-center">
-                      <Link
-                        href={`/produtos/${product.slug}`}
-                        className="line-clamp-2 mx-auto min-h-[3.2rem] max-w-[85%] text-[15px] font-semibold text-[#0f274c]"
-                      >
-                        {product.name}
-                      </Link>
-
-                      <div className="mt-4 rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-4 py-4 shadow-sm">
-                        {oldPrice && mainPrice ? (
-                          <div className="text-xs font-medium text-[#6f85a8] line-through">
-                            De {formatCurrency(oldPrice)}
-                          </div>
-                        ) : (
-                          <div className="text-xs font-medium text-[#6f85a8]">
-                            Melhor preço disponível
-                          </div>
-                        )}
-
-                        {mainPrice ? (
-                          <>
-                            <div className="mt-1 flex items-center justify-center gap-2">
-                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
-                                PIX
-                              </span>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
-                                5% de desconto
-                              </p>
-                            </div>
-                            <div className="mt-1 flex items-end justify-center gap-2">
-                              <span className="text-[2rem] font-extrabold leading-none text-[#128C7E]">
-                                {formatCurrency(pixPrice ?? mainPrice)}
-                              </span>
-                            </div>
-                            <div className="mt-2 text-sm text-[#128C7E]">
-                              ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
-                            </div>
-                            {installments && (
-                              <div className="mt-1 text-sm text-[#47628a]">
-                                em até <span className="font-semibold text-[#10213f]">{installments}</span> sem juros
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="mt-2 text-lg font-semibold text-[#10213f]">
-                            Preço sob consulta
-                          </div>
-                        )}
-                      </div>
-
-                        <div className="flex justify-center pt-4">
-                          <Button asChild className="h-11 w-full max-w-[220px] translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
-                          <Link href={`/produtos/${product.slug}`}>Comprar</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {featuredProductsToRender.map((product) => (
+                <ProductCardView
+                  key={product.id}
+                  product={product}
+                  badge="Mais vendido"
+                  variant="standard"
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -924,131 +785,15 @@ export function HomeShowcase({
               }}
               aria-label="Carrossel automático de todos os produtos IP3D"
             >
-              {[...allProducts, ...allProducts].map((product, index) => {
-                const mainPrice =
-                  product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
-                const oldPrice =
-                  product.pricePromo &&
-                  product.priceOriginal &&
-                  product.pricePromo < product.priceOriginal
-                    ? product.priceOriginal
-                    : null;
-                const pixPrice =
-                  product.pixPrice ??
-                  (mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : null);
-                const installments = getInstallments(mainPrice);
-                const canAddToCart = (product.stockQuantity ?? 0) > 0;
-                const hoverImage = product.hoverImage || product.gallery?.find((image) => image && image !== product.image) || null;
-                const productImage = product.image || defaultProductImage;
-
-                return (
-                  <div
-                    key={`marquee-${product.id}-${index}`}
-                    className="group relative flex h-[460px] w-[296px] shrink-0 flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-                    aria-hidden={index >= allProducts.length}
-                  >
-                    <button
-                      type="button"
-                      aria-label={`Favoritar ${product.name}`}
-                      className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#d9e6fb] bg-white/95 text-[#0B64D3] shadow-sm transition-colors hover:bg-[#edf4ff]"
-                      tabIndex={index >= allProducts.length ? -1 : undefined}
-                    >
-                      <Heart className="h-4 w-4" />
-                    </button>
-
-                      <Link
-                      href={`/produtos/${product.slug}`}
-                      className="relative block h-[210px] w-full bg-white"
-                      tabIndex={index >= allProducts.length ? -1 : undefined}
-                    >
-                      <Image
-                        src={productImage}
-                        alt={product.name}
-                        fill
-                        className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                        sizes="296px"
-                        loading="lazy"
-                      />
-                      {hoverImage && (
-                        <Image
-                          src={hoverImage}
-                          alt={`${product.name} - imagem secundária`}
-                          fill
-                          className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                          sizes="296px"
-                          loading="lazy"
-                        />
-                      )}
-                    </Link>
-
-                    <div className="flex flex-col p-4">
-                      <Link
-                        href={`/produtos/${product.slug}`}
-                        className="line-clamp-2 min-h-[3.2rem] text-[15px] font-semibold text-[#0f274c]"
-                        tabIndex={index >= allProducts.length ? -1 : undefined}
-                      >
-                        {product.name}
-                      </Link>
-
-                      <div className="mt-4 rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-3 py-3 shadow-sm">
-                        {oldPrice && mainPrice ? (
-                          <div className="text-xs font-medium text-[#6f85a8] line-through">
-                            De {formatCurrency(oldPrice)}
-                          </div>
-                        ) : (
-                          <div className="text-xs font-medium text-[#6f85a8]">
-                            Melhor preço disponível
-                          </div>
-                        )}
-
-                        {mainPrice ? (
-                          <>
-                            <div className="mt-1 flex items-center justify-center gap-2">
-                              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
-                                PIX
-                              </span>
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
-                                5% de desconto
-                              </p>
-                            </div>
-                            <div className="mt-1 flex items-end justify-center gap-2">
-                              <span className="text-[1.5rem] font-extrabold leading-none text-[#128C7E]">
-                                {formatCurrency(pixPrice ?? mainPrice)}
-                              </span>
-                            </div>
-                            <div className="mt-2 text-sm text-[#128C7E]">
-                              ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
-                            </div>
-                            {installments && (
-                              <div className="mt-1 text-sm text-[#47628a]">
-                                em até <span className="font-semibold text-[#10213f]">{installments}</span> sem juros
-                              </div>
-                            )}
-                          </>
-                        ) : (
-                          <div className="mt-2 text-lg font-semibold text-[#10213f]">
-                            Preço sob consulta
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="pt-3">
-                        <Button
-                          asChild
-                          className="h-10 w-full translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]"
-                        >
-                          <Link
-                            href={`/produtos/${product.slug}`}
-                            tabIndex={index >= allProducts.length ? -1 : undefined}
-                          >
-                            {canAddToCart ? "Comprar" : "Ver produto"}
-                          </Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {[...allProducts, ...allProducts].map((product, index) => (
+                <ProductCardView
+                  key={product.id + "-" + index}
+                  product={product}
+                  variant="compact"
+                  className="w-[296px] shrink-0"
+                  interactive={index < allProducts.length}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -1056,12 +801,6 @@ export function HomeShowcase({
 
         <section className="w-full bg-white py-10">
         <div className="mx-auto w-full max-w-[1720px] space-y-10 px-4 sm:px-6 lg:px-10 xl:px-12 2xl:px-16">
-          {cartMessage && (
-            <div className="sticky top-4 z-20 mx-auto w-fit rounded-full bg-[#10213f] px-4 py-2 text-sm font-medium text-white shadow-lg">
-              {cartMessage}
-            </div>
-          )}
-
             {categorySections.map((section) => {
               const products = categoryProductsMap[section.slug] ?? [];
               const isCompactSection = compactSectionSlugs.has(section.slug);
@@ -1127,108 +866,14 @@ export function HomeShowcase({
                     }
                     style={isCompactSection ? undefined : { scrollbarWidth: "none" }}
                       >
-                      {displayProducts.map((product) => {
-                    const mainPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
-                    const oldPrice = product.pricePromo && product.priceOriginal && product.pricePromo < product.priceOriginal ? product.priceOriginal : null;
-                    const pixPrice = product.pixPrice ?? (mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : null);
-                    const installments = getInstallments(mainPrice);
-                    const hoverImage = product.hoverImage || product.gallery?.find((image) => image && image !== product.image) || null;
-                    const productImage = product.image || defaultProductImage;
-
-                    return (
-                        <div
+                      {displayProducts.map((product) => (
+                        <ProductCardView
                           key={product.id}
-                          className={
-                            isCompactSection
-                              ? "group relative flex min-h-[460px] flex-col items-center overflow-hidden rounded-xl border border-[#d5e3fa] bg-white text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-                              : "group relative flex h-[460px] w-[296px] shrink-0 flex-col items-center overflow-hidden rounded-xl border border-[#d5e3fa] bg-white text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-                          }
-                      >
-                        <button
-                          type="button"
-                          aria-label={`Favoritar ${product.name}`}
-                          className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-[#d9e6fb] bg-white/95 text-[#0B64D3] shadow-sm transition-colors hover:bg-[#edf4ff]"
-                        >
-                          <Heart className="h-4 w-4" />
-                        </button>
-
-                        <Link href={`/produtos/${product.slug}`} className="relative block h-[210px] w-full bg-white">
-                          <Image
-                            src={productImage}
-                            alt={product.name}
-                            fill
-                            className={`object-contain p-5 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                            sizes="(max-width: 768px) 80vw, 296px"
-                            loading="lazy"
-                          />
-                          {hoverImage && (
-                            <Image
-                              src={hoverImage}
-                              alt={`${product.name} - imagem secundária`}
-                              fill
-                              className="object-contain p-5 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                              sizes="(max-width: 768px) 80vw, 296px"
-                              loading="lazy"
-                            />
-                          )}
-                        </Link>
-
-                        <div className="flex flex-col items-center justify-start p-4 text-center">
-                          <Link href={`/produtos/${product.slug}`} className="line-clamp-2 mx-auto min-h-[3.2rem] max-w-[85%] text-[15px] font-semibold text-[#0f274c]">
-                            {product.name}
-                          </Link>
-
-                          <div className="mt-4 w-full rounded-2xl border border-[#cdeed9] bg-[#f0fff5] px-4 py-4 shadow-sm">
-                            {oldPrice && mainPrice ? (
-                              <div className="text-xs font-medium text-[#6f85a8] line-through">
-                                De {formatCurrency(oldPrice)}
-                              </div>
-                            ) : (
-                              <div className="text-xs font-medium text-[#6f85a8]">
-                                Melhor preço disponível
-                              </div>
-                            )}
-
-                            {mainPrice ? (
-                              <>
-                                <div className="mt-1 flex items-center justify-center gap-2">
-                                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#25D366] text-[9px] font-black uppercase leading-none text-white shadow-sm">
-                                    PIX
-                                  </span>
-                                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#25D366]">
-                                    5% de desconto
-                                  </p>
-                                </div>
-                                <div className="mt-1 flex items-end justify-center gap-2">
-                                  <span className="text-[1.75rem] font-extrabold leading-none text-[#128C7E]">
-                                    {formatCurrency(pixPrice ?? mainPrice)}
-                                  </span>
-                                </div>
-                                <div className="mt-2 text-sm text-[#128C7E]">
-                                  ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
-                                </div>
-                                {installments && (
-                                  <div className="mt-1 text-sm text-[#47628a]">
-                                    em até <span className="font-semibold text-[#10213f]">{installments}</span> sem juros
-                                  </div>
-                                )}
-                              </>
-                            ) : (
-                              <div className="mt-2 text-lg font-semibold text-[#10213f]">
-                                Preço sob consulta
-                              </div>
-                            )}
-                          </div>
-
-                            <div className="flex justify-center pt-3">
-                              <Button asChild className="h-10 w-full max-w-[220px] translate-y-2 rounded-lg bg-[#0B64D3] text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 hover:bg-[#0A4A9D]">
-                              <Link href={`/produtos/${product.slug}`}>Comprar</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                      })}
+                          product={product}
+                          variant="compact"
+                          className={isCompactSection ? "" : "w-[296px] shrink-0"}
+                        />
+                      ))}
                     </div>
                   {section.slug === "componentes-bambu-lab" && (
                     <div className="mt-8 grid grid-cols-1 lg:grid-cols-[30%_1fr] gap-6">
@@ -1268,95 +913,13 @@ export function HomeShowcase({
 
                       {/* 3 Cards de Produtos 70% */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {favoriteProductsToRender.slice(0, 3).map((product) => {
-                          const mainPrice = product.pricePromo ?? product.priceOriginal ?? product.pixPrice ?? null;
-                          const oldPrice = product.pricePromo && product.priceOriginal && product.pricePromo < product.priceOriginal ? product.priceOriginal : null;
-                          const pixPrice = product.pixPrice ?? (mainPrice ? Number((mainPrice * 0.95).toFixed(2)) : null);
-                          const installments = getInstallments(mainPrice);
-                          const hoverImage = product.hoverImage || product.gallery?.find((image) => image && image !== product.image) || null;
-                          const productImage = product.image || defaultProductImage;
-
-                          return (
-                            <div
-                              key={product.id}
-                              className="group relative flex flex-col overflow-hidden rounded-xl border border-[#d5e3fa] bg-white text-center shadow-sm transition-all hover:-translate-y-1 hover:shadow-md"
-                            >
-                              <button
-                                type="button"
-                                aria-label={`Favoritar ${product.name}`}
-                                className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-[#d9e6fb] bg-white/95 text-[#0B64D3] shadow-sm transition-colors hover:bg-[#edf4ff]"
-                              >
-                                <Heart className="h-3 w-3" />
-                              </button>
-
-                              <Link href={`/produtos/${product.slug}`} className="relative block h-[140px] w-full bg-white">
-                                <Image
-                                  src={productImage}
-                                  alt={product.name}
-                                  fill
-                                  className={`object-contain p-3 transition-all duration-500 ${hoverImage ? "opacity-100 group-hover:opacity-0" : "group-hover:scale-105"}`}
-                                  sizes="(max-width: 768px) 80vw, 250px"
-                                  loading="lazy"
-                                />
-                                {hoverImage && (
-                                  <Image
-                                    src={hoverImage}
-                                    alt={`${product.name} - imagem secundária`}
-                                    fill
-                                    className="object-contain p-3 opacity-0 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
-                                    sizes="(max-width: 768px) 80vw, 250px"
-                                    loading="lazy"
-                                  />
-                                )}
-                              </Link>
-
-                              <div className="flex flex-col p-3 text-center">
-                                <Link href={`/produtos/${product.slug}`} className="line-clamp-2 min-h-[2.5rem] text-[13px] font-semibold text-[#0f274c]">
-                                  {product.name}
-                                </Link>
-
-                                <div className="mt-2 rounded-xl border border-[#cdeed9] bg-[#f0fff5] px-2 py-2 shadow-sm">
-                                  {oldPrice && mainPrice ? (
-                                    <div className="text-[10px] font-medium text-[#6f85a8] line-through">
-                                      De {formatCurrency(oldPrice)}
-                                    </div>
-                                  ) : (
-                                    <div className="text-[10px] font-medium text-[#6f85a8]">
-                                      Melhor preço
-                                    </div>
-                                  )}
-
-                                  {mainPrice ? (
-                                    <>
-                                      <div className="flex items-center justify-center gap-1">
-                                        <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-[#25D366] text-[7px] font-black uppercase text-white">
-                                          PIX
-                                        </span>
-                                        <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-[#25D366]">
-                                          5% OFF
-                                        </p>
-                                      </div>
-                                      <p className="text-[1.1rem] font-extrabold leading-none text-[#128C7E]">
-                                        {formatCurrency(pixPrice ?? mainPrice)}
-                                      </p>
-                                      <p className="mt-1 text-[10px] text-[#128C7E]">
-                                        ou <span className="font-semibold text-[#10213f]">{formatCurrency(mainPrice)}</span> no cartão
-                                      </p>
-                                    </>
-                                  ) : (
-                                    <p className="text-sm font-semibold text-[#10213f]">
-                                      Sob consulta
-                                    </p>
-                                  )}
-                                </div>
-
-                                <Button asChild size="sm" className="mt-2 h-8 w-full rounded-lg bg-[#0B64D3] text-white opacity-100 hover:bg-[#0A4A9D]">
-                                  <Link href={`/produtos/${product.slug}`}>Comprar</Link>
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
+                        {favoriteProductsToRender.slice(0, 3).map((product) => (
+                          <ProductCardView
+                            key={product.id}
+                            product={product}
+                            variant="mini"
+                          />
+                        ))}
                       </div>
                     </div>
                   )}

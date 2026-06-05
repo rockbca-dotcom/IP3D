@@ -24,6 +24,12 @@ vi.mock("framer-motion", async () => {
       div: ({ children, "data-testid": testId, ...props }: React.HTMLAttributes<HTMLDivElement> & { "data-testid"?: string } & Record<string, unknown>) => (
         <div data-testid={testId} {...props}>{children}</div>
       ),
+      h1: ({ children, ...props }: React.HTMLAttributes<HTMLHeadingElement> & Record<string, unknown>) => (
+        <h1 {...props}>{children}</h1>
+      ),
+      p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement> & Record<string, unknown>) => (
+        <p {...props}>{children}</p>
+      ),
     },
   };
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,8 +10,6 @@ import {
   HiOutlineLogout,
   HiOutlineUser,
   HiOutlineCog,
-  HiOutlineMoon,
-  HiOutlineSun,
   HiOutlineGlobe,
   HiX,
   HiOutlineCheck,
@@ -135,32 +133,6 @@ function LanguageSelector() {
         </>
       )}
     </div>
-  );
-}
-
-// Micro-componente: Toggle Dark/Light Mode
-function ThemeToggle() {
-  const [isDark, setIsDark] = useState(() => localStorage.getItem("admin-theme") === "dark");
-
-  const toggle = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
-    localStorage.setItem("admin-theme", newTheme ? "dark" : "light");
-    document.documentElement.classList.toggle("dark", newTheme);
-  };
-
-  return (
-    <button
-      onClick={toggle}
-      className="p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
-      title={isDark ? "Modo claro" : "Modo escuro"}
-    >
-      {isDark ? (
-        <HiOutlineSun className="h-5 w-5" />
-      ) : (
-        <HiOutlineMoon className="h-5 w-5" />
-      )}
-    </button>
   );
 }
 

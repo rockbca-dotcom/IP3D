@@ -2,19 +2,12 @@
 
 import { useState, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
 import { motion, useInView } from "framer-motion";
-import { HiArrowRight, HiOutlineViewGrid, HiOutlineViewList, HiOutlineSearch, HiX } from "react-icons/hi";
+import { HiOutlineViewGrid, HiOutlineViewList, HiOutlineSearch, HiX } from "react-icons/hi";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/site/ProductCard";
 import { PageHero } from "@/components/sections";
 import { limitWords, normalizeHeroCopy } from "@/components/sections/page-banner-styles";
-
-function stripHtml(html: string): string {
-  if (!html) return "";
-  return html.replace(/<[^>]*>/g, "").trim();
-}
 
 interface Category {
   id: string;
@@ -324,43 +317,7 @@ function ProductsContent() {
                   animate={isInView ? { opacity: 1, x: 0 } : {}}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Link
-                    href={`/produtos/${product.slug}`}
-                    className="group flex flex-col md:flex-row gap-6 bg-white p-6 border border-gray-200 hover:border-gray-300 transition-colors"
-                  >
-                    <div className="relative w-full md:w-64 aspect-square md:aspect-auto md:h-48 bg-white overflow-hidden flex-shrink-0">
-                      <Image
-                        src={product.image || "/images/products/components-placeholder.svg"}
-                        alt={product.name}
-                        fill
-                        className="object-contain p-4 transition-transform duration-700 group-hover:scale-105"
-                        sizes="(max-width: 768px) 100vw, 256px"
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="flex flex-col justify-center flex-1">
-                      <span className="text-xs uppercase tracking-wider text-gray-500 mb-2">
-                        {product.categories && product.categories.length > 0 
-                          ? product.categories[0].category.name
-                          : product.category?.name}
-                      </span>
-                      <h3 className="text-2xl font-semibold text-black mb-3 group-hover:text-gray-600 transition-colors">
-                        {product.name}
-                      </h3>
-                      <p className="text-gray-500 leading-relaxed mb-2 line-clamp-3">
-                        {stripHtml(product.shortDescription)}
-                      </p>
-                      <div className="text-lg font-semibold text-black mb-4">
-                        {product.pricePromo ?? product.priceOriginal
-                          ? (product.pricePromo ?? product.priceOriginal)?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-                          : "Sob consulta"}
-                      </div>
-                      <span className="inline-flex items-center text-sm font-medium text-black group-hover:text-gray-600 transition-colors">
-                        Ver detalhes
-                        <HiArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </span>
-                    </div>
-                  </Link>
+                  <ProductCard product={product} variant="list" />
                 </motion.div>
               ))}
             </div>

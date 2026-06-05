@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   HiOutlineCheck,
@@ -93,13 +93,7 @@ export default function PersonalizadosAdminPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    queueMicrotask(() => {
-      void loadConfig();
-    });
-  }, []);
-
-  async function loadConfig() {
+  const loadConfig = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/layout?type=page-personalizados&variant=main");
       const data = await response.json();
@@ -114,7 +108,13 @@ export default function PersonalizadosAdminPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadConfig();
+    });
+  }, [loadConfig]);
 
   async function handleSave() {
     setSaving(true);

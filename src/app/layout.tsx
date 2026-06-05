@@ -38,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" style={{ colorScheme: "light" }} suppressHydrationWarning>
       <head>
+        <meta name="color-scheme" content="light" />
         {/* Preconnect para recursos externos */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

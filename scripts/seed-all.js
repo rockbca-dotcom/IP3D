@@ -14,6 +14,15 @@ const { parseSeedArgs, validateEnvironment } = require("./seed-utils");
 const options = parseSeedArgs(process.argv.slice(2));
 validateEnvironment("seed-all.js", options);
 
+function isPasswordSecure(password) {
+  if (password.length < 12) return false;
+  if (!/[A-Z]/.test(password)) return false;
+  if (!/[a-z]/.test(password)) return false;
+  if (!/[0-9]/.test(password)) return false;
+  if (!/[!@#$%^&*(),.?":{}|<>_\-]/.test(password)) return false;
+  return true;
+}
+
 // ── Categorias ────────────────────────────────────────────────────────────────
 const CATEGORIES = [
   { name: "Componentes Bambu Lab",   slug: "componentes-bambu-lab",       order: 1 },
@@ -382,10 +391,19 @@ const PRODUCTS = [
 
 // ── Admin padrão ──────────────────────────────────────────────────────────────
 const ADMIN = {
-  email: "admin@ip3d.com.br",
-  password: "Ip3d@2026",
-  name: "Administrador",
+  email: (process.env.ADMIN_EMAIL || "admin@ip3d.com.br").toLowerCase().trim(),
+  password: process.env.ADMIN_PASSWORD || "Ip3d@2026",
+  name: process.env.ADMIN_NAME || "Administrador",
 };
+
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.ADMIN_PASSWORD || ADMIN.password === "Ip3d@2026") {
+    throw new Error("ADMIN_PASSWORD forte e obrigatorio para seed-all.js em producao.");
+  }
+  if (!isPasswordSecure(ADMIN.password)) {
+    throw new Error("ADMIN_PASSWORD nao atende aos requisitos minimos de seguranca.");
+  }
+}
 
 // ── Execução ──────────────────────────────────────────────────────────────────
 async function main() {

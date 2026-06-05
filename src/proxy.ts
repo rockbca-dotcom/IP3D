@@ -6,11 +6,11 @@ import { sessionOptions, SessionData } from "@/lib/session";
 // ---------------------------------------------------------------------------
 // NOTE ON EDGE RUNTIME COMPATIBILITY
 //
-// This middleware runs on the Next.js Edge runtime. As a result:
+// This proxy runs on the Next.js Edge runtime. As a result:
 //
 //   1. `cookies()` from "next/headers" is NOT available here.
 //      Therefore `getSession()` / `isAdmin()` from "@/lib/auth" cannot be
-//      called from middleware (they use next/headers internally).
+//      called from proxy (they use next/headers internally).
 //
 //   2. `getIronSession(request.cookies, ...)` does NOT work either — the
 //      Next.js `RequestCookies` type is structurally incompatible with
@@ -22,14 +22,14 @@ import { sessionOptions, SessionData } from "@/lib/session";
 //      is TypeScript strict clean.
 //
 // SECURITY ARCHITECTURE:
-//   1. This middleware: unsealData() → cryptographic iron-session validation
+//   1. This proxy: unsealData() → cryptographic iron-session validation
 //      → early UX redirect before layout renders
 //   2. (dashboard)/layout.tsx: getSession() → second validation layer
 //   3. /api/admin/* routes: requireAdmin() → authoritative security boundary
 //      for all data mutations and reads
 // ---------------------------------------------------------------------------
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip static files and API routes
